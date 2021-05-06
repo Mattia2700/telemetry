@@ -15,7 +15,7 @@ int main(){
   string fname = get_last_fname(FOLDER_PATH);
 
   sockaddr_can addr;
-  Can* can = new Can("vcan0", &addr);
+  Can* can = new Can(CAN_DEVICE, &addr);
   int sock = can->open();
 
   if(sock == -1){
@@ -27,26 +27,51 @@ int main(){
   }
 
   while(true){
+
+    // TODO: Add can filter
     while(true){
       can->receive(&message);
 
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
-          cout << "started" << endl;
           // Start Telemetry
+          cout << "Started" << endl;
+          break;
+          // Add pilots config
         }
-
-        break;
       }
     }
+    // TODO: remove filter
 
+    string fname = get_last_fname(FOLDER_PATH);
+    std::ofstream log(fname);
+
+
+    stringstream line;
     while(true){
       can->receive(&message);
-      cout << id << endl;
+      
+      line.str("");
+      line << "(";
+      line << to_string(get_timestamp());
+      line << ")\t";
+      line << CAN_DEVICE << "\t";
+
+      line << get_hex(int(message.can_id), 3) << "#";
       for(int i = 0; i < message.can_dlc; i++){
-        cout << to_string(message.data[i]);
+        line << get_hex(int(message.data[i]), 2);
       }
-      cout << endl;
+
+      log << line.str() << endl;
+
+      if(message.can_id == 0xA0 && message.can_dlc >= 2){
+        if(message.data[0] == 0x65 && message.data[1] == 0x00){
+          // Stop Telemetry
+          cout << "Stopped" << endl;
+          log.close();
+          break;
+        }
+      }
     }
   }
 
@@ -61,4 +86,15 @@ string get_last_fname(string path){
   }
 
   return path+"/"+to_string(number)+".log";
+}
+
+
+double get_timestamp(){
+  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count();
+}
+
+string get_hex(int num, int zeros){
+  stringstream ss;
+  ss << setw(zeros) << uppercase << setfill('0') << hex << num; 
+  return ss.str();
 }

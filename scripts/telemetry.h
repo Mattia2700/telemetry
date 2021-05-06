@@ -1,8 +1,11 @@
 #ifndef TELEMETRY_H
 #define TELEMETRY_H
 
+#include <chrono>
 #include <stdio.h>
 #include <cstdlib>
+#include <iomanip>
+#include <fstream>
 #include <string.h>
 #include <iostream>
 
@@ -12,7 +15,9 @@
 
 using namespace std;
 using namespace boost::filesystem;
+using namespace std::chrono;
 
+const char* CAN_DEVICE = "vcan0";
 string HOME_PATH;
 string FOLDER_PATH;
 
@@ -23,5 +28,8 @@ can_frame message;
 int main();
 
 string get_last_fname(string path);
+double get_timestamp();
+
+string get_hex(int num, int zeros);
 
 #endif
