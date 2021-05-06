@@ -23,6 +23,8 @@ public:
   int send(int id, char* data, int len);
   int receive(can_frame*);
 
+  int set_filters(can_filter& filter);
+
 private:
   int sock;
   const char* device;

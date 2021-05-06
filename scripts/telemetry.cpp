@@ -12,8 +12,6 @@ int main(){
     return 0;
   }
 
-  string fname = get_last_fname(FOLDER_PATH);
-
   sockaddr_can addr;
   Can* can = new Can(CAN_DEVICE, &addr);
   int sock = can->open();
@@ -48,14 +46,17 @@ int main(){
     "Endurance",
     "Acceleration",
   });
-  
+
+  // indices for PILOTS, RACES, CIRCUITS
   int i1, i2, i3;
   while(true){
 
-    // TODO: Add can filter
+    struct can_filter rfilter;
+    rfilter.can_id   = 0x0A0;
+    rfilter.can_mask = 0b11111111111;
+    can->set_filters(rfilter);
     while(true){
       can->receive(&message);
-
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
           // Start Telemetry
@@ -73,7 +74,11 @@ int main(){
         }
       }
     }
-    // TODO: remove filter
+    // To remove a filter set the mask to 0
+    // So every id will pass the mask
+    rfilter.can_id   = 0x000;
+    rfilter.can_mask = 0b00000000000;
+    can->set_filters(rfilter);
 
     string fname = get_last_fname(FOLDER_PATH);
     std::ofstream log(fname);
@@ -88,6 +93,7 @@ int main(){
     std::time_t date = std::time(0);
     char* date_c = ctime(&date);
 
+
     log << "\r\n\n"
         "*** EAGLE-TRT\r\n"
         "*** Telemetry Log File\r\n"
@@ -97,7 +103,6 @@ int main(){
         "*** Race: " << RACES[i2] << "\r\n"
         "*** Circuit: " << CIRCUITS[i3] << 
         "\n\n\r";
-
 
     stringstream line;
     while(true){
@@ -142,7 +147,7 @@ string get_last_fname(string path){
 
 
 double get_timestamp(){
-  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count();
+  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count()/1000;
 }
 
 string get_hex(int num, int zeros){

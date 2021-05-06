@@ -47,3 +47,7 @@ int Can::send(int id, char* data, int len){
 int Can::receive(can_frame* frame){
 	return read(this->sock, frame, 16);;
 }
+
+int Can::set_filters(can_filter& filter){
+	return setsockopt(this->sock, SOL_CAN_RAW, CAN_RAW_FILTER, &filter, sizeof(filter));
+}
