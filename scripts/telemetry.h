@@ -21,6 +21,10 @@ const char* CAN_DEVICE = "vcan0";
 string HOME_PATH;
 string FOLDER_PATH;
 
+vector<string> CIRCUITS;
+vector<string> PILOTS;
+vector<string> RACES;
+
 int id;
 uint8_t* data = new uint8_t[8];
 can_frame message;

@@ -26,6 +26,30 @@ int main(){
     cout << "Failed bind socket" << endl;
   }
 
+  CIRCUITS = vector<string>({
+    "none",
+    "Vadena",
+    "Varano",
+    "Povo",
+    "Skio",
+  });
+  PILOTS = vector<string>({
+    "none",
+    "Ivan",
+    "Filippo",
+    "Mirco",
+    "Nicola",
+    "Davide",
+  });
+  RACES = vector<string>({
+    "none",
+    "Autocross",
+    "Skidpad",
+    "Endurance",
+    "Acceleration",
+  });
+  
+  int i1, i2, i3;
   while(true){
 
     // TODO: Add can filter
@@ -36,8 +60,16 @@ int main(){
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
           // Start Telemetry
           cout << "Started" << endl;
+          if(message.can_dlc >= 5){
+            i1 = message.data[2];
+            i2 = message.data[3];
+            i3 = message.data[4];
+          }else{
+            i1 = 0;
+            i2 = 0;
+            i3 = 0;
+          }
           break;
-          // Add pilots config
         }
       }
     }
@@ -45,6 +77,26 @@ int main(){
 
     string fname = get_last_fname(FOLDER_PATH);
     std::ofstream log(fname);
+    
+    if (i1 >= PILOTS.size())
+      i1 = 0;
+    if (i2 >= RACES.size())
+      i2 = 0;
+    if (i3 >= CIRCUITS.size())
+      i3 = 0;
+    
+    std::time_t date = std::time(0);
+    char* date_c = ctime(&date);
+
+    log << "\r\n\n"
+        "*** EAGLE-TRT\r\n"
+        "*** Telemetry Log File\r\n"
+        "*** " << date_c <<
+        "\r\n"
+        "*** Pilot: " << PILOTS[i1] << "\r\n"
+        "*** Race: " << RACES[i2] << "\r\n"
+        "*** Circuit: " << CIRCUITS[i3] << 
+        "\n\n\r";
 
 
     stringstream line;
