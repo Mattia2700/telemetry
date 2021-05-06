@@ -1,0 +1,49 @@
+#include "can.h"
+
+Can::Can(const char* device, sockaddr_can* address){
+  this->device = device;
+  this->address = address;
+}
+
+int Can::open(){
+  int can_socket;
+	struct ifreq ifr;
+
+	can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
+	if (can_socket < 0) {
+		return -1;
+	}
+
+	strcpy(ifr.ifr_name, this->device);
+	ioctl(can_socket, SIOCGIFINDEX, &ifr);
+
+	(*address).can_family = AF_CAN;
+	(*address).can_ifindex = ifr.ifr_ifindex;
+
+	if (bind(can_socket, (struct sockaddr *) address, sizeof(*address)) < 0) {
+		return -2;
+	}
+
+  this->sock = can_socket;
+	return can_socket;
+}
+
+int Can::send(int id, char* data, int len){
+  if (len > 8) {
+		return -1;
+	}
+
+	struct can_frame frame;
+	frame.can_id = id;
+	frame.can_dlc = len;
+	
+	for (int i = 0; i < len; ++i) {
+		frame.data[i] = data[i];
+	}
+
+	return write(this->sock, &frame, sizeof(frame));
+}
+
+int Can::receive(can_frame* frame){
+	return read(this->sock, frame, 16);;
+}
