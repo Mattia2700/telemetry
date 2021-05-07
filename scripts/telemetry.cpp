@@ -16,13 +16,18 @@ int main(){
   Can* can = new Can(CAN_DEVICE, &addr);
   int sock = can->open();
 
-  if(sock == -1){
-    cout << "Failed creating socket" << endl;
-    return -1;
+  if(sock < 0){
+    cout << "Failed creating/binding socket: " << CAN_DEVICE << endl;
+    CAN_DEVICE = "can0";
+    can = new Can(CAN_DEVICE, &addr);
+    sock = can->open();
+    if(sock < 0){
+      cout << "Failed creating/binding socket: " << CAN_DEVICE << endl;
+      cout << "Exiting" << endl;
+      return 0;
+    }
   }
-  else if(sock == -2){
-    cout << "Failed bind socket" << endl;
-  }
+  cout << "Opened Socket: " << CAN_DEVICE << endl;
 
   CIRCUITS = vector<string>({
     "none",
@@ -50,17 +55,22 @@ int main(){
   // indices for PILOTS, RACES, CIRCUITS
   int i1, i2, i3;
   while(true){
+    // Send telemetry status IDLE
+    msg_data[0] = 0;
+    can->send(0x99,(char* )msg_data, 1);
 
-    struct can_filter rfilter;
-    rfilter.can_id   = 0x0A0;
+    // Set CAN filter to accept only 0xA0 id
+    rfilter.can_id   = 0xA0;
     rfilter.can_mask = 0b11111111111;
     can->set_filters(rfilter);
+
     while(true){
       can->receive(&message);
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
+        // Start Message
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
-          // Start Telemetry
           cout << "Started" << endl;
+          // If contains some payload use to setup pilots races and circuits
           if(message.can_dlc >= 5){
             i1 = message.data[2];
             i2 = message.data[3];
@@ -80,20 +90,23 @@ int main(){
     rfilter.can_mask = 0b00000000000;
     can->set_filters(rfilter);
 
+    // Open file with incremental names (1.log ... 10.log)
     string fname = get_last_fname(FOLDER_PATH);
     std::ofstream log(fname);
-    
+
+    // Check index range
     if (i1 >= PILOTS.size())
       i1 = 0;
     if (i2 >= RACES.size())
       i2 = 0;
     if (i3 >= CIRCUITS.size())
       i3 = 0;
-    
+
+    // Get human readable date
     std::time_t date = std::time(0);
     char* date_c = ctime(&date);
 
-
+    // Insert header at top of the file
     log << "\r\n\n"
         "*** EAGLE-TRT\r\n"
         "*** Telemetry Log File\r\n"
@@ -101,33 +114,48 @@ int main(){
         "\r\n"
         "*** Pilot: " << PILOTS[i1] << "\r\n"
         "*** Race: " << RACES[i2] << "\r\n"
-        "*** Circuit: " << CIRCUITS[i3] << 
+        "*** Circuit: " << CIRCUITS[i3] <<
         "\n\n\r";
 
     stringstream line;
+
+    // Use this timer to send status messages
+    auto t_start = high_resolution_clock::now();
+    auto t_end = high_resolution_clock::now();
     while(true){
       can->receive(&message);
-      
+
       line.str("");
       line << "(";
       line << to_string(get_timestamp());
       line << ")\t";
       line << CAN_DEVICE << "\t";
 
+      // Format message as ID#<payload>
+      // Hexadecimal representation
       line << get_hex(int(message.can_id), 3) << "#";
       for(int i = 0; i < message.can_dlc; i++){
         line << get_hex(int(message.data[i]), 2);
       }
 
+      // Write in file
       log << line.str() << endl;
 
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
+        // Stop message
         if(message.data[0] == 0x65 && message.data[1] == 0x00){
-          // Stop Telemetry
           cout << "Stopped" << endl;
           log.close();
           break;
         }
+      }
+
+      t_end = high_resolution_clock::now();
+      if(duration<double, milli>(t_end - t_start).count() > 200){
+        // Send telemetry status (RUN)
+        msg_data[0] = 1;
+        can->send(0x99,(char* )msg_data, 1);
+        t_start = high_resolution_clock::now();
       }
     }
   }
@@ -136,15 +164,12 @@ int main(){
 }
 
 string get_last_fname(string path){
-
   int number = 0;
   while(exists(path+"/"+to_string(number)+".log")){
     number ++;
   }
-
   return path+"/"+to_string(number)+".log";
 }
-
 
 double get_timestamp(){
   return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count()/1000;
@@ -152,6 +177,6 @@ double get_timestamp(){
 
 string get_hex(int num, int zeros){
   stringstream ss;
-  ss << setw(zeros) << uppercase << setfill('0') << hex << num; 
+  ss << setw(zeros) << uppercase << setfill('0') << hex << num;
   return ss.str();
 }

@@ -29,14 +29,14 @@ int Can::open(){
 }
 
 int Can::send(int id, char* data, int len){
-  if (len > 8) {
+  if (len < 0 || len > 8) {
 		return -1;
 	}
 
 	struct can_frame frame;
 	frame.can_id = id;
 	frame.can_dlc = len;
-	
+
 	for (int i = 0; i < len; ++i) {
 		frame.data[i] = data[i];
 	}
