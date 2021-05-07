@@ -55,8 +55,8 @@ pp stands for pilot   vector index expressed in hexadecimal.
 rr stands for race    vector index expressed in hexadecimal.  
 cc stands for circuit vector index expressed in hexadecimal.  
 
-So, in the start message, using parameters, the payload contains 4 parameters:
-0: start
-1: pilot
-2: race
-3: circuit
+So, in the start message, using parameters, the payload contains 4 parameters:  
+0: start  
+1: pilot  
+2: race  
+3: circuit  
