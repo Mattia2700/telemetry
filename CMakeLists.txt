@@ -4,10 +4,28 @@ project(Telemetry)
 
 set(CMAKE_CXX_STANDARD 17)
 
+LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
+
+###########
+## BOOST ##
+###########
 find_package(Boost  1.54.0
    REQUIRED
    COMPONENTS serialization filesystem
 )
+
+############
+##  JSON  ##
+############
+find_package(JSONCPP)
+if(${JSONCPP_FOUND})
+  MESSAGE(STATUS "Found JSONCPP")
+  add_definitions(-DJSON=1)
+else()
+  MESSAGE(WARN "JSONCPP not found so cannot create JSON files")
+endif()
+
+
 
 include_directories(
   ${PROJECT_SOURCE_DIR}
@@ -24,4 +42,4 @@ add_library(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 add_executable(telemetry scripts/telemetry.cpp)
-target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})
+target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES} jsoncpp)

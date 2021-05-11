@@ -55,6 +55,7 @@ int main(){
   // indices for PILOTS, RACES, CIRCUITS
   int i1 = 0, i2 = 0, i3 = 0;
   while(true){
+    messages_count = 0;
     // Send telemetry status IDLE
     msg_data[0] = 0;
     can->send(0x99,(char* )msg_data, 1);
@@ -69,7 +70,7 @@ int main(){
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Start Message
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
-          cout << "Started" << endl;
+          cout << "Status: " << "\e[1;33m" << "Running" << "\e[0m" << "\r" << flush;
           // If contains some payload use to setup pilots races and circuits
           if(message.can_dlc >= 5){
             i1 = message.data[2];
@@ -106,11 +107,9 @@ int main(){
     subfolder += "_";
     subfolder += RACES[i2];
 
-    create_directory(FOLDER_PATH + "/" + subfolder);
-    string fname = "";
-    fname += FOLDER_PATH + "/";
-    fname += subfolder + "/";
-    fname += "candump.log";
+    string folder = FOLDER_PATH + "/" + subfolder;
+    create_directory(folder);
+    string fname = folder + "/" + "candump.log";
     std::ofstream log(fname);
 
     // Check index range
@@ -136,12 +135,14 @@ int main(){
         "\n\n\r";
 
     stringstream line;
-
     // Use this timer to send status messages
-    auto t_start = high_resolution_clock::now();
-    auto t_end = high_resolution_clock::now();
+    time_point t_start = high_resolution_clock::now();
+    time_point t_end = t_start;
+    time_point log_start_t = t_start;
     while(true){
       can->receive(&message);
+
+      messages_count ++;
 
       line.str("");
       line << "(";
@@ -162,7 +163,7 @@ int main(){
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Stop message
         if(message.data[0] == 0x65 && message.data[1] == 0x00){
-          cout << "Stopped" << endl;
+          cout << "Status: " << "\e[1;31m" << "Stopped" << "\e[0m" << "\r" << flush;
           log.close();
           break;
         }
@@ -176,6 +177,33 @@ int main(){
         t_start = high_resolution_clock::now();
       }
     }
+
+    #ifdef JSON
+      double dt = duration<double, milli>
+                  (high_resolution_clock::now() - log_start_t)
+                  .count()/1000;
+
+      Json::Value stat(Json::objectValue);
+      stat["Date"] = date_c;
+
+      stat["Pilot"] = PILOTS[i1];
+      stat["Race"] = RACES[i2];
+      stat["Circuit"] = CIRCUITS[i3];
+
+      stat["Messages"] = messages_count;
+      stat["Average Frequency"] = int(messages_count / dt);
+      stat["Duration"] = dt;
+
+
+      Json::StreamWriterBuilder builder;
+      const string json_str = Json::writeString(builder, stat);
+      std::ofstream stat_f(folder + "/stat.json");
+      stat_f << json_str;
+      stat_f.close();
+
+    #endif
+
+
   }
 
   return 0;

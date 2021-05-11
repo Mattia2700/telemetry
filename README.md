@@ -1,10 +1,19 @@
 # Telemetry
-C++ interface to CAN bus
+C++ interface to CAN bus  
 
-## Telemetry
 Saving log files of can messages.  
 
-### Usage
+## Requirements
+Required Boost libs, install them with:  
+~~~bash
+sudo apt-get install libboost-all-dev
+~~~
+Optional JSONCPP:  
+~~~bash
+sudo apt-get install libjsoncpp-dev
+~~~
+
+## Usage
 Run the program.  
 To start logging send:  
 ~~~
@@ -62,7 +71,7 @@ So, in the start message, using parameters, the payload contains 4 parameters:
 3: circuit
 
 
-### OUTPUT
+## OUTPUT
 
 Logs file can be found in:  
 ~~~

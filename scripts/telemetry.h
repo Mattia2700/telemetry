@@ -11,6 +11,9 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#ifdef JSON
+  #include <jsoncpp/json/json.h>
+#endif
 
 #include "can.h"
 
@@ -25,6 +28,8 @@ string FOLDER_PATH;
 vector<string> CIRCUITS;
 vector<string> PILOTS;
 vector<string> RACES;
+
+uint32_t messages_count;
 
 int id;
 uint8_t* msg_data = new uint8_t[8];
