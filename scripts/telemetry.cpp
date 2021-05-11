@@ -30,14 +30,14 @@ int main(){
   cout << "Opened Socket: " << CAN_DEVICE << endl;
 
   CIRCUITS = vector<string>({
-    "none",
+    "default",
     "Vadena",
     "Varano",
     "Povo",
     "Skio",
   });
   PILOTS = vector<string>({
-    "none",
+    "default",
     "Ivan",
     "Filippo",
     "Mirco",
@@ -45,7 +45,7 @@ int main(){
     "Davide",
   });
   RACES = vector<string>({
-    "none",
+    "default",
     "Autocross",
     "Skidpad",
     "Endurance",
@@ -53,7 +53,7 @@ int main(){
   });
 
   // indices for PILOTS, RACES, CIRCUITS
-  int i1, i2, i3;
+  int i1 = 0, i2 = 0, i3 = 0;
   while(true){
     // Send telemetry status IDLE
     msg_data[0] = 0;
@@ -90,8 +90,27 @@ int main(){
     rfilter.can_mask = 0b00000000000;
     can->set_filters(rfilter);
 
-    // Open file with incremental names (1.log ... 10.log)
-    string fname = get_last_fname(FOLDER_PATH);
+    time_t date = time(0);
+    tm *ltm = localtime(&date);
+    // Create a unique folder
+    string subfolder = "";
+    subfolder += to_string(1900 + ltm->tm_year);
+    subfolder += to_string(1    + ltm->tm_mon);
+    subfolder += to_string(       ltm->tm_mday);
+    subfolder += "_";
+    subfolder += to_string(ltm->tm_hour);
+    subfolder += to_string(ltm->tm_min);
+    subfolder += to_string(ltm->tm_sec);
+    subfolder += "_";
+    subfolder += PILOTS[i1];
+    subfolder += "_";
+    subfolder += RACES[i2];
+
+    create_directory(FOLDER_PATH + "/" + subfolder);
+    string fname = "";
+    fname += FOLDER_PATH + "/";
+    fname += subfolder + "/";
+    fname += "candump.log";
     std::ofstream log(fname);
 
     // Check index range
@@ -103,7 +122,6 @@ int main(){
       i3 = 0;
 
     // Get human readable date
-    std::time_t date = std::time(0);
     char* date_c = ctime(&date);
 
     // Insert header at top of the file

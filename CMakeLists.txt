@@ -23,9 +23,5 @@ add_library(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-add_executable(main scripts/main.cpp)
-target_link_libraries(main ${PROJECT_NAME} ${Boost_LIBRARIES})
-
-
 add_executable(telemetry scripts/telemetry.cpp)
 target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})

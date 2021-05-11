@@ -1,6 +1,7 @@
 #ifndef TELEMETRY_H
 #define TELEMETRY_H
 
+#include <ctime>
 #include <chrono>
 #include <stdio.h>
 #include <cstdlib>
