@@ -11,8 +11,10 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+
 #ifdef JSON
-  #include <jsoncpp/json/json.h>
+  #include <nlohmann/json.hpp>
+  using json = nlohmann::json;
 #endif
 
 #include "can.h"
@@ -37,14 +39,6 @@ uint8_t* msg_data = new uint8_t[8];
 // Filter and message structs
 can_filter rfilter;
 can_frame message;
-
-/**
-* Gest last filename with .log extension
-* The filename is number.log (1.log ...)
-* @param folder path
-* return full path to file
-*/
-string get_last_fname(string path);
 
 /**
 * Gets current timestamp in seconds

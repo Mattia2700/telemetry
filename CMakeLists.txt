@@ -14,18 +14,12 @@ find_package(Boost  1.54.0
    COMPONENTS serialization filesystem
 )
 
-############
-##  JSON  ##
-############
-find_package(JSONCPP)
-if(${JSONCPP_FOUND})
-  MESSAGE(STATUS "Found JSONCPP")
+find_package(nlohmann_json)
+if(${nlohmann_json_FOUND})
   add_definitions(-DJSON=1)
 else()
-  MESSAGE(WARN "JSONCPP not found so cannot create JSON files")
+  message("JSON not found!")
 endif()
-
-
 
 include_directories(
   ${PROJECT_SOURCE_DIR}

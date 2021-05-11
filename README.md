@@ -1,16 +1,15 @@
 # Telemetry
-C++ interface to CAN bus  
-
-Saving log files of can messages.  
+Log messages received in CAN bus.  
+Start and stop logging by sending specific command messages.  
 
 ## Requirements
 Required Boost libs, install them with:  
 ~~~bash
 sudo apt-get install libboost-all-dev
 ~~~
-Optional JSONCPP:  
+Optional nlohmann_json:  
 ~~~bash
-sudo apt-get install libjsoncpp-dev
+sudo apt-get install -y nlohmann-json-dev
 ~~~
 
 ## Usage
@@ -82,6 +81,8 @@ At each start a new sub_directory is created like:
 20201215_183218_Mirco_Skidpad
 Date     Time   Pilot Race
 ~~~
+
+### CANDUMP
 In the sub_folder will be created a file named **candump.log**.  
 A file sample:  
 ~~~
@@ -105,4 +106,20 @@ A file sample:
 (1620742552.544704)	vcan0	4DB#22AEA11995EDD25C
 (1620742552.545826)	vcan0	108#D4B2AB17
 (1620742552.546967)	vcan0	28D#86B821
+~~~
+
+### JSON
+If the requirement is satisfied will be created **stat.json**.  
+~~~
+{
+  "Date": "Tue May 11 18:47:52 2021\n",
+
+  "Pilot": "Filippo",
+  "Race": "Endurance",
+  "Circuit": "Vadena",
+
+  "Messages": 18353,
+  "Average Frequency": 878,
+  "Duration": 20.889837674
+}
 ~~~

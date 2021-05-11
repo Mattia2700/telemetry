@@ -94,20 +94,20 @@ int main(){
     time_t date = time(0);
     tm *ltm = localtime(&date);
     // Create a unique folder
-    string subfolder = "";
-    subfolder += to_string(1900 + ltm->tm_year);
-    subfolder += to_string(1    + ltm->tm_mon);
-    subfolder += to_string(       ltm->tm_mday);
-    subfolder += "_";
-    subfolder += to_string(ltm->tm_hour);
-    subfolder += to_string(ltm->tm_min);
-    subfolder += to_string(ltm->tm_sec);
-    subfolder += "_";
-    subfolder += PILOTS[i1];
-    subfolder += "_";
-    subfolder += RACES[i2];
+    stringstream subfolder;
+    subfolder << to_string(1900 + ltm->tm_year);
+    subfolder << setw(2) << setfill('0') << to_string(1    + ltm->tm_mon);
+    subfolder << setw(2) << setfill('0') << to_string(       ltm->tm_mday);
+    subfolder << "_";
+    subfolder << setw(2) << setfill('0') <<  to_string(ltm->tm_hour);
+    subfolder << setw(2) << setfill('0') <<  to_string(ltm->tm_min);
+    subfolder << setw(2) << setfill('0') <<  to_string(ltm->tm_sec);
+    subfolder << "_";
+    subfolder << PILOTS[i1];
+    subfolder << "_";
+    subfolder << RACES[i2];
 
-    string folder = FOLDER_PATH + "/" + subfolder;
+    string folder = FOLDER_PATH + "/" + subfolder.str();
     create_directory(folder);
     string fname = folder + "/" + "candump.log";
     std::ofstream log(fname);
@@ -183,7 +183,7 @@ int main(){
                   (high_resolution_clock::now() - log_start_t)
                   .count()/1000;
 
-      Json::Value stat(Json::objectValue);
+      nlohmann::ordered_json stat;
       stat["Date"] = date_c;
 
       stat["Pilot"] = PILOTS[i1];
@@ -191,30 +191,16 @@ int main(){
       stat["Circuit"] = CIRCUITS[i3];
 
       stat["Messages"] = messages_count;
-      stat["Average Frequency"] = int(messages_count / dt);
-      stat["Duration"] = dt;
+      stat["Average Frequency (Hz)"] = int(messages_count / dt);
+      stat["Duration (seconds)"] = dt;
 
-
-      Json::StreamWriterBuilder builder;
-      const string json_str = Json::writeString(builder, stat);
       std::ofstream stat_f(folder + "/stat.json");
-      stat_f << json_str;
+      stat_f << stat.dump(2);
       stat_f.close();
-
     #endif
 
-
   }
-
   return 0;
-}
-
-string get_last_fname(string path){
-  int number = 0;
-  while(exists(path+"/"+to_string(number)+".log")){
-    number ++;
-  }
-  return path+"/"+to_string(number)+".log";
 }
 
 double get_timestamp(){
