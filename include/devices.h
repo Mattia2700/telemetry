@@ -27,6 +27,7 @@ public:
   virtual string get_string(string separator)=0;
 
   double count;
+  fstream* file;
   string filename;
   double timestamp;
   vector<string> mesages_list;

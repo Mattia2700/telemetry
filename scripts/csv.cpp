@@ -2,45 +2,37 @@
 
 
 int main(){
+
+  string folder = "/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER/16-dic-2020__11-55-43";
+
   Chimera chimera;
 
-  for(auto device : chimera.devices){
-    cout << device->get_id() << " " << device->get_name() << endl;
-  }
+  chimera.set_all_filenames(folder + "/0", ".csv");
+  chimera.open_all_files();
 
-  string fname = "/media/filippo/label/Codes/Github/telemetry/5.log";
+  string fname = folder + "/0.log";
 
   message msg;
   vector<string> lines;
   get_lines(fname, &lines);
 
-  ofstream out("out.csv");
   double current = 0;
-  double increment = 200 / lines.size();
+
+  Device* modified = nullptr;
+  time_point t_start = high_resolution_clock::now();
   for(int i = 20; i < lines.size(); i++){
+    time_point t_start = high_resolution_clock::now();
     if(!parse_message(lines [i], &msg))
       continue;
+    modified = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
-    chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
-    out << chimera.encoder_left->get_string(";") + "\n";
-    // for(auto device: chimera.devices){
-    //   cout << device->get_name() << " " << device->get_string(";\t") << endl;
-    // }
-    double len = 50;
-    current = len/lines.size() * i;
-    for(int j = 0; j < len; j++){
-      if(j == len-1)
-        cout << "|";
-      else
-      if(j < current)
-        cout << "-";
-      else
-        cout << " ";
+    if(modified != nullptr){
+      *modified->file << modified->get_string(";") + "\n";
     }
-    cout << "\r" << flush;
   }
-  out.close();
-  cout << endl;
+  double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count()/1000;
+  cout << "Parsed " << lines.size() << " lines in: " << to_string(dt) << " -> " << lines.size()/dt << " lines/sec" << endl;
+  chimera.close_all_files();
 
   return 0;
 }

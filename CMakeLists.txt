@@ -4,8 +4,6 @@ project(Telemetry)
 
 set(CMAKE_CXX_STANDARD 17)
 
-LIST(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake_modules)
-
 ###########
 ## BOOST ##
 ###########

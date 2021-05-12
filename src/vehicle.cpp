@@ -33,10 +33,28 @@ Chimera::Chimera(){
 }
 
 
-void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
+void Chimera::set_all_filenames(string base_path, string extension){
+  for(auto device : devices){
+    device->filename = base_path + "/" + device->get_name() + extension;
+  }
+}
+
+void Chimera::open_all_files(){
+  for(auto device : devices){
+    device->file = new fstream(device->filename, fstream::out);
+  }
+}
+
+void Chimera::close_all_files(){
+  for(auto device : devices){
+    device->file->close();
+  }
+}
+
+Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
   switch (id) {
     case 0x4EC:
-      gyro->scale = 8;
+      gyro->scale = 245;
       gyro->x = (data[0] << 8) + data[1];
       gyro->y = (data[2] << 8) + data[3];
       gyro->z = (data[4] << 8) + data[5];
@@ -53,9 +71,10 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
       gyro->z /= 100;
 
       gyro->timestamp = timestamp;
+      return gyro;
     break;
     case 0x4ED:
-      accel->scale = 245;
+      accel->scale = 8;
       accel->x = (data[0] << 8) + data[1];
       accel->y = (data[2] << 8) + data[3];
       accel->z = (data[4] << 8) + data[5];
@@ -72,14 +91,17 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
       accel->z /= 100;
 
       accel->timestamp = timestamp;
+
+      return accel;
     break;
     case 0xB0: // Pedals
       if(data[0] == 0x01){
-        pedal->timestamp = timestamp;
-
         pedal->throttle1 = data[1];
         pedal->throttle2 = data[2];
-        // count ++;
+
+        pedal->timestamp = timestamp;
+
+        return pedal;
       }
       else if(data[0] == 0x02){
         pedal->timestamp = timestamp;
@@ -89,6 +111,8 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
 
         pedal->brake_front /= 500;
         pedal->brake_rear /= 500;
+
+        return pedal;
       }
     break;
     case 0xC0:
@@ -98,6 +122,8 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
         steer->angle /= 100;
 
         steer->timestamp = timestamp;
+
+        return steer;
       }
     break;
     case 0xD0:
@@ -114,6 +140,8 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
 
         encoder_left->timestamp = timestamp;
         encoder_right->timestamp = timestamp;
+
+        return encoder_right;
       }
       else if(data[0] == 0x08){
         encoder_right->km = (data[1] << 8) + data[2];
@@ -121,25 +149,87 @@ void Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
 
         encoder_left->km = encoder_right->km;
         encoder_left->rotations = encoder_right->rotations;
+
+        return encoder_left;
       }
     break;
     case 0xAA:
       if(data[0] == 0x01){
         bms_hv->voltage = ((data[1] << 16) + (data[2] << 8))/10000;
         bms_hv->timestamp = timestamp;
+        return bms_hv;
       }else if(data[0] == 0x05){
         bms_hv->current = ((data[1] << 16) + (data[2]))/10;
         bms_hv->power = data[3] << 8 + data[4];
         bms_hv->timestamp = timestamp;
+        return bms_hv;
       }else if(data[0] == 0xA0){
         bms_hv->temperature = ((data[1] << 8) + (data[2]))/10;
         bms_hv->timestamp = timestamp;
+        return bms_hv;
       }
     break;
     case 0xFF:
       bms_lv->voltage = data[0]/10;
       bms_lv->temperature = data[1]/5;
       bms_lv->timestamp = timestamp;
+      return bms_lv;
+    break;
+    case 0x181:
+      if(data[0] == 0xA0){
+        inverter_left->torque = (data[2] << 8) + data[1];
+        if(inverter_left->torque > 32767)
+          inverter_left->torque -= 65535;
+        inverter_left->timestamp = timestamp;
+        return inverter_left;
+      }
+      else if(data[0] == 0x4A){
+        inverter_left->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
+        inverter_left->timestamp = timestamp;
+        return inverter_left;
+      }
+      else if(data[0] == 0x49){
+        inverter_left->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
+        inverter_left->timestamp = timestamp;
+        return inverter_left;
+      }
+      else if(data[0] == 0xA8){
+        inverter_left->speed = (data[2] << 8) + data[1];
+        if(inverter_left->speed > 32768)
+          inverter_left->speed -= 65535;
+        inverter_left->timestamp = timestamp;
+        return inverter_left;
+      }
+    break;
+    case 0x182:
+      if(data[0] == 0xA0){
+        inverter_right->torque = (data[2] << 8) + data[1];
+        if(inverter_right->torque > 32767)
+          inverter_right->torque -= 65535;
+        inverter_right->timestamp = timestamp;
+        return inverter_right;
+      }
+      else if(data[0] == 0x4A){
+        inverter_right->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
+        inverter_right->timestamp = timestamp;
+        return inverter_right;
+      }
+      else if(data[0] == 0x49){
+        inverter_right->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
+        inverter_right->timestamp = timestamp;
+        return inverter_right;
+      }
+      else if(data[0] == 0xA8){
+        inverter_right->speed = (data[2] << 8) + data[1];
+        if(inverter_right->speed > 32768)
+          inverter_right->speed -= 65535;
+        inverter_right->timestamp = timestamp;
+        return inverter_right;
+      }
+    break;
+    default:
+    return nullptr;
     break;
   }
+  return nullptr;
 }
