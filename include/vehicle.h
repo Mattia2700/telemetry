@@ -10,7 +10,24 @@ using namespace std;
 class Chimera{
 public:
   Chimera();
-  Encoder * encoder;
+
+  void parse_message(double timestamp, int id, uint8_t data[], int size);
+
+  Imu* accel;
+  Imu* gyro;
+
+  Encoder* encoder_left;
+  Encoder* encoder_right;
+
+  Bms* bms_lv;
+  Bms* bms_hv;
+
+  Inverter* inverter_left;
+  Inverter* inverter_right;
+
+  Pedals* pedal;
+  Steer* steer;
+
   Ecu* ecu;
 
   vector<Device*> devices;

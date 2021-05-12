@@ -2,12 +2,10 @@
 
 int Device::global_id = 0;
 
-Device::Device(){
+Device::Device(string name){
+  this->name = name;
+
   id = global_id;
   global_id ++;
 }
 Device::~Device(){}
-
-
-Encoder::~Encoder(){}
-Ecu::~Ecu(){}
