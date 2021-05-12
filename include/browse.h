@@ -36,8 +36,9 @@ enum Style{
 class Browse {
 public:
   Browse();
-  vector<string> start(string path = "/home/filippo/Desktop");
+  vector<string> start();
 
+  void set_start_path(string path);
   void set_max_selections(int num=-1);
   void set_extension(string extension);
   void set_selection_type(SelectionType type);
@@ -76,6 +77,9 @@ private:
   string extension="*";
   int max_selections=-1;
   SelectionType selection_type;
+
+  string stat_fname = ".browse_cpp";
+  string start_path;
 };
 
 #endif //BROWSE_H

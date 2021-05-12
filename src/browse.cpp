@@ -14,8 +14,26 @@ Browse::Browse(){
 
   cursor_x = 0;
   cursor_y = 0;
+
+  stat_fname = getenv("HOME") + '/' + stat_fname;
+  if(exists(path(stat_fname))){
+    std::ifstream stat(stat_fname);
+    stat.seekg (0, stat.end);
+    int length = stat.tellg();
+    stat.seekg (0, stat.beg);
+    char * buffer = new char [length];
+    stat.read (buffer,length);
+    stat.close();
+    start_path = string(buffer);
+  }
+  else{
+    start_path = getenv("HOME");
+  }
 }
 
+void Browse::set_start_path(string path){
+  this->start_path = path;
+}
 void Browse::set_extension(string extension){
   this->extension = extension;
 }
@@ -26,7 +44,8 @@ void Browse::set_max_selections(int num){
   this->max_selections = num;
 }
 
-vector<string> Browse::start(string path){
+vector<string> Browse::start(){
+  string path = start_path;
   char command;
 
   char prev_commands[2];
@@ -117,6 +136,13 @@ vector<string> Browse::start(string path){
     prev_commands[1] = command;
   }
   clear_screen();
+
+  if(selected_paths.size() > 0){
+    std::ofstream stat(stat_fname);
+    stat << selected_paths.at(0);
+    stat.close();
+  }
+
 
   return selected_paths;
 }
