@@ -3,7 +3,7 @@
 
 bool parse_message(string str, message* msg){
   size_t pos = str.find("can0");
-  if (pos != std::string::npos)
+  if (pos != string::npos)
   {
       str.erase(pos-1, 4);
   }
@@ -37,36 +37,6 @@ bool parse_message(string str, message* msg){
     }
   }
   return true;
-
-  vector<string> splitted;
-  split(splitted, str, is_any_of(" "));
-
-  if(splitted.size() < 3)
-    return false;
-
-  // converting first string (timestamp) to double
-  msg->timestamp = stod(splitted[0]);
-
-  split(splitted, splitted.at(2), is_any_of("#"));
-
-  if(splitted.size() < 1)
-    return false;
-
-  algorithm::to_lower(splitted[0]);
-  msg->id = std::stoi(splitted[0], nullptr, 16);
-
-
-  msg->size = 0;
-  for(uint8_t i = 0; i < splitted[1].size()-2; i+=2){
-    string bff = splitted[1].substr(i, 2);
-    algorithm::to_lower(bff);
-    if(bff.size() <= 1)
-      continue;
-    msg->data[msg->size] = (uint8_t)(std::stoi(bff, nullptr, 16));
-    msg->size ++;
-  }
-
-  return true;
 }
 
 void get_lines(string filename, vector<string>* lines){
@@ -78,4 +48,35 @@ void get_lines(string filename, vector<string>* lines){
     lines->push_back(line);
   }
   fclose(f);
+}
+
+vector<string> get_all_files(string path, string extension){
+  std::vector<string> files;
+  bool use_extension = extension != "*";
+
+  if (!exists(path) || !is_directory(path))
+    throw runtime_error("Directory non existent!");
+
+  for (auto const & entry : recursive_directory_iterator(path))
+  {
+    if(is_regular_file(entry)){
+      if(!use_extension)
+        files.push_back(entry.path().string());
+      if(use_extension && entry.path().extension() == extension)
+        files.push_back(entry.path().string());
+    }
+  }
+
+  return files;
+}
+
+vector<string> get_candump_from_files(vector<string> files){
+  vector<string> new_vec;
+  for(int i = 0; i < files.size(); i++){
+    size_t pos = files.at(i).find("_GPS.log");
+    if(pos == string::npos){
+      new_vec.push_back(files.at(i));
+    }
+  }
+  return new_vec;
 }

@@ -1,9 +1,22 @@
 #include "csv.h"
 
-
 int main(){
 
+  // Browse b;
+  // string b_res = b.start();
+  // cout << b_res << endl;
+  //
+  // return 1;
+
   string folder = "/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER/16-dic-2020__11-55-43";
+
+  auto files  = get_all_files("/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER", ".log");
+  // for(string file : files)
+  //   cout << file << endl;
+
+  auto candump_files = get_candump_from_files(files);
+    // for (string candump : candump_files)
+    //   cout << candump << endl;
 
   Chimera chimera;
 

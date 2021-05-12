@@ -30,6 +30,7 @@ add_library(
   ${PROJECT_NAME} SHARED
   src/can.cpp
   src/utils.cpp
+  src/browse.cpp
   src/devices.cpp
   src/vehicle.cpp
   )

@@ -13,13 +13,15 @@
 #include <iostream>
 
 
-#include <boost/range/algorithm/remove_if.hpp>
-#include <boost/range/algorithm_ext.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/range/algorithm_ext.hpp>
+#include <boost/range/algorithm/remove_if.hpp>
 
 using namespace std;
 using namespace boost;
 using namespace std::chrono;
+using namespace boost::filesystem;
 
 
 struct message {
@@ -32,5 +34,9 @@ struct message {
 bool parse_message(string str, message* msg);
 
 void get_lines(string filename, vector<string>* lines);
+
+vector<string> get_all_files(string path, string extension="*");
+
+vector<string> get_candump_from_files(vector<string> files);
 
 #endif // UTILS_H
