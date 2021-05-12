@@ -80,3 +80,21 @@ vector<string> get_candump_from_files(vector<string> files){
   }
   return new_vec;
 }
+
+string get_parent_dir(string path){
+  return boost::filesystem::path(path).parent_path().string();
+}
+
+string remove_extension(string path){
+  return "";
+}
+
+void mkdir(string path){
+  boost::filesystem::path p = path;
+  if(!exists(p))
+    create_directory(p);
+}
+
+bool path_exists(string path){
+  return exists(boost::filesystem::path(path));
+}

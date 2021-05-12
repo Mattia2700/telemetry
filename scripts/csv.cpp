@@ -1,36 +1,68 @@
 #include "csv.h"
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <vector>
+#include <fstream>
+#include <string.h>
+
+#include "utils.h"
+#include "browse.h"
+#include "vehicle.h"
+
+using namespace std;
+
+long long int total_lines = 0;
+void parse_file(string fname);
+
 int main(){
 
   Browse b;
   b.set_max_selections(1);
   b.set_extension(".log");
   b.set_selection_type(SelectionType::sel_all);
-  auto b_res = b.start();
+  auto selected_paths = b.start();
+
+  if(selected_paths.size() <= 0){
+    cout << "No file selected... exiting" << endl;
+    return -1;
+  }
+
   cout << "Selected paths: " << endl;
-  for(auto sel : b_res)
+  for(auto sel : selected_paths)
     cout << sel << endl;
 
-  
+  time_point t_start = high_resolution_clock::now();
+  for (string path : selected_paths){
+    auto files  = get_all_files(path, ".log");
 
-  return 1;
+    auto candump_files = get_candump_from_files(files);
+    if(candump_files.size() <= 0){
+      cout << "No candump found... exiting" << endl;
+      return -1;
+    }
+    for(auto candump : candump_files){
+      cout << "Parsing: " << candump << " " << flush;
+      parse_file(candump);
+    }
+  }
+  double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count()/1000;
+  cout << "Total Execution Time: " << dt << " seconds" << endl;
+  cout << "Parsed " << total_lines << " lines!!" << endl;
 
-  string folder = "/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER/16-dic-2020__11-55-43";
+  return 0;
+}
 
-  auto files  = get_all_files("/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER", ".log");
-  // for(string file : files)
-  //   cout << file << endl;
 
-  auto candump_files = get_candump_from_files(files);
-    // for (string candump : candump_files)
-    //   cout << candump << endl;
-
+void parse_file(string fname){
   Chimera chimera;
 
-  chimera.set_all_filenames(folder + "/0", ".csv");
-  chimera.open_all_files();
+  string folder = get_parent_dir(fname) + "/parsed";
 
-  string fname = folder + "/0.log";
+  create_directory(folder);
+
+  chimera.set_all_filenames(folder, ".csv");
+  chimera.open_all_files();
 
   message msg;
   vector<string> lines;
@@ -54,5 +86,5 @@ int main(){
   cout << "Parsed " << lines.size() << " lines in: " << to_string(dt) << " -> " << lines.size()/dt << " lines/sec" << endl;
   chimera.close_all_files();
 
-  return 0;
+  total_lines += lines.size();
 }

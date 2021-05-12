@@ -39,4 +39,12 @@ vector<string> get_all_files(string path, string extension="*");
 
 vector<string> get_candump_from_files(vector<string> files);
 
+string get_parent_dir(string path);
+
+string remove_extension(string path);
+
+void mkdir(string path);
+
+bool path_exists(string path);
+
 #endif // UTILS_H
