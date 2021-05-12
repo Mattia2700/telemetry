@@ -7,6 +7,10 @@ Browse::Browse(){
   width = w.ws_col;
   height = w.ws_row;
 
+  index = 0;
+  hide_hidden_files = true;
+
+  cursor_x = 0;
   cursor_y = 0;
 }
 
@@ -14,12 +18,21 @@ string Browse::start(string path){
   char command;
 
   char prev_commands[2];
+  bool jump_clear = false;
   while(true){
     all_dirs.clear();
     copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
+    if(hide_hidden_files){
+      remove_hidden();
+    }
+    count = all_dirs.size();
 
-    // clear_screen();
-    // print_dirs();
+    if(!jump_clear)
+      clear_screen();
+    print_dirs();
+    move (0, height -1);
+
+    jump_clear = false;
 
     system("stty raw");
     command = getchar();
@@ -47,22 +60,35 @@ string Browse::start(string path){
         cout << "use q to quit" << endl;
       break;
       case 'a':
-        cout << "back"<< endl;
+        index = 0;
+        path = boost::filesystem::path(path).parent_path().string();
       break;
       case 'd':
-        cout << "forward"<< endl;
+        index = 0;
+        if(is_directory(all_dirs[index].path())){
+          path = all_dirs[index].path().string();
+        }
       break;
       case 's':
-        cout << "down" << endl;
+        index = (index + 1) % count;
       break;
       case 'w':
-        cout << "up" << endl;
+        index = (index - 1) % count;
+        if(index < 0)
+          index = count-1;
+      break;
+      case 'h':
+        if(hide_hidden_files == false)
+          hide_hidden_files = true;
+        else
+          hide_hidden_files = false;
       break;
     }
 
     prev_commands[0] = prev_commands[1];
     prev_commands[1] = command;
   }
+  clear_screen();
   return "";
 }
 
@@ -82,17 +108,45 @@ void Browse::print(int x, int y, string text){
 
 void Browse::print_dirs(){
   move(0, HEADER_HEIGHT);
-  for(int i = 0; i < all_dirs.size(); i++){
-    string fname = all_dirs[i].path().filename().string();
-    int color = DIR_COLOR;
-    if(is_regular_file(all_dirs[i]))
-      color = FILE_COLOR;
 
-    cout << get_colored(fname, color) << endl;
+  int color = DIR_COLOR;
+  int style = NORMAL;
+
+  int scroll = index - PRINTABLE_HEIGHT/2;
+  if(scroll < 0)
+    scroll = 0;
+
+  for(int i = scroll; i < all_dirs.size() && i < PRINTABLE_HEIGHT + scroll; i++){
+    color = DIR_COLOR;
+    style = NORMAL;
+
+    string fname = all_dirs[i].path().filename().string();
+
+    if(is_regular_file(all_dirs[i].path()))
+      color = 3;
+
+    if(i == index){
+      color = SELECTED_COLOR;
+      style = BOLD;
+
+      fname = "-> " + fname;
+    }
+
+    cout << get_colored(fname, color, style) << endl;
   }
-  move(0, HEADER_HEIGHT);
+  move(0, HEADER_HEIGHT + index - scroll);
 }
 
-string Browse::get_colored(string text, int color){
-  return  "\e[1;1" + to_string(color) + "m" + text + "\e[0m";
+string Browse::get_colored(string text, int color, int style){
+  return  "\e[" + to_string(style) + ";3" + to_string(color) + "m" + text + "\e[0m";
+}
+
+void Browse::remove_hidden(){
+  int removed = 0;
+  for(int i = all_dirs.size()-1; i > 0 ; i--){
+    if(all_dirs[i].path().filename().string()[0] == '.'){
+      all_dirs.erase(all_dirs.begin() + i);
+      removed ++;
+    }
+  }
 }

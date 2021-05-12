@@ -2,11 +2,11 @@
 
 int main(){
 
-  // Browse b;
-  // string b_res = b.start();
-  // cout << b_res << endl;
-  //
-  // return 1;
+  Browse b;
+  string b_res = b.start();
+  cout << b_res << endl;
+
+  return 1;
 
   string folder = "/home/filippo/Downloads/Telegram Desktop/CANDUMP_DEFAULT_FOLDER/16-dic-2020__11-55-43";
 
