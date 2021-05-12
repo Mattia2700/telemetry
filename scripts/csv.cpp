@@ -3,8 +3,15 @@
 int main(){
 
   Browse b;
-  string b_res = b.start();
-  cout << b_res << endl;
+  b.set_max_selections(1);
+  b.set_extension(".log");
+  b.set_selection_type(SelectionType::sel_all);
+  auto b_res = b.start();
+  cout << "Selected paths: " << endl;
+  for(auto sel : b_res)
+    cout << sel << endl;
+
+  
 
   return 1;
 

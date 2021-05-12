@@ -13,13 +13,20 @@
 using namespace std;
 using namespace boost::filesystem;
 
-#define DIR_COLOR 9
-#define FILE_COLOR 2
-#define SELECTED_COLOR 4
-#define HOVER_COLOR 1
+#define DIR_COLOR 3
+#define FILE_COLOR 9
+#define SELECTED_COLOR 1
+#define HOVER_COLOR 4
+#define HINT_COLOR 6
 
 #define HEADER_HEIGHT 10
 #define PRINTABLE_HEIGHT 30
+
+enum SelectionType{
+  sel_file,
+  sel_folder,
+  sel_all,
+};
 
 enum Style{
   NORMAL=0,
@@ -29,12 +36,21 @@ enum Style{
 class Browse {
 public:
   Browse();
-  string start(string path = "/home/filippo/Desktop");
+  vector<string> start(string path = "/home/filippo/Desktop");
+
+  void set_max_selections(int num=-1);
+  void set_extension(string extension);
+  void set_selection_type(SelectionType type);
+
 
 private:
   void move(int, int);
   void clear_screen();
   void print(int, int, string);
+
+  void select();
+  bool is_selected(string path);
+  int get_selected_index(string path);
 
   void remove_hidden();
 
@@ -44,7 +60,7 @@ private:
   vector<directory_entry> all_dirs;
 
   int index;
-  vector<int> selected_index;
+  vector<string> selected_paths;
   bool hide_hidden_files;
 
   int count;
@@ -55,6 +71,11 @@ private:
 
   int cursor_x;
   int cursor_y;
+
+  string hint="";
+  string extension="*";
+  int max_selections=-1;
+  SelectionType selection_type;
 };
 
 #endif //BROWSE_H
