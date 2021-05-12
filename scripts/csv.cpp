@@ -1,9 +1,10 @@
 #include "csv.h"
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <vector>
+#include <thread>
+#include <stdio.h>
 #include <fstream>
+#include <stdlib.h>
 #include <string.h>
 
 #include "utils.h"
@@ -14,6 +15,9 @@ using namespace std;
 
 long long int total_lines = 0;
 void parse_file(string fname);
+void parse_files(vector<string> files);
+
+vector<thread* > active_threads;
 
 int main(){
 
@@ -41,16 +45,43 @@ int main(){
       cout << "No candump found... exiting" << endl;
       return -1;
     }
-    for(auto candump : candump_files){
-      cout << "Parsing: " << candump << " " << flush;
-      parse_file(candump);
+
+    cout << thread::hardware_concurrency() << endl;
+
+    int chunks = thread::hardware_concurrency();
+    int increment = candump_files.size() / chunks;
+    int i0;
+    int i1 = increment;
+    for(int i = 0; i < chunks; i++){
+      vector<string>::const_iterator first = candump_files.begin() + i0;
+      vector<string>::const_iterator last =  candump_files.begin() + i1;
+      vector<string> chunk(first, last);
+
+      thread* new_thread = new thread(parse_files, chunk);
+      active_threads.push_back(new_thread);
+      cout << "Starting thread: "<< i<< " of: " << chunks<<endl;
+
+      i0 += increment;
+      i1 += increment;
     }
+
+
+    // for(auto candump : candump_files){
+    //   parse_file(candump);
+    // }
   }
+  for(auto t:active_threads)
+    t->join();
   double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count()/1000;
   cout << "Total Execution Time: " << dt << " seconds" << endl;
   cout << "Parsed " << total_lines << " lines!!" << endl;
 
   return 0;
+}
+
+void parse_files(vector<string> files){
+  for(auto file:files)
+    parse_file(file);
 }
 
 

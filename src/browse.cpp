@@ -15,7 +15,7 @@ Browse::Browse(){
   cursor_x = 0;
   cursor_y = 0;
 
-  stat_fname = getenv("HOME") + '/' + stat_fname;
+  stat_fname = string(getenv("HOME")) + "/" + stat_fname;
   if(exists(path(stat_fname))){
     std::ifstream stat(stat_fname);
     stat.seekg (0, stat.end);
