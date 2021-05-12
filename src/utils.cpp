@@ -22,27 +22,26 @@ bool parse_message(string str, message* msg){
   algorithm::to_lower(splitted[0]);
   msg->id = std::stoi(splitted[0], nullptr, 16);
 
+  msg->size = 0;
   for(uint8_t i = 0; i < splitted[1].size()-2; i+=2){
     string bff = splitted[1].substr(i, 2);
     algorithm::to_lower(bff);
     if(bff.size() <= 1)
       continue;
-    msg->data[i] = std::stoi(bff, nullptr, 16);
+    msg->data[msg->size] = (uint8_t)(std::stoi(bff, nullptr, 16));
+    msg->size ++;
   }
 
   return true;
 }
 
-vector<string> get_lines(string filename){
-  std::vector<string>* lines = new vector<string>();
-  ifstream f(filename);
+void get_lines(string filename, vector<string>* lines){
+  FILE* f = fopen(filename.c_str(), "r");
 
-  string line;
-  while(getline(f, line)){
-    std::istringstream iss(line);
-    int a, b;
-    if (!(iss >> a >> b)) { break; } // error
+  char* line = NULL;
+  size_t size = 0;
+  while(getline(&line, &size, f) != -1){
     lines->push_back(line);
   }
-
+  fclose(f);
 }

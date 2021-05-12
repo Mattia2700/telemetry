@@ -31,6 +31,6 @@ struct message {
 
 bool parse_message(string str, message* msg);
 
-vector<string> get_lines(string filename);
+void get_lines(string filename, vector<string>* lines);
 
 #endif // UTILS_H

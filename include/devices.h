@@ -21,9 +21,10 @@ public:
 
   //virtual string name()=0;
 
+  int get_id(){return id;};
   string get_name(){return name;};
 
-  int get_id(){return id;};
+  virtual string get_string(string separator)=0;
 
   double count;
   string filename;
@@ -43,6 +44,7 @@ public:
   Imu(string name="default"): Device(name){};
 
   //virtual string name(){return "IMU";};
+  virtual string get_string(string separator);
 
   double x;
   double y;
@@ -54,6 +56,8 @@ class Encoder: public Device {
 public:
   Encoder(string name="default"): Device(name){};
 
+  virtual string get_string(string separator);
+
   double rads;
   double km;
   double rotations;
@@ -63,12 +67,16 @@ class Steer: public Device {
 public:
   Steer(string name="default"): Device(name){};
 
+  virtual string get_string(string separator);
+
   double angle;
 };
 
 class Pedals: public Device {
 public:
   Pedals(string name="default"): Device(name){};
+
+  virtual string get_string(string separator);
 
   double throttle1;
   double throttle2;
@@ -79,11 +87,15 @@ public:
 class Ecu: public Device {
 public:
   Ecu(string name="default"): Device(name){};
+
+  virtual string get_string(string separator);
 };
 
 class Inverter: public Device {
 public:
   Inverter(string name="default"): Device(name){};
+
+  virtual string get_string(string separator);
 
   double temperature;
   double motorTemp;
@@ -94,6 +106,8 @@ public:
 class Bms: public Device {
 public:
   Bms(string name="default"): Device(name){};
+
+  virtual string get_string(string separator);
 
   double temperature;
   double current;
