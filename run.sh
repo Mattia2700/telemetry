@@ -1,1 +1,1 @@
-./bin/telemetry
+./bin/csv
