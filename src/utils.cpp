@@ -86,6 +86,10 @@ string get_parent_dir(string path){
 }
 
 string remove_extension(string path){
+  path = boost::filesystem::path(path).filename().string();
+  size_t lastindex = path.find_last_of(".");
+  if(lastindex != string::npos)
+    return path.substr(0, lastindex);
   return "";
 }
 
@@ -97,4 +101,8 @@ void mkdir(string path){
 
 bool path_exists(string path){
   return exists(boost::filesystem::path(path));
+}
+
+string get_colored(string text, int color, int style){
+  return  "\e[" + to_string(style) + ";3" + to_string(color) + "m" + text + "\e[0m";
 }

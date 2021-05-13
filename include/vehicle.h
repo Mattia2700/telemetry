@@ -12,10 +12,12 @@ public:
   Chimera();
 
   Device* parse_message(double timestamp, int id, uint8_t data[], int size);
-  
+
   void set_all_filenames(string base_path, string extension);
   void open_all_files();
   void close_all_files();
+
+  void write_all_headers();
 
   Imu* accel;
   Imu* gyro;

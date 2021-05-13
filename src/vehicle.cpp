@@ -40,15 +40,18 @@ void Chimera::set_all_filenames(string base_path, string extension){
 }
 
 void Chimera::open_all_files(){
-  for(auto device : devices){
+  for(auto device : devices)
     device->file = new fstream(device->filename, fstream::out);
-  }
 }
 
 void Chimera::close_all_files(){
-  for(auto device : devices){
+  for(auto device : devices)
     device->file->close();
-  }
+}
+
+void Chimera::write_all_headers(){
+  for(auto device : devices)
+    *device->file << device->get_header(";") << "\n";
 }
 
 Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){

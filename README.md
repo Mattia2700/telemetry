@@ -123,3 +123,22 @@ If the requirement is satisfied will be created **stat.json**.
   "Duration": 20.889837674
 }
 ~~~
+
+
+# CSV
+Tool made to parse CANDUMP files in csv. It creates a CSV file for each device defined in CAN bus.  
+The input files must be formatted like the telemetry output files.  
+
+## Usage
+Run:
+~~~
+./bin/csv
+~~~
+The program needs you to select only one folder containing some **.log** files.  
+The algorithm searches in all sub-directories.  
+It will start parsing files using all hardware threads available.  
+
+## Output
+The generated CSV files are in the same folder as the **.log** file.  
+If the **.log** file has an integer name (0.log, 1.log, ...) it will create a folder called as the integer number, otherwise will create a **parsed** folder.
+In the created folder can be found all the **.csv** files names like the CAN bus device.  

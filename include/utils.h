@@ -47,4 +47,6 @@ void mkdir(string path);
 
 bool path_exists(string path);
 
+string get_colored(string text, int color, int style = 1);
+
 #endif // UTILS_H
