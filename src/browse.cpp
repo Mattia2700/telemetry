@@ -1,11 +1,7 @@
 #include "browse.h"
 
 Browse::Browse(){
-  struct winsize w;
-  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-
-  width = w.ws_col;
-  height = w.ws_row;
+  get_winsize();
 
   index = 0;
   hide_hidden_files = true;
@@ -16,7 +12,7 @@ Browse::Browse(){
   cursor_y = 0;
 
   stat_fname = string(getenv("HOME")) + "/" + stat_fname;
-  if(exists(path(stat_fname))){
+  if(exists(boost::filesystem::path(stat_fname))){
     std::ifstream stat(stat_fname);
     stat.seekg (0, stat.end);
     int length = stat.tellg();
@@ -45,31 +41,44 @@ void Browse::set_max_selections(int num){
 }
 
 vector<string> Browse::start(){
-  string path = start_path;
+  path = start_path;
   char command;
 
   char prev_commands[2];
   bool jump_clear = false;
+
+  system("stty raw");
+
   while(true){
-    all_dirs.clear();
-    copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
-    if(hide_hidden_files){
-      remove_hidden();
-    }
-    count = all_dirs.size();
+    get_winsize();
+    hint = to_string(width);
+
+    update_dirs();
 
     if(!jump_clear)
       clear_screen();
-    print_dirs();
+
+
+    print_dirs(0);
+    if(is_directory(all_dirs[index])){
+      int prev_idx = index;
+      string prev_path = path;
+      path = all_dirs[index].path().string();
+      index = -1;
+      update_dirs();
+      print_dirs(1);
+      index = prev_idx;
+      path = prev_path;
+      update_dirs();
+    }
+
     jump_clear = false;
 
     move(0, height -1);
     cout << get_colored(hint, HINT_COLOR) << flush;
     hint = "";
 
-    system("stty raw");
     command = getchar();
-    system("stty cooked");
     cout << "\r    \r" << flush;
 
     if(command == 'q'){
@@ -80,6 +89,8 @@ vector<string> Browse::start(){
       break;
     }
 
+    // Remap if are arrows
+    // arrow codes are 27 then 91 then 65~68
     if(prev_commands[0] == 27  && prev_commands[1] == 91){
       if(command >= 65 && command <= 68){
         if(command == 65)
@@ -98,11 +109,24 @@ vector<string> Browse::start(){
         cout << "use q to quit" << endl;
       break;
       case 'a':
-        if(path != "/")
+        if(path != "/"){
+          string prev_path = path;
+
           path = boost::filesystem::path(path).parent_path().string();
-        else
+          update_dirs();
+
+          vector<directory_entry>::iterator pos;
+          pos = find(all_dirs.begin(), all_dirs.end(), directory_entry(prev_path));
+          if(pos != all_dirs.end()){
+            index = pos - all_dirs.begin();
+          }
+          else{
+            index = 0;
+          }
+        }
+        else{
           hint = "You are in root, can't go back";
-        index = 0;
+        }
       break;
       case 'd':
         if(is_directory(all_dirs[index].path())){
@@ -136,6 +160,7 @@ vector<string> Browse::start(){
     prev_commands[1] = command;
   }
   clear_screen();
+  system("stty cooked");
 
   if(selected_paths.size() > 0){
     std::ofstream stat(stat_fname);
@@ -143,17 +168,18 @@ vector<string> Browse::start(){
     stat.close();
   }
 
-
   return selected_paths;
 }
 
 void Browse::clear_screen(){
   move(0,0);
-  cout << "\033[2J" << flush;
+  for(int i = 0; i < height; i++)
+    cout << "\033[K" << "\r\n";
+  move(0,0);
 }
 
 void Browse::move(int x, int y){
-  cout << "\033[" << y << ";" << x << "H" << flush;
+  cout << "\033[" << y << ";" << x << "H  " << flush;
 }
 
 void Browse::print(int x, int y, string text){
@@ -161,7 +187,11 @@ void Browse::print(int x, int y, string text){
   cout << text << flush;
 }
 
-void Browse::print_dirs(){
+void Browse::print_dirs(int column){
+  int x = column * (COLUMN_MAX_WIDTH+2);
+  if(x > width)
+    return;
+
   move(0, HEADER_HEIGHT);
 
   int color = DIR_COLOR;
@@ -195,8 +225,18 @@ void Browse::print_dirs(){
       prepend = "--> ";
     }
     fname = prepend + fname;
-    cout << get_colored(fname, color, style) << endl;
+
+    if(x + fname.size() > width-1){
+      fname.erase(fname.begin() + width - x-1, fname.end());
+    }
+    if(fname.size() > COLUMN_MAX_WIDTH){
+      fname.erase(fname.end()+COLUMN_MAX_WIDTH-fname.size(), fname.end());
+    }
+
+    move(x, HEADER_HEIGHT + i - scroll);
+    cout << get_colored(fname, color, style);
   }
+  cout << flush;
   move(0, HEADER_HEIGHT + index - scroll);
 }
 
@@ -251,4 +291,21 @@ int Browse::get_selected_index(string path){
   if(pos != selected_paths.end())
     return pos - selected_paths.begin();
   return -1;
+}
+
+void Browse::update_dirs(){
+    all_dirs.clear();
+    copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
+    if(hide_hidden_files){
+      remove_hidden();
+    }
+    count = all_dirs.size();
+}
+
+void Browse::get_winsize(){
+  struct winsize w;
+  ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
+
+  width = w.ws_col;
+  height = w.ws_row;
 }

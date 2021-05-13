@@ -22,10 +22,13 @@ def findAllFiles(path, extension):
 def compressFolders(paths, zipPath):
     print("COMPRESSING")
 
-    zf = ZipFile(os.path.join(zipPath, "CSV.zip"), "w", ZIP_DEFLATED)
+    zf = ZipFile(os.path.join(zipPath, "CSV.zip"), "w", compression=ZIP_STORED)
 
     for path in tqdm(paths):
         zf.write(path, path.replace(zipPath, ""))
+
+    size = sum([zinfo.file_size for zinfo in zf.filelist])
+    return float(size)
 
 
 if __name__ == "__main__":
@@ -34,9 +37,13 @@ if __name__ == "__main__":
 
     files = findAllFiles(base_path, ".csv")
 
+    print("Found {} csv files.".format(len(files)))
+    print("Start conversion")
+
     to_zip = []
-    for file in files:
-        print(file)
+    csv_total_file_size = 0
+    mat_total_file_size = 0
+    for file in tqdm(files):
         try:
             csv = read_csv(file, sep=';', index_col=False)
         except:
@@ -48,5 +55,11 @@ if __name__ == "__main__":
 
         new_fname = file.replace(".csv", ".mat")
         scipy.io.savemat(new_fname, values)
+
         to_zip.append(new_fname)
-    compressFolders(to_zip, base_path)
+        csv_total_file_size += os.path.getsize(file)
+        mat_total_file_size += os.path.getsize(new_fname)
+
+    zip_size = compressFolders(to_zip, base_path)
+    print("CSV total files sizes: {} Mb".format(csv_total_file_size/1000000))
+    print("MAT total files sizes: {} Mb".format(mat_total_file_size/1000000))

@@ -21,6 +21,7 @@ using namespace boost::filesystem;
 
 #define HEADER_HEIGHT 10
 #define PRINTABLE_HEIGHT 30
+#define COLUMN_MAX_WIDTH 35
 
 enum SelectionType{
   sel_file,
@@ -45,6 +46,7 @@ public:
 
 
 private:
+  void get_winsize();
   void move(int, int);
   void clear_screen();
   void print(int, int, string);
@@ -53,9 +55,10 @@ private:
   bool is_selected(string path);
   int get_selected_index(string path);
 
+  void update_dirs();
   void remove_hidden();
 
-  void print_dirs();
+  void print_dirs(int column=0);
   string get_colored(string text, int color, int style=0);
 
   vector<directory_entry> all_dirs;
@@ -80,6 +83,7 @@ private:
 
   string stat_fname = ".browse_cpp";
   string start_path;
+  string path;
 };
 
 #endif //BROWSE_H
