@@ -1,6 +1,11 @@
-# Telemetry
+# Eagle TRT
 Log messages received in CAN bus.  
 Start and stop logging by sending specific command messages.  
+
+## Contents
+- [Telemetry](#telemetry)
+- [CSV](#csv)
+- [CSV to MAT](#csv-to-mat)
 
 ## Requirements
 Required Boost libs, install them with:  
@@ -12,6 +17,19 @@ Optional nlohmann_json:
 sudo apt-get install -y nlohmann-json-dev
 ~~~
 
+To use **csv_to_mat.py** are needed some other python modules.  
+Run ***pip3 install*** on each of the following:
+~~~
+tqdm
+numpy
+scipy
+pandas
+termcolor
+~~~
+
+The last thing is to install are some modules from a [github repo](https://github.com/Pippo98/ownModules.git). Follow there the **instructions**.  
+
+# Telemetry
 ## Usage
 Run the program.  
 To start logging send:  
@@ -142,3 +160,13 @@ It will start parsing files using all hardware threads available.
 The generated CSV files are in the same folder as the **.log** file.  
 If the **.log** file has an integer name (0.log, 1.log, ...) it will create a folder called as the integer number, otherwise will create a **parsed** folder.
 In the created folder can be found all the **.csv** files names like the CAN bus device.  
+
+# CSV to MAT
+Python tool that converts **.csv** files in **Matlab** files.  
+Run:  
+~~~
+python csv_to_mat.py
+~~~
+
+Select a folder and let it parse all the files.  
+The results can be found in the selected folder as a **.zip** archive.
