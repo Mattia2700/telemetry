@@ -75,6 +75,7 @@ int main(){
   cout << endl;
   cout << get_colored("Total Execution Time: " + to_string(dt) + " seconds", 2) << endl;
   cout << get_colored("Parsed " + to_string(total_lines) + " lines!!", 2) << endl;
+  cout << get_colored("Average " + to_string(int(total_lines / dt)) + " lines/sec!!", 2) << endl;
 
   return 0;
 }
