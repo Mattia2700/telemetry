@@ -32,6 +32,7 @@ add_library(
   src/can.cpp
   src/utils.cpp
   src/browse.cpp
+  src/serial.cpp
   src/devices.cpp
   src/vehicle.cpp
   )
@@ -39,7 +40,7 @@ add_library(
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 add_executable(telemetry scripts/telemetry.cpp)
-target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES} jsoncpp)
+target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})
 
 add_executable(csv scripts/csv.cpp)
-target_link_libraries(csv ${PROJECT_NAME} ${Boost_LIBRARIES} jsoncpp)
+target_link_libraries(csv ${PROJECT_NAME} ${Boost_LIBRARIES})

@@ -44,7 +44,6 @@ public:
   void set_extension(string extension);
   void set_selection_type(SelectionType type);
 
-
 private:
   void get_winsize();
   void move(int, int);
@@ -58,6 +57,7 @@ private:
   void update_dirs();
   void remove_hidden();
 
+  void print_file(string fname, int column=0);
   void print_dirs(int column=0);
   string get_colored(string text, int color, int style=0);
 

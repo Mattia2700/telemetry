@@ -51,7 +51,6 @@ vector<string> Browse::start(){
 
   while(true){
     get_winsize();
-    hint = to_string(width);
 
     update_dirs();
 
@@ -70,6 +69,8 @@ vector<string> Browse::start(){
       index = prev_idx;
       path = prev_path;
       update_dirs();
+    }else{
+      print_file(all_dirs[index].path().string(), 1);
     }
 
     jump_clear = false;
@@ -299,6 +300,7 @@ void Browse::update_dirs(){
     if(hide_hidden_files){
       remove_hidden();
     }
+    sort(all_dirs.begin(), all_dirs.end());
     count = all_dirs.size();
 }
 
@@ -308,4 +310,37 @@ void Browse::get_winsize(){
 
   width = w.ws_col;
   height = w.ws_row;
+}
+
+void Browse::print_file(string fname, int column){
+  if(!boost::filesystem::is_regular_file(fname))
+    return;
+  if(!exists(fname))
+    return;
+
+
+  FILE* f = fopen(fname.c_str(), "r");
+  char* line = NULL;
+  size_t size = 0;
+  int x = column * (COLUMN_MAX_WIDTH + 2);
+  int count = 0;
+  while(getline(&line, &size, f) != -1){
+    if(count > PRINTABLE_HEIGHT)
+      break;
+    for(int i = 0; i< size; i++){
+      if(line[i] == '\r')
+        line[i] = NULL;
+    }
+
+    string line_str = string(line);
+    if(line_str.size() > COLUMN_MAX_WIDTH){
+      line_str.resize(COLUMN_MAX_WIDTH);
+    }
+
+    move(x, HEADER_HEIGHT + count);
+    cout << line_str;
+    count ++;
+  }
+
+  fclose(f);
 }

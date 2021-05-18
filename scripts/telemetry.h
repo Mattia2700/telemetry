@@ -12,18 +12,29 @@
 
 #include <boost/filesystem.hpp>
 
+#include <mutex>
+#include <thread>
+
 #ifdef JSON
   #include <nlohmann/json.hpp>
   using json = nlohmann::json;
+  nlohmann::ordered_json stat;
 #endif
 
 #include "can.h"
+#include "serial.h"
 
 using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
 
 const char* CAN_DEVICE = "vcan0";
+const char* GPS_DEVICE = "/dev/ttyACM1";
+
+mutex mMutex;
+atomic<bool> killThread = true;
+serial s;
+
 string HOME_PATH;
 string FOLDER_PATH;
 
@@ -39,6 +50,8 @@ uint8_t* msg_data = new uint8_t[8];
 // Filter and message structs
 can_filter rfilter;
 can_frame message;
+
+void log_gps(string fname, string header="");
 
 /**
 * Gets current timestamp in seconds

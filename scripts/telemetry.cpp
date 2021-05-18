@@ -1,6 +1,13 @@
 #include "telemetry.h"
 
 int main(){
+
+  s = serial(GPS_DEVICE);
+  if(s.open_port() < 0){
+    cout << "Failed opeing " << GPS_DEVICE << endl;
+  }
+
+
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/Desktop/logs";
 
@@ -55,6 +62,7 @@ int main(){
   // indices for PILOTS, RACES, CIRCUITS
   int i1 = 0, i2 = 0, i3 = 0;
   while(true){
+    killThread = true;
     messages_count = 0;
     // Send telemetry status IDLE
     msg_data[0] = 0;
@@ -81,6 +89,7 @@ int main(){
             i2 = 0;
             i3 = 0;
           }
+          killThread = false;
           break;
         }
       }
@@ -92,6 +101,29 @@ int main(){
     can->set_filters(rfilter);
 
     time_t date = time(0);
+
+    // Check index range
+    if (i1 >= PILOTS.size())
+      i1 = 0;
+    if (i2 >= RACES.size())
+      i2 = 0;
+    if (i3 >= CIRCUITS.size())
+      i3 = 0;
+
+    // Get human readable date
+    char* date_c = ctime(&date);
+
+    // Insert header at top of the file
+    string header =  "\r\n\n";
+    header += "*** EAGLE-TRT\r\n";
+    header += "*** Telemetry Log File\r\n";
+    header += "*** " + string(date_c);
+    header += "\r\n";
+    header += "*** Pilot: " + PILOTS[i1] + "\r\n";
+    header += "*** Race: " + RACES[i2] + "\r\n";
+    header += "*** Circuit: " + CIRCUITS[i3];
+    header += "\n\n\r";;
+
     tm *ltm = localtime(&date);
     // Create a unique folder
     stringstream subfolder;
@@ -107,38 +139,25 @@ int main(){
     subfolder << "_";
     subfolder << RACES[i2];
 
+    // get absolute path of folder
     string folder = FOLDER_PATH + "/" + subfolder.str();
     create_directory(folder);
-    string fname = folder + "/" + "candump.log";
-    std::ofstream log(fname);
 
-    // Check index range
-    if (i1 >= PILOTS.size())
-      i1 = 0;
-    if (i2 >= RACES.size())
-      i2 = 0;
-    if (i3 >= CIRCUITS.size())
-      i3 = 0;
+    string can_fname = folder + "/" + "candump.log";
+    string gps_fname = folder + "/" + "gps.log";
 
-    // Get human readable date
-    char* date_c = ctime(&date);
+    // spawn GPS logger thread
+    thread* t1 = new thread(log_gps, gps_fname, header);
 
-    // Insert header at top of the file
-    log << "\r\n\n"
-        "*** EAGLE-TRT\r\n"
-        "*** Telemetry Log File\r\n"
-        "*** " << date_c <<
-        "\r\n"
-        "*** Pilot: " << PILOTS[i1] << "\r\n"
-        "*** Race: " << RACES[i2] << "\r\n"
-        "*** Circuit: " << CIRCUITS[i3] <<
-        "\n\n\r";
+    // open candump file
+    std::ofstream log(can_fname);
+    log << header;
 
     stringstream line;
     // Use this timer to send status messages
-    time_point t_start = high_resolution_clock::now();
-    time_point t_end = t_start;
-    time_point log_start_t = t_start;
+    auto t_start = high_resolution_clock::now();
+    auto t_end = t_start;
+    auto log_start_t = t_start;
     while(true){
       can->receive(&message);
 
@@ -165,6 +184,7 @@ int main(){
         if(message.data[0] == 0x65 && message.data[1] == 0x00){
           cout << "Status: " << "\e[1;31m" << "Stopped" << "\e[0m" << "\r" << flush;
           log.close();
+          killThread = true;
           break;
         }
       }
@@ -182,21 +202,22 @@ int main(){
       double dt = duration<double, milli>
                   (high_resolution_clock::now() - log_start_t)
                   .count()/1000;
+      {
+        std::unique_lock<std::mutex> lck(mMutex);
+        stat["Date"] = date_c;
 
-      nlohmann::ordered_json stat;
-      stat["Date"] = date_c;
+        stat["Pilot"] = PILOTS[i1];
+        stat["Race"] = RACES[i2];
+        stat["Circuit"] = CIRCUITS[i3];
 
-      stat["Pilot"] = PILOTS[i1];
-      stat["Race"] = RACES[i2];
-      stat["Circuit"] = CIRCUITS[i3];
+        stat["Data"]["CAN"]["Messages"] = messages_count;
+        stat["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / dt);
+        stat["Data"]["CAN"]["Duration (seconds)"] = dt;
 
-      stat["Messages"] = messages_count;
-      stat["Average Frequency (Hz)"] = int(messages_count / dt);
-      stat["Duration (seconds)"] = dt;
-
-      std::ofstream stat_f(folder + "/stat.json");
-      stat_f << stat.dump(2);
-      stat_f.close();
+        std::ofstream stat_f(folder + "/stat.json");
+        stat_f << stat.dump(2);
+        stat_f.close();
+      }
     #endif
 
   }
@@ -211,4 +232,32 @@ string get_hex(int num, int zeros){
   stringstream ss;
   ss << setw(zeros) << uppercase << setfill('0') << hex << num;
   return ss.str();
+}
+
+void log_gps(string fname, string header){
+  // Use this mutex only for wring in json stat
+  std::unique_lock<std::mutex> lck(mMutex);
+  std::ofstream gps(fname);
+
+  if(header != "")
+    gps << header << flush;
+
+  int count = 0;
+  auto t0 = high_resolution_clock::now();
+  while(!killThread){
+    string line = s.read_line('\r');
+    line = to_string(get_timestamp()) + "\t" + line + "\n";
+    gps << line;
+    count ++;
+  }
+
+  gps.close();
+
+  double dt = duration<double, milli>
+              (high_resolution_clock::now() - t0)
+              .count()/1000;
+
+  stat["Data"]["GPS"]["Messages"] = count;
+  stat["Data"]["GPS"]["Average Frequency [Hz]"] = int(count / dt);
+  stat["Data"]["GPS"]["Duration [seconds]"] = dt;
 }
