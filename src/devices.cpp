@@ -7,6 +7,7 @@ Device::Device(string name){
 
   id = global_id;
   global_id ++;
+  count = 0;
 }
 Device::~Device(){}
 

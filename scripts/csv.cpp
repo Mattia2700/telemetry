@@ -100,9 +100,9 @@ void parse_file(string fname){
 
   create_directory(folder);
 
-  chimera.set_all_filenames(folder, ".csv");
+  chimera.add_filenames(folder, ".csv");
   chimera.open_all_files();
-  chimera.write_all_headers();
+  chimera.write_all_headers(0);
 
   message msg;
   vector<string> lines;
@@ -119,7 +119,7 @@ void parse_file(string fname){
     modified = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
     if(modified != nullptr){
-      *modified->file << modified->get_string(";") + "\n";
+      *modified->files[0] << modified->get_string(";") + "\n";
     }
   }
   double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count()/1000;

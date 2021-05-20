@@ -20,7 +20,10 @@ Browse::Browse(){
     char * buffer = new char [length];
     stat.read (buffer,length);
     stat.close();
-    start_path = string(buffer);
+    if(exists(boost::filesystem::path(string(buffer))))
+      start_path = string(buffer);
+    else
+      start_path = getenv("HOME");
   }
   else{
     start_path = getenv("HOME");
@@ -329,7 +332,7 @@ void Browse::print_file(string fname, int column){
       break;
     for(int i = 0; i< size; i++){
       if(line[i] == '\r')
-        line[i] = NULL;
+        line[i] = ' ';
     }
 
     string line_str = string(line);

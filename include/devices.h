@@ -27,10 +27,11 @@ public:
   virtual string get_header(string separator)=0;
   virtual string get_string(string separator)=0;
 
-  double count;
-  std::fstream* file;
-  string filename;
   double timestamp;
+  
+  double count;
+  vector<std::fstream*> files;
+  vector<string> filenames;
   vector<string> mesages_list;
 
 private:

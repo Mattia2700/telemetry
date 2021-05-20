@@ -106,3 +106,20 @@ bool path_exists(string path){
 string get_colored(string text, int color, int style){
   return  "\e[" + to_string(style) + ";3" + to_string(color) + "m" + text + "\e[0m";
 }
+
+
+vector<string> split(string str, char separator){
+  vector<string> ret;
+  string bff = "";
+  for(int i = 0; i < str.size(); i ++){
+    if(str[i] == separator){
+      ret.push_back(bff);
+      bff = "";
+    }
+    else{
+      bff += str[i];
+    }
+  }
+  ret.push_back(bff);
+  return ret;
+}

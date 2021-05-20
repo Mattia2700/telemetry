@@ -33,25 +33,39 @@ Chimera::Chimera(){
 }
 
 
-void Chimera::set_all_filenames(string base_path, string extension){
+void Chimera::add_filenames(string base_path, string extension){
   for(auto device : devices){
-    device->filename = base_path + "/" + device->get_name() + extension;
+    device->filenames.push_back(base_path + "/" + device->get_name() + extension);
   }
 }
 
 void Chimera::open_all_files(){
   for(auto device : devices)
-    device->file = new fstream(device->filename, fstream::out);
+    for(auto filename : device->filenames)
+      device->files.push_back(new fstream(filename, fstream::out));
 }
 
 void Chimera::close_all_files(){
-  for(auto device : devices)
-    device->file->close();
+  for(auto device : devices){
+    for(auto file : device->files)
+      file->close();
+
+    device->files.clear();
+    device->filenames.clear();
+  }
 }
 
-void Chimera::write_all_headers(){
+void Chimera::close_files(int index){
+  for(auto device : devices){
+    device->files[index]->close();
+    device->files.erase(device->files.begin() + index);
+    device->filenames.erase(device->filenames.begin() + index);
+  }
+}
+
+void Chimera::write_all_headers(int index){
   for(auto device : devices)
-    *device->file << device->get_header(";") << "\n";
+    *device->files[index] << device->get_header(";") << "\n";
 }
 
 Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){

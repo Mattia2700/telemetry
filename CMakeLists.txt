@@ -44,3 +44,6 @@ target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})
 
 add_executable(csv scripts/csv.cpp)
 target_link_libraries(csv ${PROJECT_NAME} ${Boost_LIBRARIES})
+
+add_executable(checker scripts/checker.cpp)
+target_link_libraries(checker ${PROJECT_NAME} ${Boost_LIBRARIES})

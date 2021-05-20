@@ -4,9 +4,10 @@ int main(){
 
   s = serial(GPS_DEVICE);
   if(s.open_port() < 0){
-    cout << "Failed opeing " << GPS_DEVICE << endl;
+    cout << get_colored("Failed opeing " + string(GPS_DEVICE), 1) << endl;
+  }else{
+    cout << get_colored("Opened " + string(GPS_DEVICE), 6) << endl;
   }
-
 
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/Desktop/logs";
@@ -14,7 +15,7 @@ int main(){
   FOLDER_PATH = HOME_PATH + FOLDER_PATH;
 
   if(!exists(FOLDER_PATH)){
-    cout << "Folder not found!" << endl;
+    cout << get_colored("Folder not found!", 1) << endl;
     cout << FOLDER_PATH << endl;
     return 0;
   }
@@ -24,40 +25,17 @@ int main(){
   int sock = can->open();
 
   if(sock < 0){
-    cout << "Failed creating/binding socket: " << CAN_DEVICE << endl;
+    cout << get_colored("Failed creating/binding socket: " + string(CAN_DEVICE), 1) << endl;
     CAN_DEVICE = "can0";
     can = new Can(CAN_DEVICE, &addr);
     sock = can->open();
     if(sock < 0){
-      cout << "Failed creating/binding socket: " << CAN_DEVICE << endl;
+      cout << get_colored("Failed creating/binding socket: " + string(CAN_DEVICE), 1) << endl;
       cout << "Exiting" << endl;
       return 0;
     }
   }
-  cout << "Opened Socket: " << CAN_DEVICE << endl;
-
-  CIRCUITS = vector<string>({
-    "default",
-    "Vadena",
-    "Varano",
-    "Povo",
-    "Skio",
-  });
-  PILOTS = vector<string>({
-    "default",
-    "Ivan",
-    "Filippo",
-    "Mirco",
-    "Nicola",
-    "Davide",
-  });
-  RACES = vector<string>({
-    "default",
-    "Autocross",
-    "Skidpad",
-    "Endurance",
-    "Acceleration",
-  });
+  cout << get_colored("Opened Socket: " + string(CAN_DEVICE), 6) << endl;
 
   // indices for PILOTS, RACES, CIRCUITS
   int i1 = 0, i2 = 0, i3 = 0;
@@ -78,7 +56,6 @@ int main(){
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Start Message
         if(message.data[0] = 0x65 && message.data[1] == 0x01){
-          cout << "Status: " << "\e[1;33m" << "Running" << "\e[0m" << "\r" << flush;
           // If contains some payload use to setup pilots races and circuits
           if(message.can_dlc >= 5){
             i1 = message.data[2];
@@ -89,6 +66,8 @@ int main(){
             i2 = 0;
             i3 = 0;
           }
+          cout << "Status: " << get_colored("Running", 3) << "\r" << flush;
+          // let the GPS thread run
           killThread = false;
           break;
         }
@@ -100,8 +79,6 @@ int main(){
     rfilter.can_mask = 0b00000000000;
     can->set_filters(rfilter);
 
-    time_t date = time(0);
-
     // Check index range
     if (i1 >= PILOTS.size())
       i1 = 0;
@@ -111,6 +88,7 @@ int main(){
       i3 = 0;
 
     // Get human readable date
+    time_t date = time(0);
     char* date_c = ctime(&date);
 
     // Insert header at top of the file
@@ -128,8 +106,8 @@ int main(){
     // Create a unique folder
     stringstream subfolder;
     subfolder << to_string(1900 + ltm->tm_year);
-    subfolder << setw(2) << setfill('0') << to_string(1    + ltm->tm_mon);
-    subfolder << setw(2) << setfill('0') << to_string(       ltm->tm_mday);
+    subfolder << setw(2) << setfill('0') << to_string(1+ ltm->tm_mon);
+    subfolder << setw(2) << setfill('0') << to_string(   ltm->tm_mday);
     subfolder << "_";
     subfolder << setw(2) << setfill('0') <<  to_string(ltm->tm_hour);
     subfolder << setw(2) << setfill('0') <<  to_string(ltm->tm_min);
@@ -182,7 +160,7 @@ int main(){
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Stop message
         if(message.data[0] == 0x65 && message.data[1] == 0x00){
-          cout << "Status: " << "\e[1;31m" << "Stopped" << "\e[0m" << "\r" << flush;
+          cout << "Status: " << get_colored("Stopped", 1) << "\r" << flush;
           log.close();
           killThread = true;
           break;

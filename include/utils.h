@@ -49,4 +49,6 @@ bool path_exists(string path);
 
 string get_colored(string text, int color, int style = 1);
 
+vector<string> split(string str, char separator);
+
 #endif // UTILS_H

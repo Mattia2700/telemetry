@@ -22,6 +22,7 @@
 #endif
 
 #include "can.h"
+#include "utils.h"
 #include "serial.h"
 
 using namespace std;
@@ -38,9 +39,28 @@ serial s;
 string HOME_PATH;
 string FOLDER_PATH;
 
-vector<string> CIRCUITS;
-vector<string> PILOTS;
-vector<string> RACES;
+vector<string> CIRCUITS = vector<string>({
+  "default",
+  "Vadena",
+  "Varano",
+  "Povo",
+  "Skio",
+});
+vector<string> PILOTS = vector<string>({
+  "default",
+  "Ivan",
+  "Filippo",
+  "Mirco",
+  "Nicola",
+  "Davide",
+});
+vector<string> RACES = vector<string>({
+  "default",
+  "Autocross",
+  "Skidpad",
+  "Endurance",
+  "Acceleration",
+});
 
 uint32_t messages_count;
 
