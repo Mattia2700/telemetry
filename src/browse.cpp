@@ -20,7 +20,8 @@ Browse::Browse(){
     char * buffer = new char [length];
     stat.read (buffer,length);
     stat.close();
-    if(exists(boost::filesystem::path(string(buffer))))
+    if(exists(boost::filesystem::path(string(buffer))) &&
+    is_directory(boost::filesystem::path(string(buffer))))
       start_path = string(buffer);
     else
       start_path = getenv("HOME");
@@ -168,7 +169,7 @@ vector<string> Browse::start(){
 
   if(selected_paths.size() > 0){
     std::ofstream stat(stat_fname);
-    stat << selected_paths.at(0);
+    stat << boost::filesystem::path(selected_paths.at(0)).parent_path().string();;
     stat.close();
   }
 

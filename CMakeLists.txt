@@ -20,8 +20,11 @@ else()
   message("JSON not found!")
 endif()
 
+find_package(CURL REQUIRED)
+
 include_directories(
   ${PROJECT_SOURCE_DIR}
+  ${CURL_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   )
 
@@ -39,11 +42,14 @@ add_library(
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-add_executable(telemetry scripts/telemetry.cpp)
+add_executable(telemetry scripts/telemetry/telemetry.cpp)
 target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})
 
-add_executable(csv scripts/csv.cpp)
+add_executable(csv scripts/csv/csv.cpp)
 target_link_libraries(csv ${PROJECT_NAME} ${Boost_LIBRARIES})
 
-add_executable(checker scripts/checker.cpp)
+add_executable(checker scripts/checker/checker.cpp)
 target_link_libraries(checker ${PROJECT_NAME} ${Boost_LIBRARIES})
+
+add_executable(dashboard scripts/dashboard/dashboard.cpp)
+target_link_libraries(dashboard ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES})

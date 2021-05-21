@@ -28,7 +28,7 @@ public:
   virtual string get_string(string separator)=0;
 
   double timestamp;
-  
+
   double count;
   vector<std::fstream*> files;
   vector<string> filenames;
