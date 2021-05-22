@@ -12,6 +12,7 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
+#include <curl/curl.h>
 
 #include <mutex>
 #include <thread>
@@ -28,7 +29,23 @@ using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
 
+// To reduce data to be sent
+#define MAX_DT 0.100
+// Flag to enable continuous send
+#define REAL_TIME true
+// Timeout at which send if in mode "REAL_TIME"
 #define TIMEOUT 1000
+
+Chimera chimera;
+CURL *curl;
+
+void setup_chimera_data(vector<map<string, vector<double>>> &);
+
+int setup_curl(string url);
+int send_json(string url, string data);
+
+string pack_json(string name, vector<map<string, vector<double>>>);
+
 
 
 #endif

@@ -30,6 +30,7 @@ public:
   double timestamp;
 
   double count;
+  double helper_variable = 0;
   vector<std::fstream*> files;
   vector<string> filenames;
   vector<string> mesages_list;
