@@ -2,11 +2,14 @@
 
 int main(){
 
-  s = serial(GPS_DEVICE);
-  if(s.open_port() < 0){
-    cout << get_colored("Failed opeing " + string(GPS_DEVICE), 1) << endl;
-  }else{
-    cout << get_colored("Opened " + string(GPS_DEVICE), 6) << endl;
+  if(USE_GPS){
+    s = serial(GPS_DEVICE);
+    if(s.open_port() < 0){
+      cout << get_colored("Failed opeing " + string(GPS_DEVICE), 1) << endl;
+      USE_GPS = 0;
+    }else{
+      cout << get_colored("Opened " + string(GPS_DEVICE), 6) << endl;
+    }
   }
 
   HOME_PATH = getenv("HOME");
@@ -124,8 +127,10 @@ int main(){
     string can_fname = folder + "/" + "candump.log";
     string gps_fname = folder + "/" + "gps.log";
 
-    // spawn GPS logger thread
-    thread* t1 = new thread(log_gps, gps_fname, header);
+    if(USE_GPS) {
+      // spawn GPS logger thread
+      thread* t1 = new thread(log_gps, gps_fname, header);
+    }
 
     // open candump file
     std::ofstream log(can_fname);

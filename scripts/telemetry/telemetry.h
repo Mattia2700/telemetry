@@ -31,6 +31,7 @@ using namespace boost::filesystem;
 
 const char* CAN_DEVICE = "vcan0";
 const char* GPS_DEVICE = "/dev/ttyACM1";
+int USE_GPS = 1;
 
 mutex mMutex;
 atomic<bool> killThread = true;
