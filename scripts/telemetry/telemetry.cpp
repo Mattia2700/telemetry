@@ -14,14 +14,19 @@ int main(){
 
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/Desktop/logs";
+  cout << get_colored("Output Folder" + HOME_PATH + FOLDER_PATH, 2) << endl;
+  if(!path_exists(HOME_PATH + FOLDER_PATH)){
+    cout << get_colored("Failed, changing folder... ", 1) << endl;
+    FOLDER_PATH = "/logs";
+    cout << get_colored("Output Folder" + HOME_PATH + FOLDER_PATH, 2) << endl;
+    if(!path_exists(HOME_PATH + FOLDER_PATH)){
+      cout << get_colored("Folder not found!", 1) << endl;
+      cout << FOLDER_PATH << endl;
+      return 0;
+    }
+  }
 
   FOLDER_PATH = HOME_PATH + FOLDER_PATH;
-
-  if(!exists(FOLDER_PATH)){
-    cout << get_colored("Folder not found!", 1) << endl;
-    cout << FOLDER_PATH << endl;
-    return 0;
-  }
 
   sockaddr_can addr;
   Can* can = new Can(CAN_DEVICE, &addr);
