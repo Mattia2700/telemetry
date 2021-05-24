@@ -14,7 +14,7 @@ except:
     bus = can.interface.Bus(channel=channel, bustype=bustype)
 
 bus.set_filters([
-  {"can_id":0xD1, "can_mask":0b11111111101, "extended":False},
+  {"can_id":0xD1, "can_mask":0b11111111011, "extended":False},
 ])
 msg = can.Message(arbitration_id=0x0, data=[], is_extended_id=False)
 
@@ -23,6 +23,7 @@ status = open(fname, 'a+')
 runStartTime = None
 runEndTime   = None
 
+# Opening file
 lastStatus = ""
 status.seek(0,0)                    # move to file start
 lines = status.readlines()
@@ -31,7 +32,10 @@ lines = status.readlines()
 km = 0
 rotations = 0
 if len(lines) > 1:
+  # Removing header
+  lines = lines[1:]
 
+  # Reading last line
   lastStatus = lines[-1]
 
   s = lastStatus.split(";")
@@ -40,6 +44,7 @@ if len(lines) > 1:
   rotations     = int(s[2])
   km            = float(s[3])
 
+  # Sending last status saved
   msg.arbitration_id = 0xD4
   msg.data = rotations.to_bytes(3, "big")
   msg.dlc = 3
@@ -78,7 +83,7 @@ while True:
     else:
       print("incrementing", end="\r")
 
-  if msg_id == 0xD3 or runStartTime == None:
+  if msg_id == 0xD5 or runStartTime == None:
     km = 0
     rotations = 0
     print("new run", end="\r")
@@ -86,13 +91,15 @@ while True:
 
   line = "{};{};{};{};\n".format(runStartTime,time.time(),rotations,km)
 
-  if msg_id == 0xD3 or len(lines) == 0:
+  if msg_id == 0xD5 or len(lines) == 0:
     lines.append(line)
   else:
     lines[-1] = line
 
+  # Clearing file
   status.seek(0,0)
-  status.truncate()
+  status.truncate(0)
+  # Writing all lines
   status.write("start;end;rotations;km;\n")
   status.write("".join(lines))
   status.flush()
