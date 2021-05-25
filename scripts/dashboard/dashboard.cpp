@@ -29,16 +29,16 @@ int main(){
     message msg;
     vector<string> lines;
     get_lines(file, &lines);
-    Device* modified = nullptr;
+    vector<Device*> modifiedDevices;
     double prev_timestamp = -1;
     auto start_time = steady_clock::now();
     for(int i = 20; i < lines.size(); i++){
       if(!parse_message(lines [i], &msg))
         continue;
 
-      modified = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
+      modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
-      if(modified != nullptr){
+      for(auto modified : modifiedDevices){
         // Add message if elased enough time
         if(modified->timestamp - modified->helper_variable > MAX_DT){
           modified->helper_variable = modified->timestamp;

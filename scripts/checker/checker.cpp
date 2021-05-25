@@ -51,6 +51,7 @@ int main(){
 
     for (auto file : files){
 
+      // Create folder which will contains data created
       string folder;
       try{
         int n = stoi(remove_extension(file));
@@ -58,34 +59,37 @@ int main(){
       }catch(std::exception& e){
         folder = get_parent_dir(file) + "/checker";
       }
+      create_directory(folder);
 
       Chimera chimera;
 
-      create_directory(folder);
-
-      chimera.add_filenames(folder, ".json");     // to store parsed values
-      chimera.add_filenames(folder, ".messages");      // to store raw message
+      chimera.add_filenames(folder, ".json");       // to store parsed values
+      chimera.add_filenames(folder, ".messages");   // to store raw message
       chimera.open_all_files();
 
       int devices_to_check = chimera.devices.size() -1;
       vector<int> checked_ids;
 
+      // Reset device count (counts messages)
       for(auto device : chimera.devices){
         device->count = 0;
       }
 
+      // Get all lines
       message msg;
       vector<string> lines;
       get_lines(file, &lines);
-      Device* modified = nullptr;
+      vector<Device*> modifiedDevices;
       for(int i = 20; i < lines.size(); i++){
-        time_point t_start = high_resolution_clock::now();
+        // Try parsing
         if(!parse_message(lines [i], &msg))
           continue;
-        modified = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
+        // Fill devices
+        modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
-        if(modified != nullptr){
+        for(auto modified : modifiedDevices){
+          // Check if the counter of the devices reaches the max pessages per device
           if(modified->count > MAX_MESSAGES){
             std::vector<int>::iterator it;
             it = find (checked_ids.begin(), checked_ids.end(), modified->get_id());
@@ -104,9 +108,11 @@ int main(){
             }
           }
           else{
+            // Increment message counter
             modified->count ++;
           }
 
+          // Create json keys and values
           string header = modified->get_header(";");
           vector<string> keys = split(header, ';');
           string data = modified->get_string(";");
@@ -116,6 +122,7 @@ int main(){
           for(int j = 0; j < keys.size(); j++){
             json_values[keys[j]] = values[j];
           }
+          // Write json and raw message in each file
           *modified->files[0] << json_values << "\n";
           *modified->files[1] << lines[i];
         }

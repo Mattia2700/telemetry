@@ -2,20 +2,24 @@
 Log messages received in CAN bus.  
 Start and stop logging by sending specific command messages.  
 
+> :warning: **THIS VERSION IS NOT COMPATIBLE WITH LOGS BEFORE 24/05/2021**
+
 ## Contents
 - [Telemetry](#telemetry)
 - [CSV](#csv)
 - [CSV to MAT](#csv-to-mat)
 
 ## Requirements
-Required Boost libs, install them with:  
+- Required Boost libs, install them with:  
 ~~~bash
 sudo apt-get install libboost-all-dev
 ~~~
-Optional nlohmann_json:  
+- Optional nlohmann_json:  
 ~~~bash
 sudo apt-get install -y nlohmann-json-dev
 ~~~
+
+- Curl if using dashboard
 
 To use **csv_to_mat.py** are needed some other python modules.  
 Run ***pip3 install*** on each of the following:

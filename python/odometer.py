@@ -79,9 +79,11 @@ while True:
       msg.data = prev_rotations.to_bytes(3, "big")
       msg.dlc = 3
       bus.send(msg)
+      print("Sending status...", end="\r")
       continue
     else:
-      print("incrementing", end="\r")
+      print("prev: {} now: {}... Incrementing".format(prev_rotations, rotations), end="\r")
+    time.sleep(1)
 
   if msg_id == 0xD5 or runStartTime == None:
     km = 0

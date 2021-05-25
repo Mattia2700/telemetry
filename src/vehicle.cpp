@@ -68,7 +68,9 @@ void Chimera::write_all_headers(int index){
     *device->files[index] << device->get_header(";") << "\n";
 }
 
-Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
+vector<Device *> Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
+  vector<Device *> modifiedDevices;
+
   switch (id) {
     case 0x4EC:
       gyro->scale = 245;
@@ -88,7 +90,8 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
       gyro->z /= 100;
 
       gyro->timestamp = timestamp;
-      return gyro;
+
+      modifiedDevices.push_back(gyro);
     break;
     case 0x4ED:
       accel->scale = 8;
@@ -109,7 +112,7 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
 
       accel->timestamp = timestamp;
 
-      return accel;
+      modifiedDevices.push_back(accel);
     break;
     case 0xB0: // Pedals
       if(data[0] == 0x01){
@@ -118,7 +121,7 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
 
         pedal->timestamp = timestamp;
 
-        return pedal;
+        modifiedDevices.push_back(pedal);
       }
       else if(data[0] == 0x02){
         pedal->timestamp = timestamp;
@@ -129,7 +132,7 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
         pedal->brake_front /= 500;
         pedal->brake_rear /= 500;
 
-        return pedal;
+        modifiedDevices.push_back(pedal);
       }
     break;
     case 0xC0:
@@ -140,7 +143,7 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
 
         steer->timestamp = timestamp;
 
-        return steer;
+        modifiedDevices.push_back(steer);
       }
     break;
     case 0xD0:
@@ -157,37 +160,41 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
       encoder_left->timestamp = timestamp;
       encoder_right->timestamp = timestamp;
 
-      return encoder_right;
+      modifiedDevices.push_back(encoder_left);
+      modifiedDevices.push_back(encoder_right);
       break;
     case 0xD1:
       encoder_left->rotations =  (data[0] << 16) + (data[1] << 8) + data[2];
       encoder_left->km = (data[3] << 16) + (data[4] << 8) + data[5];
+      encoder_right->rotations =  (data[0] << 16) + (data[1] << 8) + data[2];
+      encoder_right->km = (data[3] << 16) + (data[4] << 8) + data[5];
       // error left data[6]
       // error right data[6]
 
-      return encoder_left;
+      modifiedDevices.push_back(encoder_left);
+      modifiedDevices.push_back(encoder_right);
       break;
     case 0xAA:
       if(data[0] == 0x01){
         bms_hv->voltage = ((data[1] << 16) + (data[2] << 8))/10000;
         bms_hv->timestamp = timestamp;
-        return bms_hv;
+        modifiedDevices.push_back(bms_hv);
       }else if(data[0] == 0x05){
         bms_hv->current = ((data[1] << 16) + (data[2]))/10;
         bms_hv->power = data[3] << 8 + data[4];
         bms_hv->timestamp = timestamp;
-        return bms_hv;
+        modifiedDevices.push_back(bms_hv);
       }else if(data[0] == 0xA0){
         bms_hv->temperature = ((data[1] << 8) + (data[2]))/10;
         bms_hv->timestamp = timestamp;
-        return bms_hv;
+        modifiedDevices.push_back(bms_hv);
       }
     break;
     case 0xFF:
       bms_lv->voltage = data[0]/10;
       bms_lv->temperature = data[1]/5;
       bms_lv->timestamp = timestamp;
-      return bms_lv;
+      modifiedDevices.push_back(bms_lv);
     break;
     case 0x181:
       if(data[0] == 0xA0){
@@ -195,24 +202,24 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
         if(inverter_left->torque > 32767)
           inverter_left->torque -= 65535;
         inverter_left->timestamp = timestamp;
-        return inverter_left;
+        modifiedDevices.push_back(inverter_left);
       }
       else if(data[0] == 0x4A){
         inverter_left->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
         inverter_left->timestamp = timestamp;
-        return inverter_left;
+        modifiedDevices.push_back(inverter_left);
       }
       else if(data[0] == 0x49){
         inverter_left->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
         inverter_left->timestamp = timestamp;
-        return inverter_left;
+        modifiedDevices.push_back(inverter_left);
       }
       else if(data[0] == 0xA8){
         inverter_left->speed = (data[2] << 8) + data[1];
         if(inverter_left->speed > 32768)
           inverter_left->speed -= 65535;
         inverter_left->timestamp = timestamp;
-        return inverter_left;
+        modifiedDevices.push_back(inverter_left);
       }
     break;
     case 0x182:
@@ -221,31 +228,30 @@ Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int siz
         if(inverter_right->torque > 32767)
           inverter_right->torque -= 65535;
         inverter_right->timestamp = timestamp;
-        return inverter_right;
+        modifiedDevices.push_back(inverter_right);
       }
       else if(data[0] == 0x4A){
         inverter_right->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
         inverter_right->timestamp = timestamp;
-        return inverter_right;
+        modifiedDevices.push_back(inverter_right);
       }
       else if(data[0] == 0x49){
         inverter_right->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
         inverter_right->timestamp = timestamp;
-        return inverter_right;
+        modifiedDevices.push_back(inverter_right);
       }
       else if(data[0] == 0xA8){
         inverter_right->speed = (data[2] << 8) + data[1];
         if(inverter_right->speed > 32768)
           inverter_right->speed -= 65535;
         inverter_right->timestamp = timestamp;
-        return inverter_right;
+        modifiedDevices.push_back(inverter_right);
       }
     break;
     default:
-    return nullptr;
     break;
   }
-  return nullptr;
+  return modifiedDevices;
 }
 
 /*
