@@ -233,7 +233,7 @@ void log_gps(string fname, string header){
   int count = 0;
   auto t0 = high_resolution_clock::now();
   while(!killThread){
-    string line = s.read_line('\r');
+    string line = s.read_line('\n');
     line = to_string(get_timestamp()) + "\t" + line + "\n";
     gps << line;
     count ++;

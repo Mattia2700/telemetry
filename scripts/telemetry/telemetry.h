@@ -30,7 +30,7 @@ using namespace std::chrono;
 using namespace boost::filesystem;
 
 const char* CAN_DEVICE = "vcan0";
-const char* GPS_DEVICE = "/dev/ttyACM1";
+const char* GPS_DEVICE = "/dev/ttyACM0";
 int USE_GPS = 1;
 
 mutex mMutex;
