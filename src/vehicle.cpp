@@ -47,8 +47,10 @@ void Chimera::open_all_files(){
 
 void Chimera::close_all_files(){
   for(auto device : devices){
-    for(auto file : device->files)
+    for(auto file : device->files){
       file->close();
+      delete file;
+    }
 
     device->files.clear();
     device->filenames.clear();

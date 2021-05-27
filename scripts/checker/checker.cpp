@@ -49,7 +49,7 @@ int main(){
       return -1;
     }
 
-    for (auto file : files){
+    for (auto file : candump_files){
 
       // Create folder which will contains data created
       string folder;
@@ -80,7 +80,7 @@ int main(){
       vector<string> lines;
       get_lines(file, &lines);
       vector<Device*> modifiedDevices;
-      for(int i = 20; i < lines.size(); i++){
+      for(int i = lines.size()/2; i < lines.size(); i++){
         // Try parsing
         if(!parse_message(lines [i], &msg))
           continue;
@@ -125,6 +125,8 @@ int main(){
           // Write json and raw message in each file
           *modified->files[0] << json_values << "\n";
           *modified->files[1] << lines[i];
+          *modified->files[0] << flush;
+          *modified->files[1] << flush;
         }
       }
       chimera.close_all_files();

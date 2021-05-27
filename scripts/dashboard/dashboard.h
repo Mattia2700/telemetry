@@ -30,11 +30,11 @@ using namespace std::chrono;
 using namespace boost::filesystem;
 
 // To reduce data to be sent
-#define MAX_DT 0.100
+#define MAX_DT 0.010
 // Flag to enable continuous send
 #define REAL_TIME true
 // Timeout at which send if in mode "REAL_TIME"
-#define TIMEOUT 1000
+#define TIMEOUT 500
 
 Chimera chimera;
 CURL *curl;

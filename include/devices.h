@@ -18,9 +18,7 @@ class Device {
 public:
   Device(string name="default");
   virtual ~Device();
-
-  //virtual string name()=0;
-
+  
   int get_id(){return id;};
   string get_name(){return name;};
 
