@@ -24,8 +24,10 @@ find_package(CURL REQUIRED)
 
 include_directories(
   ${PROJECT_SOURCE_DIR}
-  ${CURL_INCLUDE_DIR}
   ${PROJECT_SOURCE_DIR}/include
+  ${PROJECT_SOURCE_DIR}/thirdparty
+
+  ${CURL_INCLUDE_DIR}
   )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)

@@ -11,6 +11,11 @@
 #include <iostream>
 #include <vector>
 
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+using namespace rapidjson;
+
+
 using namespace std;
 using namespace std::chrono;
 
@@ -18,12 +23,20 @@ class Device {
 public:
   Device(string name="default");
   virtual ~Device();
-  
+
   int get_id(){return id;};
   string get_name(){return name;};
 
   virtual string get_header(string separator)=0;
   virtual string get_string(string separator)=0;
+  virtual Document json()=0;
+  virtual string json_string(){
+    StringBuffer buffer;
+    Writer<StringBuffer> writer(buffer);
+    json().Accept(writer);
+
+    return buffer.GetString();
+  }
 
   double timestamp;
 
@@ -45,9 +58,9 @@ class Imu: public Device{
 public:
   Imu(string name="default"): Device(name){};
 
-  //virtual string name(){return "IMU";};
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double x;
   double y;
@@ -61,6 +74,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double rads;
   double km;
@@ -73,6 +87,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double angle;
 };
@@ -83,6 +98,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double throttle1;
   double throttle2;
@@ -96,6 +112,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 };
 
 class Inverter: public Device {
@@ -104,6 +121,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double temperature;
   double motorTemp;
@@ -117,6 +135,7 @@ public:
 
   virtual string get_header(string separator);
   virtual string get_string(string separator);
+  virtual Document json();
 
   double temperature;
   double current;

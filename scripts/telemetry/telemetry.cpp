@@ -186,27 +186,25 @@ int main(){
       }
     }
 
-    #ifdef JSON
-      double dt = duration<double, milli>
-                  (high_resolution_clock::now() - log_start_t)
-                  .count()/1000;
-      {
-        std::unique_lock<std::mutex> lck(mMutex);
-        stat["Date"] = date_c;
+    double dt = duration<double, milli>
+                (high_resolution_clock::now() - log_start_t)
+                .count()/1000;
+    {
+      std::unique_lock<std::mutex> lck(mMutex);
+      stat["Date"] = date_c;
 
-        stat["Pilot"] = PILOTS[i1];
-        stat["Race"] = RACES[i2];
-        stat["Circuit"] = CIRCUITS[i3];
+      stat["Pilot"] = PILOTS[i1];
+      stat["Race"] = RACES[i2];
+      stat["Circuit"] = CIRCUITS[i3];
 
-        stat["Data"]["CAN"]["Messages"] = messages_count;
-        stat["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / dt);
-        stat["Data"]["CAN"]["Duration (seconds)"] = dt;
+      stat["Data"]["CAN"]["Messages"] = messages_count;
+      stat["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / dt);
+      stat["Data"]["CAN"]["Duration (seconds)"] = dt;
 
-        std::ofstream stat_f(folder + "/stat.json");
-        stat_f << stat.dump(2);
-        stat_f.close();
-      }
-    #endif
+      std::ofstream stat_f(folder + "/stat.json");
+      stat_f << stat.dump(2);
+      stat_f.close();
+    }
 
   }
   return 0;

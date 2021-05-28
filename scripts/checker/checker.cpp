@@ -112,18 +112,8 @@ int main(){
             modified->count ++;
           }
 
-          // Create json keys and values
-          string header = modified->get_header(";");
-          vector<string> keys = split(header, ';');
-          string data = modified->get_string(";");
-          vector<string> values = split(data, ';');
-
-          nlohmann::ordered_json json_values;
-          for(int j = 0; j < keys.size(); j++){
-            json_values[keys[j]] = values[j];
-          }
           // Write json and raw message in each file
-          *modified->files[0] << json_values << "\n";
+          *modified->files[0] << modified->json_string() << "\n";
           *modified->files[1] << lines[i];
           *modified->files[0] << flush;
           *modified->files[1] << flush;

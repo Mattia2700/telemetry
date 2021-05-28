@@ -15,11 +15,9 @@
 #include <mutex>
 #include <thread>
 
-#ifdef JSON
-  #include <nlohmann/json.hpp>
-  using json = nlohmann::json;
-  nlohmann::ordered_json stat;
-#endif
+#include <nlohmann/json.hpp>
+using json = nlohmann::json;
+nlohmann::ordered_json stat;
 
 #include "can.h"
 #include "utils.h"
