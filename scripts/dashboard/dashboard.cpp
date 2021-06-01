@@ -1,11 +1,17 @@
 #include "dashboard.h"
 
+Document j;
+
 int main(){
 
   /*if(setup_curl("http://127.0.0.1:8000/Dashboard/realTime/setData") < 0){
     cout << "FAILED SETUP CURL" << endl;
     return -1;
   }*/
+
+  setup_json();
+
+  return 1;
 
 
   Browse b;
@@ -23,7 +29,7 @@ int main(){
 
   for (auto file : selected_paths){
 
-    vector<map<string, vector<double>>> data(chimera.devices.size());
+    vector<unordered_map<string, vector<double>>> data(chimera.devices.size());
 
 
     message msg;
@@ -39,7 +45,7 @@ int main(){
       modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
       for(auto modified : modifiedDevices){
-        // Add message if elased enough time
+        // Add message if elapsed enough time
         if(modified->timestamp - modified->helper_variable > MAX_DT){
           modified->helper_variable = modified->timestamp;
 
@@ -58,7 +64,7 @@ int main(){
         }
       }
 
-      if(REAL_TIME == 1){
+      if(REAL_TIME == true){
         if(prev_timestamp > 0){
           usleep((msg.timestamp - prev_timestamp)*1000000);
         }
@@ -83,7 +89,7 @@ int main(){
 }
 
 
-string pack_json(string name, vector<map<string, vector<double>>> data){
+string pack_json(string name, vector<unordered_map<string, vector<double>>> data){
   std::stringstream ss;
   nlohmann::ordered_json all_data;
   for(auto device : chimera.devices){
@@ -139,7 +145,7 @@ int setup_curl(string url){
 }
 
 
-void setup_chimera_data(vector<map<string, vector<double>>>& data){
+void setup_chimera_data(vector<unordered_map<string, vector<double>>>& data){
   data.clear();
   data.resize(chimera.devices.size());
   for(auto device : chimera.devices){
@@ -152,4 +158,30 @@ void setup_chimera_data(vector<map<string, vector<double>>>& data){
       data[device->get_id()][keys[i]] = empty_vec;
     }
   }
+}
+
+
+void setup_json(){
+  j.SetObject();
+  Document::AllocatorType& alloc = j.GetAllocator();
+  j.AddMember("name", "undefined", alloc);
+  Value devices(kObjectType);
+  for(auto device : chimera.devices){
+    Value device_obj(kObjectType);
+    string keys_str = device->get_header(";");
+    vector<string> keys = split(keys_str, ';');
+    for(int i = 0; i < keys.size(); i++){
+      Value values(kArrayType); // Creating empty array
+      device_obj.AddMember(StringRef(keys[i].c_str()), values, alloc);  // Adding empty array to device key
+    }
+    devices.AddMember(StringRef(device->get_name().c_str()), device_obj, alloc);
+  }
+  j.AddMember("Data", devices, alloc);
+
+
+  StringBuffer buffer;
+  PrettyWriter<StringBuffer> writer(buffer);
+  j.Accept(writer);
+
+  cout << buffer.GetString() << endl;
 }

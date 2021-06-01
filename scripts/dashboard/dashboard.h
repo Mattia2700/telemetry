@@ -20,6 +20,11 @@
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/prettywriter.h"
+using namespace rapidjson;
+
 #include "utils.h"
 #include "browse.h"
 #include "vehicle.h"
@@ -39,13 +44,13 @@ using namespace boost::filesystem;
 Chimera chimera;
 CURL *curl;
 
-void setup_chimera_data(vector<map<string, vector<double>>> &);
+void setup_chimera_data(vector<unordered_map<string, vector<double>>> &);
+void setup_json();
 
 int setup_curl(string url);
 int send_json(string url, string data);
 
-string pack_json(string name, vector<map<string, vector<double>>>);
-
+string pack_json(string name, vector<unordered_map<string, vector<double>>>);
 
 
 #endif
