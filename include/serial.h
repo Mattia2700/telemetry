@@ -19,6 +19,7 @@ public:
   ~serial();
 
   int open_port();
+  int open_file();
   void close_port();
 
   string read_line(char separator='\n');

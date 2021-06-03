@@ -10,6 +10,10 @@
 #include <string.h>
 #include <iostream>
 
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+
 #include <boost/filesystem.hpp>
 
 #include <mutex>
@@ -17,7 +21,7 @@
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
-nlohmann::ordered_json stat;
+nlohmann::ordered_json st;
 
 #include "can.h"
 #include "utils.h"

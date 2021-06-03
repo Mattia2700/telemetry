@@ -28,6 +28,15 @@ void serial::close_port(){
   close(fd);
 }
 
+int serial::open_file(){
+  fd = open(device.c_str(), O_RDONLY);
+  if(fd < 0) {
+    cout << "Error port" << endl;
+    return -1;
+  }
+  return 1;
+}
+
 int serial::open_port(){
   fd = open(device.c_str(), O_RDWR);
 

@@ -4,7 +4,7 @@ int main(){
 
   if(USE_GPS){
     s = serial(GPS_DEVICE);
-    if(s.open_port() < 0){
+    if(s.open_file() < 0){
       cout << get_colored("Failed opeing " + string(GPS_DEVICE), 1) << endl;
       USE_GPS = 0;
     }else{
@@ -193,18 +193,18 @@ int main(){
                 .count()/1000;
     {
       std::unique_lock<std::mutex> lck(mMutex);
-      stat["Date"] = date_c;
+      st["Date"] = date_c;
 
-      stat["Pilot"] = PILOTS[i1];
-      stat["Race"] = RACES[i2];
-      stat["Circuit"] = CIRCUITS[i3];
+      st["Pilot"] = PILOTS[i1];
+      st["Race"] = RACES[i2];
+      st["Circuit"] = CIRCUITS[i3];
 
-      stat["Data"]["CAN"]["Messages"] = messages_count;
-      stat["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / dt);
-      stat["Data"]["CAN"]["Duration (seconds)"] = dt;
+      st["Data"]["CAN"]["Messages"] = messages_count;
+      st["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / dt);
+      st["Data"]["CAN"]["Duration (seconds)"] = dt;
 
       std::ofstream stat_f(folder + "/stat.json");
-      stat_f << stat.dump(2);
+      stat_f << st.dump(2);
       stat_f.close();
     }
 
@@ -245,7 +245,7 @@ void log_gps(string fname, string header){
               (high_resolution_clock::now() - t0)
               .count()/1000;
 
-  stat["Data"]["GPS"]["Messages"] = count;
-  stat["Data"]["GPS"]["Average Frequency [Hz]"] = int(count / dt);
-  stat["Data"]["GPS"]["Duration [seconds]"] = dt;
+  st["Data"]["GPS"]["Messages"] = count;
+  st["Data"]["GPS"]["Average Frequency [Hz]"] = int(count / dt);
+  st["Data"]["GPS"]["Duration [seconds]"] = dt;
 }
