@@ -55,3 +55,10 @@ target_link_libraries(checker ${PROJECT_NAME} ${Boost_LIBRARIES})
 
 add_executable(dashboard scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
+
+add_executable(share scripts/port/share.cpp)
+target_link_libraries(share ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
+add_executable(read scripts/port/reader.cpp)
+target_link_libraries(read ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES})

@@ -164,8 +164,10 @@ int main(){
         line << get_hex(int(message.data[i]), 2);
       }
 
+      line << "\n";
+
       // Write in file
-      log << line.str() << endl;
+      log << line.str();
 
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Stop message

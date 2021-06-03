@@ -54,7 +54,7 @@ if len(lines) > 1:
   print("start:\r\n\t{}\nend:\r\n\t{}\nrotations:\r\n\t{}\nKm:\r\n\t{}".format(runStartTime, runEndTime, rotations, km))
   print("-"*10)
 
-prev_rotations = rotations
+max_rotations = rotations
 km = 0
 rotations = 0
 message = None
@@ -74,7 +74,7 @@ while True:
     km = int.from_bytes(message.data[3:], "big")
     km = float(km) / 1000
 
-    if rotations < prev_rotations:
+    if rotations < max_rotations:
       msg.arbitration_id = 0xD4
       msg.data = prev_rotations.to_bytes(3, "big")
       msg.dlc = 3
@@ -82,7 +82,7 @@ while True:
       print("Sending status...", end="\r")
       continue
     else:
-      print("prev: {} now: {}... Incrementing".format(prev_rotations, rotations), end="\r")
+      print("prev: {} now: {}... Incrementing".format(max_rotations, rotations), end="\r")
     time.sleep(1)
 
   if msg_id == 0xD5 or runStartTime == None:
@@ -106,6 +106,7 @@ while True:
   status.write("".join(lines))
   status.flush()
 
-  prev_rotations = rotations
+  if rotations > max_rotations:
+    max_rotations = rotations
 
 status.close()
