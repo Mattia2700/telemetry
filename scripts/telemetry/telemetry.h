@@ -28,11 +28,11 @@ using namespace std::chrono;
 using namespace boost::filesystem;
 
 const char* CAN_DEVICE = "vcan0";
-const char* GPS_DEVICE = "/dev/ttyACM0";
+const char* GPS_DEVICE = "/home/gps1";
 int USE_GPS = 1;
 
 mutex mMutex;
-atomic<bool> killThread = true;
+atomic<bool> killThread = true; 
 serial s;
 
 string HOME_PATH;

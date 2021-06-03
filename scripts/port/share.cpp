@@ -29,9 +29,7 @@ int main()
     cout << "Faild opening" << endl;
     return -1;
   }
-
-  // Creating the named file(FIFO)
-  // mkfifo(<pathname>, <permission>)
+  
   mkfifo(gps0, 0666);
   mkfifo(gps1, 0666);
 
