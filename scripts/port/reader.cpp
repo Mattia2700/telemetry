@@ -15,9 +15,9 @@ int main(int argc, char const* argv[])
     int fd1;
 
     // FIFO file path
-    string gps0 = "/home/";
+    string gps0 = "/tmp/";
     gps0 += argv[1];
-    
+
 
     // Creating the named file(FIFO)
     // mkfifo(<pathname>,<permission>)

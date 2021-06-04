@@ -9,49 +9,30 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
-
-
 #include <signal.h>
 
 #include "serial.h"
-
 
 using namespace std;
 
 std::mutex mtx;
 std::condition_variable cv;
 
-string shared_string0;
-string shared_string1;
+string shared_string;
 
-const char * gps0 = "/home/gps0";
-const char * gps1 = "/home/gps1";
+int N = 2;
+string BASENAME = "/tmp/gps";
 
-void GPS0_thread(){
+void writer(string fname){
   int fd;
-  mkfifo(gps0, 0666);
-  fd = open(gps0, O_WRONLY);
-
+  mkfifo(fname.c_str(), 0666);
+  fd = open(fname.c_str(), O_WRONLY);
   while(1){
     std::unique_lock<std::mutex> lk(mtx);
     cv.wait(lk); // wait for notify by main thread
 
     // Copy values from the shared string to the fifo file
-    write(fd, shared_string0.c_str(), shared_string0.size());
-  }
-  close(fd);
-}
-
-void GPS1_thread(){
-  int fd;
-  mkfifo(gps1, 0666);
-  fd = open(gps1, O_WRONLY);
-  while(1){
-    std::unique_lock<std::mutex> lk(mtx);
-    cv.wait(lk); // wait for notify by main thread
-
-    // Copy values from the shared string to the fifo file
-    write(fd, shared_string0.c_str(), shared_string0.size());
+    write(fd, shared_string.c_str(), shared_string.size());
   }
   close(fd);
 }
@@ -71,8 +52,11 @@ int main()
   }
 
   // Start one thread for each fifo file (pipe)
-  thread t0(GPS0_thread);
-  thread t1(GPS1_thread);
+  string filename = "";
+  for(int i = 0; i < N; i++){
+    filename = BASENAME + to_string(i);
+    thread * t = new thread(writer, filename);
+  }
 
   string line;
   while (1)
@@ -81,8 +65,7 @@ int main()
     line = s.read_line('\n') + "\n";
     {
       std::lock_guard<std::mutex> lk(mtx);
-      shared_string0 = line;
-      shared_string1 = line;
+      shared_string = line;
     }
     // Notify threads of new data available
     cv.notify_all();
