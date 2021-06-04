@@ -15,7 +15,7 @@ int main(int argc, char const* argv[])
     int fd1;
 
     // FIFO file path
-    string gps0 = "/tmp/";
+    string gps0 = "/home/";
     gps0 += argv[1];
 
 

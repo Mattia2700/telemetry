@@ -21,7 +21,7 @@ std::condition_variable cv;
 string shared_string;
 
 int N = 2;
-string BASENAME = "/tmp/gps";
+string BASENAME = "/home/gps";
 
 void writer(string fname){
   int fd;
