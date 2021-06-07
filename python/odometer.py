@@ -83,7 +83,7 @@ while True:
       continue
     else:
       print("prev: {} now: {}... Incrementing".format(max_rotations, rotations), end="\r")
-    time.sleep(1)
+    time.sleep(0.1)
 
   if msg_id == 0xD5 or runStartTime == None:
     km = 0
