@@ -2,16 +2,18 @@
 
 int Device::global_id = 0;
 
-Device::Device(string name){
+Device::Device(string name)
+{
   this->name = name;
 
   id = global_id;
-  global_id ++;
+  global_id++;
   count = 0;
 }
-Device::~Device(){}
+Device::~Device() {}
 
-string Imu::get_header(string separator){
+string Imu::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "x" + separator;
@@ -20,7 +22,8 @@ string Imu::get_header(string separator){
   ret += "scale";
   return ret;
 }
-string Imu::get_string(string separator){
+string Imu::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(x) + separator;
@@ -29,10 +32,11 @@ string Imu::get_string(string separator){
   ret += to_string(scale);
   return ret;
 }
-Document Imu::json(){
+Document Imu::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("x", x, alloc);
   d.AddMember("y", y, alloc);
@@ -41,7 +45,8 @@ Document Imu::json(){
   return d;
 }
 
-string Encoder::get_header(string separator){
+string Encoder::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "rads" + separator;
@@ -49,7 +54,8 @@ string Encoder::get_header(string separator){
   ret += "rotations";
   return ret;
 }
-string Encoder::get_string(string separator){
+string Encoder::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(rads) + separator;
@@ -57,10 +63,11 @@ string Encoder::get_string(string separator){
   ret += to_string(rotations);
   return ret;
 }
-Document Encoder::json(){
+Document Encoder::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("rads", rads, alloc);
   d.AddMember("km", km, alloc);
@@ -68,29 +75,32 @@ Document Encoder::json(){
   return d;
 }
 
-
-string Steer::get_header(string separator){
+string Steer::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "angle";
   return ret;
 }
-string Steer::get_string(string separator){
+string Steer::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(angle);
   return ret;
 }
-Document Steer::json(){
+Document Steer::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("angle", angle, alloc);
   return d;
 }
 
-string Pedals::get_header(string separator){
+string Pedals::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "throttle1" + separator;
@@ -99,7 +109,8 @@ string Pedals::get_header(string separator){
   ret += "back";
   return ret;
 }
-string Pedals::get_string(string separator){
+string Pedals::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(throttle1) + separator;
@@ -108,10 +119,11 @@ string Pedals::get_string(string separator){
   ret += to_string(brake_rear);
   return ret;
 }
-Document Pedals::json(){
+Document Pedals::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("throttle1", throttle1, alloc);
   d.AddMember("throttle2", throttle2, alloc);
@@ -120,24 +132,27 @@ Document Pedals::json(){
   return d;
 }
 
-
-string Ecu::get_header(string separator){
+string Ecu::get_header(string separator)
+{
   string ret = "";
   return ret;
 }
-string Ecu::get_string(string separator){
+string Ecu::get_string(string separator)
+{
   string ret = "";
   return ret;
 }
-Document Ecu::json(){
+Document Ecu::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   return d;
 }
 
-string Inverter::get_header(string separator){
+string Inverter::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "temperature" + separator;
@@ -146,7 +161,8 @@ string Inverter::get_header(string separator){
   ret += "speed";
   return ret;
 }
-string Inverter::get_string(string separator){
+string Inverter::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(temperature) + separator;
@@ -155,10 +171,11 @@ string Inverter::get_string(string separator){
   ret += to_string(speed);
   return ret;
 }
-Document Inverter::json(){
+Document Inverter::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("temperature", temperature, alloc);
   d.AddMember("motorTemp", motorTemp, alloc);
@@ -167,7 +184,8 @@ Document Inverter::json(){
   return d;
 }
 
-string Bms::get_header(string separator){
+string Bms::get_header(string separator)
+{
   string ret = "";
   ret += "timestamp" + separator;
   ret += "temperature" + separator;
@@ -176,7 +194,8 @@ string Bms::get_header(string separator){
   ret += "power";
   return ret;
 }
-string Bms::get_string(string separator){
+string Bms::get_string(string separator)
+{
   string ret = "";
   ret += to_string(timestamp) + separator;
   ret += to_string(temperature) + separator;
@@ -185,10 +204,11 @@ string Bms::get_string(string separator){
   ret += to_string(power);
   return ret;
 }
-Document Bms::json(){
+Document Bms::json()
+{
   Document d;
   d.SetObject();
-  rapidjson::Document::AllocatorType& alloc = d.GetAllocator();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
   d.AddMember("temperature", temperature, alloc);
   d.AddMember("voltage", voltage, alloc);

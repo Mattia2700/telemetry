@@ -70,8 +70,8 @@ void Chimera::write_all_headers(int index){
     *device->files[index] << device->get_header(";") << "\n";
 }
 
-vector<Device *> Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
-  vector<Device *> modifiedDevices;
+vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, uint8_t data[], const int &size){
+  modifiedDevices.clear();
 
   switch (id) {
     case 0x4EC:

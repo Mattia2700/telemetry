@@ -1,4 +1,4 @@
-#include "telemetry.h"
+#include "logger.h"
 
 int main(){
 
@@ -44,8 +44,6 @@ int main(){
     }
   }
   cout << get_colored("Opened Socket: " + string(CAN_DEVICE), 6) << endl;
-
-  Chimera chimera;
 
   // indices for PILOTS, RACES, CIRCUITS
   int i1 = 0, i2 = 0, i3 = 0;
@@ -131,12 +129,7 @@ int main(){
     string folder = FOLDER_PATH + "/" + subfolder.str();
     create_directory(folder);
 
-    // string can_fname = folder + "/" + "candump.log";
-    chimera.add_filenames(folder, ".csv");
-    chimera.open_all_files();
-    chimera.write_all_headers(0);
-
-
+    string can_fname = folder + "/" + "candump.log";
     string gps_fname = folder + "/" + "gps.log";
 
     if(USE_GPS) {
@@ -145,29 +138,55 @@ int main(){
       gps_thread = new thread(log_gps, gps_fname, header);
     }
 
-    double timestamp = get_timestamp();
+    // open candump file
+    std::ofstream log(can_fname);
+    log << header;
+
+    stringstream line;
+    string lines_buffer;
+
     // Use this timer to send status messages
+    double timestamp = get_timestamp();
     double t_start = timestamp;
     double log_start_t = timestamp;
     double log_duration;
+
+    double buffer_start_timer = timestamp;
     while(true){
       can->receive(&message);
       messages_count ++;
-
       timestamp = get_timestamp();
 
-      modifiedDevices = chimera.parse_message(timestamp, message.can_id, message.data, message.can_dlc);
-      for (auto modified : modifiedDevices)
-      {
-        *modified->files[0] << modified->get_string(";") + "\n";
+      line.str("");
+      line << "(" << to_string(timestamp) << ")\t" << CAN_DEVICE << "\t";
+
+      // Format message as ID#<payload>
+      // Hexadecimal representation
+      line << get_hex(int(message.can_id), 3) << "#";
+      for(int i = 0; i < message.can_dlc; i++){
+        line << get_hex(int(message.data[i]), 2);
       }
+
+      line << "\n";
+      lines_buffer += line.str();
+
+      // Write in file
+      if(timestamp - buffer_start_timer  > 0.2){
+        // Write buffer
+        log << lines_buffer;
+        lines_buffer = "";
+        buffer_start_timer = timestamp;
+      }
+      // log << line.str();
 
       if(message.can_id == 0xA0 && message.can_dlc >= 2){
         // Stop message
         if(message.data[0] == 0x65 && message.data[1] == 0x00){
           log_duration = timestamp - log_start_t;
           cout << "Status: " << get_colored("Stopped", 1) << "\r" << flush;
-          chimera.close_all_files();
+          if(lines_buffer != "")
+            log << lines_buffer;
+          log.close();
           killThread = true;
           break;
         }
@@ -182,7 +201,7 @@ int main(){
     }
 
     {
-      std::unique_lock<std::mutex> lck(mtx);
+      std::unique_lock<std::mutex> lck(mMutex);
       st["Date"] = date_c;
 
       st["Pilot"] = PILOTS[i1];
@@ -193,7 +212,7 @@ int main(){
       st["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / log_duration);
       st["Data"]["CAN"]["Duration (seconds)"] = log_duration;
 
-      std::ofstream stat_f(folder + "/TelemetryInfo.json");
+      std::ofstream stat_f(folder + "/LoggerInfo.json");
       stat_f << st.dump(2);
       stat_f.close();
     }
@@ -214,7 +233,7 @@ string get_hex(int num, int zeros){
 
 void log_gps(string fname, string header){
   // Use this mutex only for wring in json stat
-  std::unique_lock<std::mutex> lck(mtx);
+  std::unique_lock<std::mutex> lck(mMutex);
   std::ofstream gps(fname);
 
   if(header != "")

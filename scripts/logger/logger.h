@@ -1,5 +1,5 @@
-#ifndef TELEMETRY_H
-#define TELEMETRY_H
+#ifndef LOGGER_H
+#define LOGGER_H
 
 #include <ctime>
 #include <chrono>
@@ -29,7 +29,6 @@ nlohmann::ordered_json st;
 #include "can.h"
 #include "utils.h"
 #include "serial.h"
-#include "vehicle.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -39,7 +38,7 @@ const char* CAN_DEVICE = "vcan0";
 const char* GPS_DEVICE = "/home/gps1";
 int USE_GPS = 1;
 
-mutex mtx;
+mutex mMutex;
 atomic<bool> killThread = true;
 serial s;
 thread* gps_thread;
@@ -78,8 +77,6 @@ uint8_t* msg_data = new uint8_t[8];
 // Filter and message structs
 can_filter rfilter;
 can_frame message;
-
-vector<Device *> modifiedDevices;
 
 void log_gps(string fname, string header="");
 

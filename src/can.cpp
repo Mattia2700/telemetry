@@ -45,7 +45,7 @@ int Can::send(int id, char* data, int len){
 }
 
 int Can::receive(can_frame* frame){
-	return read(this->sock, frame, 16);;
+	return read(this->sock, frame, sizeof(struct can_frame));
 }
 
 int Can::set_filters(can_filter& filter){

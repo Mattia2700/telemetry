@@ -22,12 +22,16 @@ endif()
 
 find_package(CURL REQUIRED)
 
+find_package(PythonLibs 2.7 REQUIRED)
+
 include_directories(
   ${PROJECT_SOURCE_DIR}
   ${PROJECT_SOURCE_DIR}/include
   ${PROJECT_SOURCE_DIR}/thirdparty
 
   ${CURL_INCLUDE_DIR}
+  ${PYTHON_INCLUDE_DIRS}
+
   )
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -43,6 +47,9 @@ add_library(
   )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+
+add_executable(logger scripts/logger/logger.cpp)
+target_link_libraries(logger ${PROJECT_NAME} ${Boost_LIBRARIES})
 
 add_executable(telemetry scripts/telemetry/telemetry.cpp)
 target_link_libraries(telemetry ${PROJECT_NAME} ${Boost_LIBRARIES})
@@ -62,3 +69,7 @@ target_link_libraries(share ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES}
 
 add_executable(read scripts/port/reader.cpp)
 target_link_libraries(read ${PROJECT_NAME} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
+
+add_executable(graph scripts/graph/graph.cpp)
+target_link_libraries(graph ${PROJECT_NAME} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
