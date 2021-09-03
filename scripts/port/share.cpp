@@ -20,14 +20,16 @@ std::condition_variable cv;
 
 string shared_string;
 
-int N = 2;
+int N = 4;
 string BASENAME = "/home/gps";
 
-void writer(string fname){
+void writer(string fname)
+{
   int fd;
   mkfifo(fname.c_str(), 0666);
   fd = open(fname.c_str(), O_WRONLY);
-  while(1){
+  while (1)
+  {
     std::unique_lock<std::mutex> lk(mtx);
     cv.wait(lk); // wait for notify by main thread
 
@@ -46,16 +48,18 @@ int main()
   string port = "/dev/ttyACM0";
   serial s(port);
 
-  if(s.open_port() < 0){
+  if (s.open_port() < 0)
+  {
     cout << "Failed opening " << port << endl;
     return -1;
   }
 
   // Start one thread for each fifo file (pipe)
   string filename = "";
-  for(int i = 0; i < N; i++){
+  for (int i = 0; i < N; i++)
+  {
     filename = BASENAME + to_string(i);
-    thread * t = new thread(writer, filename);
+    thread *t = new thread(writer, filename);
   }
 
   string line;

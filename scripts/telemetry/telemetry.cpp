@@ -152,7 +152,7 @@ int main()
     chimera.open_all_files();
     chimera.write_all_headers(0);
 
-    string gps_fname = folder + "/" + "gps.log";
+    string gps_fname = folder + "/" + "gps_telemetry.log";
 
     if (USE_GPS)
     {

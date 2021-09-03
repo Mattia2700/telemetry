@@ -146,7 +146,7 @@ int main()
     create_directory(folder);
 
     string can_fname = folder + "/" + "candump.log";
-    string gps_fname = folder + "/" + "gps.log";
+    string gps_fname = folder + "/" + "gps_logger.log";
 
     if (USE_GPS)
     {

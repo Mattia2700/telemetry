@@ -35,45 +35,45 @@ using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
 
-const char* CAN_DEVICE = "vcan0";
-const char* GPS_DEVICE = "/home/gps1";
+const char *CAN_DEVICE = "vcan0";
+const char *GPS_DEVICE = "/home/gps2";
 int USE_GPS = 1;
 
 mutex mtx;
 atomic<bool> killThread = true;
 serial s;
-thread* gps_thread;
+thread *gps_thread;
 
 string HOME_PATH;
 string FOLDER_PATH;
 
 vector<string> CIRCUITS = vector<string>({
-  "default",
-  "Vadena",
-  "Varano",
-  "Povo",
-  "Skio",
+    "default",
+    "Vadena",
+    "Varano",
+    "Povo",
+    "Skio",
 });
 vector<string> PILOTS = vector<string>({
-  "default",
-  "Ivan",
-  "Filippo",
-  "Mirco",
-  "Nicola",
-  "Davide",
+    "default",
+    "Ivan",
+    "Filippo",
+    "Mirco",
+    "Nicola",
+    "Davide",
 });
 vector<string> RACES = vector<string>({
-  "default",
-  "Autocross",
-  "Skidpad",
-  "Endurance",
-  "Acceleration",
+    "default",
+    "Autocross",
+    "Skidpad",
+    "Endurance",
+    "Acceleration",
 });
 
 uint32_t messages_count;
 
 int id;
-uint8_t* msg_data = new uint8_t[8];
+uint8_t *msg_data = new uint8_t[8];
 
 // Filter and message structs
 can_filter rfilter;
@@ -81,7 +81,7 @@ can_frame message;
 
 vector<Device *> modifiedDevices;
 
-void log_gps(string fname, string header="");
+void log_gps(string fname, string header = "");
 
 /**
 * Gets current timestamp in seconds
