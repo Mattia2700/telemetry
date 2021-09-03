@@ -38,11 +38,11 @@ The last thing is to install are some modules from a [github repo](https://githu
 Run the program.  
 To start logging send:  
 ~~~
-0A0#6501
+0A0#6601
 ~~~
 To stop logging send:
 ~~~
-0A0#6500
+0A0#6600
 ~~~
 
 A configuration can me sent when starting logging.  
@@ -78,7 +78,7 @@ Parameter 2: Race
 Parameter 3: Circuit  
 ~~~
 //      pprrcc
-0A0#6501010302
+0A0#6601010302
 ~~~
 
 pp stands for pilot   vector index expressed in hexadecimal.  

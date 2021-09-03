@@ -19,11 +19,11 @@ Start and stop logging by sending specific command messages.
 Run the program.  
 To start logging send:  
 ~~~
-0A0#6501
+0A0#6601
 ~~~
 To stop logging send:
 ~~~
-0A0#6500
+0A0#6600
 ~~~
 
 A configuration can me sent when starting logging.  
@@ -59,7 +59,7 @@ Parameter 2: Race
 Parameter 3: Circuit  
 ~~~
 //       pp rr cc
-0A0#6501 01 03 02
+0A0#6601 01 03 02
 
 // Starts with config Ivan, Endurance, Varano
 ~~~
