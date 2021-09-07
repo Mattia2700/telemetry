@@ -1,0 +1,3 @@
+protoc -I=. --cpp_out=./cpp devices.proto
+protoc -I=. --python_out=./python devices.proto
+protoc -I=. --js_out=./js devices.proto

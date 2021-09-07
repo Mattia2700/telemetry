@@ -29,6 +29,7 @@ using namespace rapidjson;
 #include "browse.h"
 #include "vehicle.h"
 
+#include "devices.pb.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -44,13 +45,11 @@ using namespace boost::filesystem;
 Chimera chimera;
 CURL *curl;
 
-void setup_chimera_data(vector<unordered_map<string, vector<double>>> &);
-void setup_json();
+string serialized_string;
 
 int setup_curl(string url);
-int send_json(string url, string data);
+int send_text(string url, string data);
 
-string pack_json(string name, vector<unordered_map<string, vector<double>>>);
 
 
 #endif

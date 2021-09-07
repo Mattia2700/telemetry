@@ -4,12 +4,19 @@
 #include <vector>
 
 #include "devices.h"
-
+#include "devices.pb.h"
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/util/json_util.h>
+using namespace google::protobuf;
+using namespace google::protobuf::util;
 using namespace std;
 
 class Chimera{
 public:
   Chimera();
+  ~Chimera(){
+    delete chimera_proto;
+  }
 
   /**
   * Fills the sensor values basing on ids and payload
@@ -20,7 +27,7 @@ public:
   * @param size of the payload
   * return vector containing pointers to devices modified with this message
   */
-  vector<Device*> parse_message(const double &timestamp, const int &id, uint8_t data[], const int &size);
+  vector<Device*> parse_message(const float &timestamp, const int &id, uint8_t data[], const int &size);
 
   /**
   * Defines a filename to every device called DeviceName.extension
@@ -53,6 +60,48 @@ public:
   */
   void write_all_headers(int index);
 
+  /**
+  * Sets all the values in the serialized object
+  */
+  void serialize();
+
+  /**
+  * Serailizes class with protobuffer
+  *
+  * @param out serialized string in output
+  */
+  void serialize_to_string(string *out){
+    serialize();
+    chimera_proto->SerializeToString(out);
+  }
+
+  /**
+  * Human readable string of the serialized object
+  *
+  * @param outout string
+  */
+  void serialize_to_text(string *out){
+    serialize();
+    TextFormat::PrintToString(*chimera_proto, out);
+  }
+  /**
+  * JSON readable string of the serialized object
+  *
+  * @param outout string
+  */
+  void serialize_to_json(string *out){
+    serialize();
+    MessageToJsonString(*chimera_proto, out);
+  }
+
+  /**
+  * Clears serialized object, so repeated fields won't grow up
+  *
+  */
+  void clear_serialized(){
+    chimera_proto->Clear();
+  }
+
   Imu* accel;
   Imu* gyro;
 
@@ -75,6 +124,10 @@ public:
   */
   vector<Device*> devices;
   vector<Device *> modifiedDevices;
+
+private:
+  // protobuffer object
+  devices::Chimera *chimera_proto;
 };
 
 class Fenice{

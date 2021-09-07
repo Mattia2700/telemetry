@@ -15,6 +15,7 @@
 #include "rapidjson/writer.h"
 using namespace rapidjson;
 
+#include "devices.pb.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -38,10 +39,10 @@ public:
     return buffer.GetString();
   }
 
-  double timestamp;
+  float timestamp;
 
-  double count;
-  double helper_variable = 0;
+  float count;
+  float helper_variable = 0;
   vector<std::fstream*> files;
   vector<string> filenames;
   vector<string> mesages_list;
@@ -62,10 +63,13 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double x;
-  double y;
-  double z;
-  double scale;
+  void serialize(devices::Imu*);
+
+  float x;
+  float y;
+  float z;
+  float scale;
+
 };
 
 class Encoder: public Device {
@@ -76,9 +80,12 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double rads;
-  double km;
-  double rotations;
+  void serialize(devices::Encoder*);
+
+  float rads;
+  float km;
+  float rotations;
+
 };
 
 class Steer: public Device {
@@ -89,7 +96,9 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double angle;
+  void serialize(devices::Steer*);
+
+  float angle;
 };
 
 class Pedals: public Device {
@@ -100,10 +109,12 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double throttle1;
-  double throttle2;
-  double brake_front;
-  double brake_rear;
+  void serialize(devices::Pedals*);
+
+  float throttle1;
+  float throttle2;
+  float brake_front;
+  float brake_rear;
 };
 
 class Ecu: public Device {
@@ -113,6 +124,8 @@ public:
   virtual string get_header(string separator);
   virtual string get_string(string separator);
   virtual Document json();
+
+  void serialize(devices::Ecu*);
 };
 
 class Inverter: public Device {
@@ -123,10 +136,12 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double temperature;
-  double motorTemp;
-  double torque;
-  double speed;
+  void serialize(devices::Inverter*);
+
+  float temperature;
+  float motor_temp;
+  float torque;
+  float speed;
 };
 
 class Bms: public Device {
@@ -137,10 +152,13 @@ public:
   virtual string get_string(string separator);
   virtual Document json();
 
-  double temperature;
-  double current;
-  double voltage;
-  double power;
+  void serialize(devices::Bms*);
+
+  float temperature;
+  float max_temperature;
+  float current;
+  float voltage;
+  float power;
 };
 
 #endif //DEVICES_H

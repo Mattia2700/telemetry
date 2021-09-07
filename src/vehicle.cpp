@@ -30,6 +30,8 @@ Chimera::Chimera(){
   devices.push_back(pedal);
   devices.push_back(steer);
   devices.push_back(ecu);
+
+  chimera_proto = new devices::Chimera();
 }
 
 
@@ -70,7 +72,7 @@ void Chimera::write_all_headers(int index){
     *device->files[index] << device->get_header(";") << "\n";
 }
 
-vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, uint8_t data[], const int &size){
+vector<Device *> Chimera::parse_message(const float &timestamp, const int &id, uint8_t data[], const int &size){
   modifiedDevices.clear();
 
   switch (id) {
@@ -193,8 +195,9 @@ vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, 
       }
     break;
     case 0xFF:
-      bms_lv->voltage = data[0]/10;
-      bms_lv->temperature = data[1]/5;
+      bms_lv->voltage = data[0]/10.0f;
+      bms_lv->temperature = data[2]/5.0f;
+      bms_lv->max_temperature = data[3]/5.0f;
       bms_lv->timestamp = timestamp;
       modifiedDevices.push_back(bms_lv);
     break;
@@ -212,7 +215,7 @@ vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, 
         modifiedDevices.push_back(inverter_left);
       }
       else if(data[0] == 0x49){
-        inverter_left->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
+        inverter_left->motor_temp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
       }
@@ -238,7 +241,7 @@ vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, 
         modifiedDevices.push_back(inverter_right);
       }
       else if(data[0] == 0x49){
-        inverter_right->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
+        inverter_right->motor_temp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
       }
@@ -256,186 +259,21 @@ vector<Device *> Chimera::parse_message(const double &timestamp, const int &id, 
   return modifiedDevices;
 }
 
-/*
-Device* Chimera::parse_message(double timestamp, int id, uint8_t data[], int size){
-  switch (id) {
-    case 0x4EC:
-      gyro->scale = 245;
-      gyro->x = (data[0] << 8) + data[1];
-      gyro->y = (data[2] << 8) + data[3];
-      gyro->z = (data[4] << 8) + data[5];
+void Chimera::serialize(){
+  this->accel->serialize(chimera_proto->add_accel());
+  this->gyro->serialize(chimera_proto->add_gyro());
 
-      if(gyro->x > 32768)
-        gyro->x -= 65536;
-      if(gyro->y > 32768)
-        gyro->y -= 65536;
-      if(gyro->z > 32768)
-        gyro->z -= 65536;
+  this->encoder_left->serialize(chimera_proto->add_encoder_left());
+  this->encoder_right->serialize(chimera_proto->add_encoder_right());
 
-      gyro->x /= 100;
-      gyro->y /= 100;
-      gyro->z /= 100;
+  this->bms_lv->serialize(chimera_proto->add_bms_lv());
+  this->bms_hv->serialize(chimera_proto->add_bms_hv());
 
-      gyro->timestamp = timestamp;
-      return gyro;
-    break;
-    case 0x4ED:
-      accel->scale = 8;
-      accel->x = (data[0] << 8) + data[1];
-      accel->y = (data[2] << 8) + data[3];
-      accel->z = (data[4] << 8) + data[5];
+  this->inverter_left->serialize(chimera_proto->add_inverter_left());
+  this->inverter_right->serialize(chimera_proto->add_inverter_right());
 
-      if(accel->x > 32768)
-        accel->x -= 65536;
-      if(accel->y > 32768)
-        accel->y -= 65536;
-      if(accel->z > 32768)
-        accel->z -= 65536;
+  this->pedal->serialize(chimera_proto->add_pedal());
+  this->steer->serialize(chimera_proto->add_steer());
 
-      accel->x /= 100;
-      accel->y /= 100;
-      accel->z /= 100;
-
-      accel->timestamp = timestamp;
-
-      return accel;
-    break;
-    case 0xB0: // Pedals
-      if(data[0] == 0x01){
-        pedal->throttle1 = data[1];
-        pedal->throttle2 = data[2];
-
-        pedal->timestamp = timestamp;
-
-        return pedal;
-      }
-      else if(data[0] == 0x02){
-        pedal->timestamp = timestamp;
-
-        pedal->brake_front = (data[2] << 8) + data[4];
-        pedal->brake_rear  = (data[5] << 8) + data[7];
-
-        pedal->brake_front /= 500;
-        pedal->brake_rear /= 500;
-
-        return pedal;
-      }
-    break;
-    case 0xC0:
-      if(data[0] == 0x02){
-        steer->angle = (data[1] << 8) + data[2];
-
-        steer->angle /= 100;
-
-        steer->timestamp = timestamp;
-
-        return steer;
-      }
-    break;
-    case 0xD0:
-      if(data[0] == 0x07){
-        encoder_left->rads =  (data[1] << 16) + (data[2] << 8) + data[3];
-        encoder_right->rads = (data[4] << 16) + (data[5] << 8) + data[6];
-
-        encoder_left->rads /= 10000;
-        encoder_right->rads /= 10000;
-        if(data[7] == 1){
-          encoder_left->rads *= -1;
-          encoder_right->rads *= -1;
-        }
-
-        encoder_left->timestamp = timestamp;
-        encoder_right->timestamp = timestamp;
-
-        return encoder_right;
-      }
-      else if(data[0] == 0x08){
-        encoder_right->km = (data[1] << 8) + data[2];
-        encoder_right->rotations = (data[3] << 8) + data[4];
-
-        encoder_left->km = encoder_right->km;
-        encoder_left->rotations = encoder_right->rotations;
-
-        return encoder_left;
-      }
-    break;
-    case 0xAA:
-      if(data[0] == 0x01){
-        bms_hv->voltage = ((data[1] << 16) + (data[2] << 8))/10000;
-        bms_hv->timestamp = timestamp;
-        return bms_hv;
-      }else if(data[0] == 0x05){
-        bms_hv->current = ((data[1] << 16) + (data[2]))/10;
-        bms_hv->power = data[3] << 8 + data[4];
-        bms_hv->timestamp = timestamp;
-        return bms_hv;
-      }else if(data[0] == 0xA0){
-        bms_hv->temperature = ((data[1] << 8) + (data[2]))/10;
-        bms_hv->timestamp = timestamp;
-        return bms_hv;
-      }
-    break;
-    case 0xFF:
-      bms_lv->voltage = data[0]/10;
-      bms_lv->temperature = data[1]/5;
-      bms_lv->timestamp = timestamp;
-      return bms_lv;
-    break;
-    case 0x181:
-      if(data[0] == 0xA0){
-        inverter_left->torque = (data[2] << 8) + data[1];
-        if(inverter_left->torque > 32767)
-          inverter_left->torque -= 65535;
-        inverter_left->timestamp = timestamp;
-        return inverter_left;
-      }
-      else if(data[0] == 0x4A){
-        inverter_left->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
-        inverter_left->timestamp = timestamp;
-        return inverter_left;
-      }
-      else if(data[0] == 0x49){
-        inverter_left->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
-        inverter_left->timestamp = timestamp;
-        return inverter_left;
-      }
-      else if(data[0] == 0xA8){
-        inverter_left->speed = (data[2] << 8) + data[1];
-        if(inverter_left->speed > 32768)
-          inverter_left->speed -= 65535;
-        inverter_left->timestamp = timestamp;
-        return inverter_left;
-      }
-    break;
-    case 0x182:
-      if(data[0] == 0xA0){
-        inverter_right->torque = (data[2] << 8) + data[1];
-        if(inverter_right->torque > 32767)
-          inverter_right->torque -= 65535;
-        inverter_right->timestamp = timestamp;
-        return inverter_right;
-      }
-      else if(data[0] == 0x4A){
-        inverter_right->temperature = ((data[2] << 8) + data[1] - 15797) / 112.1182;
-        inverter_right->timestamp = timestamp;
-        return inverter_right;
-      }
-      else if(data[0] == 0x49){
-        inverter_right->motorTemp = ((data[2] << 8) + data[1] - 9393.9)/55.1;
-        inverter_right->timestamp = timestamp;
-        return inverter_right;
-      }
-      else if(data[0] == 0xA8){
-        inverter_right->speed = (data[2] << 8) + data[1];
-        if(inverter_right->speed > 32768)
-          inverter_right->speed -= 65535;
-        inverter_right->timestamp = timestamp;
-        return inverter_right;
-      }
-    break;
-    default:
-    return nullptr;
-    break;
-  }
-  return nullptr;
-}*/
+  this->ecu->serialize(chimera_proto->add_ecu());
+}

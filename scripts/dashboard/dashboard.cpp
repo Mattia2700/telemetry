@@ -9,10 +9,6 @@ int main(){
     return -1;
   }*/
 
-  setup_json();
-
-  return 1;
-
 
   Browse b;
   b.set_max_selections(1);
@@ -28,10 +24,6 @@ int main(){
   string folder = boost::filesystem::path(selected_paths[0]).parent_path().filename().string();
 
   for (auto file : selected_paths){
-
-    vector<unordered_map<string, vector<double>>> data(chimera.devices.size());
-
-
     message msg;
     vector<string> lines;
     get_lines(file, &lines);
@@ -44,79 +36,43 @@ int main(){
 
       modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
-      for(auto modified : modifiedDevices){
-        // Add message if elapsed enough time
-        if(modified->timestamp - modified->helper_variable > MAX_DT){
-          modified->helper_variable = modified->timestamp;
-
-          string keys_str = modified->get_header(";");
-          vector<string> keys = split(keys_str, ';');
-          string values_str = modified->get_string(";");
-          vector<string> values = split(values_str, ';');
-          for(int j = 0; j < keys.size(); j++){
-            try{
-              data[modified->get_id()][keys[j]].push_back(stod(values[j]));
-            }
-            catch(int e){
-              data[modified->get_id()][keys[j]].push_back(0.0);
-            }
-          }
-        }
+      if(modifiedDevices.size() > 0){
+        chimera.serialize_to_string(&serialized_string);
+        // chimera.serialize_to_text(&serialized_string);
+        // chimera.serialize_to_json(&serialized_string);
       }
 
       if(REAL_TIME == true){
         if(prev_timestamp > 0){
           usleep((msg.timestamp - prev_timestamp)*1000000);
         }
+
         prev_timestamp = msg.timestamp;
+
         if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
-          string j = pack_json(folder, data);
-          send_json("http://127.0.0.1:8000/Dashboard/realTime/setData", j);
-          setup_chimera_data(data);
           start_time = steady_clock::now();
+          // cout << serialized_string << endl;
+          chimera.clear_serialized();
+          send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
         }
       }
     }
 
     if(REAL_TIME == false){
-      string j = pack_json(folder, data);
-      send_json("http://127.0.0.1:8000/Dashboard/setData", j);
-      setup_chimera_data(data);
+      send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
+      chimera.clear_serialized();
     }
   }
 
   return  0;
 }
 
-
-string pack_json(string name, vector<unordered_map<string, vector<double>>> data){
-  std::stringstream ss;
-  nlohmann::ordered_json all_data;
-  for(auto device : chimera.devices){
-    string keys_str = device->get_header(";");
-    vector<string> keys = split(keys_str, ';');
-    string values_str = device->get_string(";");
-    vector<string> values = split(values_str, ';');
-    all_data[device->get_name()] = {};
-    for(int i = 0; i < keys.size(); i++){
-      all_data[device->get_name()][keys[i]] = data[device->get_id()][keys[i]];
-    }
-  }
-  all_data["name"] = name;
-  all_data["data"] = all_data;
-  all_data["object"] = all_data;
-
-  ss << all_data;
-
-  return ss.str();
-}
-
-int send_json(string url, string post){
+int send_text(string url, string data){
   CURLcode res;
   struct curl_slist *slist1;
 
   slist1 = NULL;
-  slist1 = curl_slist_append(slist1, "Content-Type: application/json");
+  slist1 = curl_slist_append(slist1, "Content-Type: text/plain");
 
   curl = curl_easy_init();
 
@@ -126,8 +82,8 @@ int send_json(string url, string post){
   curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
   curl_easy_setopt(curl, CURLOPT_POST, 1);
 
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, post.c_str());
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, post.length());
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
+  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
   res = curl_easy_perform(curl);
 
   if(res != CURLE_OK)
@@ -142,46 +98,4 @@ int send_json(string url, string post){
 int setup_curl(string url){
 
   //curl_easy_cleanup(curl);
-}
-
-
-void setup_chimera_data(vector<unordered_map<string, vector<double>>>& data){
-  data.clear();
-  data.resize(chimera.devices.size());
-  for(auto device : chimera.devices){
-    string keys_str = device->get_header(";");
-    vector<string> keys = split(keys_str, ';');
-    string values_str = device->get_string(";");
-    vector<string> values = split(values_str, ';');
-    for(int i = 0; i < keys.size(); i++){
-      vector<double> empty_vec;
-      data[device->get_id()][keys[i]] = empty_vec;
-    }
-  }
-}
-
-
-void setup_json(){
-  j.SetObject();
-  Document::AllocatorType& alloc = j.GetAllocator();
-  j.AddMember("name", "undefined", alloc);
-  Value devices(kObjectType);
-  for(auto device : chimera.devices){
-    Value device_obj(kObjectType);
-    string keys_str = device->get_header(";");
-    vector<string> keys = split(keys_str, ';');
-    for(int i = 0; i < keys.size(); i++){
-      Value values(kArrayType); // Creating empty array
-      device_obj.AddMember(StringRef(keys[i].c_str()), values, alloc);  // Adding empty array to device key
-    }
-    devices.AddMember(StringRef(device->get_name().c_str()), device_obj, alloc);
-  }
-  j.AddMember("Data", devices, alloc);
-
-
-  StringBuffer buffer;
-  PrettyWriter<StringBuffer> writer(buffer);
-  j.Accept(writer);
-
-  cout << buffer.GetString() << endl;
 }

@@ -13,18 +13,18 @@ Browse::Browse(){
 
   stat_fname = string(getenv("HOME")) + "/" + stat_fname;
   if(exists(boost::filesystem::path(stat_fname))){
-    std::ifstream stat(stat_fname);
-    stat.seekg (0, stat.end);
-    int length = stat.tellg();
-    stat.seekg (0, stat.beg);
-    char * buffer = new char [length];
-    stat.read (buffer,length);
-    stat.close();
-    if(exists(boost::filesystem::path(string(buffer))) &&
-    is_directory(boost::filesystem::path(string(buffer))))
-      start_path = string(buffer);
-    else
+    FILE* f = fopen(stat_fname.c_str(), "r");
+    char* line = NULL;
+    size_t size = 0;
+    getline(&line, &size, f);
+    fclose(f);
+    if(exists(boost::filesystem::path(string(line))) &&
+    is_directory(boost::filesystem::path(string(line)))){
+      start_path = string(line);
+    }
+    else{
       start_path = getenv("HOME");
+    }
   }
   else{
     start_path = getenv("HOME");
