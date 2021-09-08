@@ -1,5 +1,5 @@
-#ifndef DASHBOARD_H
-#define DASHBOARD_H
+#ifndef DASHBOARD_CAN_H
+#define DASHBOARD_CAN_H
 
 
 #include <ctime>
@@ -25,8 +25,9 @@ using json = nlohmann::json;
 #include "rapidjson/prettywriter.h"
 using namespace rapidjson;
 
+#include "can.h"
 #include "utils.h"
-#include "browse.h"
+#include "utils.h"
 #include "vehicle.h"
 
 #include "devices.pb.h"
@@ -45,11 +46,13 @@ using namespace boost::filesystem;
 Chimera chimera;
 CURL *curl;
 
+const char* CAN_DEVICE = "vcan0";
+
 string serialized_string;
 
 int setup_curl(string url);
 int send_text(string url, string data);
-
+double get_timestamp();
 
 
 #endif

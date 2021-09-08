@@ -70,6 +70,9 @@ target_link_libraries(checker ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBR
 add_executable(dashboard scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
+add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
+target_link_libraries(dashboard_can ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
 
 add_executable(share scripts/port/share.cpp)
 target_link_libraries(share ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})

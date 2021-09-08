@@ -86,8 +86,8 @@ int send_text(string url, string data){
   curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
   res = curl_easy_perform(curl);
 
-  if(res != CURLE_OK)
-    cout << "Error: " << curl_easy_strerror(res) << endl;
+  // if(res != CURLE_OK)
+  //   cout << "Error: " << curl_easy_strerror(res) << endl;
 
   curl_easy_cleanup(curl);
   return 0;
