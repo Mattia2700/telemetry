@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rdevices.proto\x12\x07\x64\x65vices\"\x8b\x01\n\x03Imu\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x0e\n\x01x\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0e\n\x01y\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x0e\n\x01z\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05scale\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x04\n\x02_xB\x04\n\x02_yB\x04\n\x02_zB\x08\n\x06_scale\"\x89\x01\n\x07\x45ncoder\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x11\n\x04rads\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0f\n\x02km\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x16\n\trotations\x18\x04 \x01(\x02H\x03\x88\x01\x01\x42\x0c\n\n_timestampB\x07\n\x05_radsB\x05\n\x03_kmB\x0c\n\n_rotations\"K\n\x05Steer\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x12\n\x05\x61ngle\x18\x02 \x01(\x02H\x01\x88\x01\x01\x42\x0c\n\n_timestampB\x08\n\x06_angle\"\xcc\x01\n\x06Pedals\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x16\n\tthrottle1\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x16\n\tthrottle2\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x18\n\x0b\x62rake_front\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x17\n\nbrake_rear\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0c\n\n_throttle1B\x0c\n\n_throttle2B\x0e\n\x0c_brake_frontB\r\n\x0b_brake_rear\"\x05\n\x03\x45\x63u\"\xc0\x01\n\x08Inverter\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x17\n\nmotor_temp\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x13\n\x06torque\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05speed\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\r\n\x0b_motor_tempB\t\n\x07_torqueB\x08\n\x06_speed\"\xe9\x01\n\x03\x42ms\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x1c\n\x0fmax_temperature\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x14\n\x07\x63urrent\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x14\n\x07voltage\x18\x05 \x01(\x02H\x04\x88\x01\x01\x12\x12\n\x05power\x18\x06 \x01(\x02H\x05\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\x12\n\x10_max_temperatureB\n\n\x08_currentB\n\n\x08_voltageB\x08\n\x06_power\"\xfe\x02\n\x07\x43himera\x12\x1b\n\x05\x61\x63\x63\x65l\x18\x01 \x03(\x0b\x32\x0c.devices.Imu\x12\x1a\n\x04gyro\x18\x02 \x03(\x0b\x32\x0c.devices.Imu\x12&\n\x0c\x65ncoder_left\x18\x03 \x03(\x0b\x32\x10.devices.Encoder\x12\'\n\rencoder_right\x18\x04 \x03(\x0b\x32\x10.devices.Encoder\x12\x1c\n\x06\x62ms_lv\x18\x05 \x03(\x0b\x32\x0c.devices.Bms\x12\x1c\n\x06\x62ms_hv\x18\x06 \x03(\x0b\x32\x0c.devices.Bms\x12(\n\rinverter_left\x18\x07 \x03(\x0b\x32\x11.devices.Inverter\x12)\n\x0einverter_right\x18\x08 \x03(\x0b\x32\x11.devices.Inverter\x12\x1e\n\x05pedal\x18\t \x03(\x0b\x32\x0f.devices.Pedals\x12\x1d\n\x05steer\x18\n \x03(\x0b\x32\x0e.devices.Steer\x12\x19\n\x03\x65\x63u\x18\x0b \x03(\x0b\x32\x0c.devices.Ecub\x06proto3'
+  serialized_pb=b'\n\rdevices.proto\x12\x07\x64\x65vices\"\x8b\x01\n\x03Imu\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x0e\n\x01x\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0e\n\x01y\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x0e\n\x01z\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05scale\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x04\n\x02_xB\x04\n\x02_yB\x04\n\x02_zB\x08\n\x06_scale\"\x89\x01\n\x07\x45ncoder\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x11\n\x04rads\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0f\n\x02km\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x16\n\trotations\x18\x04 \x01(\x02H\x03\x88\x01\x01\x42\x0c\n\n_timestampB\x07\n\x05_radsB\x05\n\x03_kmB\x0c\n\n_rotations\"K\n\x05Steer\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x12\n\x05\x61ngle\x18\x02 \x01(\x02H\x01\x88\x01\x01\x42\x0c\n\n_timestampB\x08\n\x06_angle\"\xcc\x01\n\x06Pedals\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x16\n\tthrottle1\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x16\n\tthrottle2\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x18\n\x0b\x62rake_front\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x17\n\nbrake_rear\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0c\n\n_throttle1B\x0c\n\n_throttle2B\x0e\n\x0c_brake_frontB\r\n\x0b_brake_rear\"\xc0\x01\n\x08Inverter\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x17\n\nmotor_temp\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x13\n\x06torque\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05speed\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\r\n\x0b_motor_tempB\t\n\x07_torqueB\x08\n\x06_speed\"\xe9\x01\n\x03\x42ms\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x1c\n\x0fmax_temperature\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x14\n\x07\x63urrent\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x14\n\x07voltage\x18\x05 \x01(\x02H\x04\x88\x01\x01\x12\x12\n\x05power\x18\x06 \x01(\x02H\x05\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\x12\n\x10_max_temperatureB\n\n\x08_currentB\n\n\x08_voltageB\x08\n\x06_power\"+\n\x03\x45\x63u\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x42\x0c\n\n_timestamp\"\xfe\x02\n\x07\x43himera\x12\x1b\n\x05\x61\x63\x63\x65l\x18\x01 \x03(\x0b\x32\x0c.devices.Imu\x12\x1a\n\x04gyro\x18\x02 \x03(\x0b\x32\x0c.devices.Imu\x12&\n\x0c\x65ncoder_left\x18\x03 \x03(\x0b\x32\x10.devices.Encoder\x12\'\n\rencoder_right\x18\x04 \x03(\x0b\x32\x10.devices.Encoder\x12\x1c\n\x06\x62ms_lv\x18\x05 \x03(\x0b\x32\x0c.devices.Bms\x12\x1c\n\x06\x62ms_hv\x18\x06 \x03(\x0b\x32\x0c.devices.Bms\x12(\n\rinverter_left\x18\x07 \x03(\x0b\x32\x11.devices.Inverter\x12)\n\x0einverter_right\x18\x08 \x03(\x0b\x32\x11.devices.Inverter\x12\x1e\n\x05pedal\x18\t \x03(\x0b\x32\x0f.devices.Pedals\x12\x1d\n\x05steer\x18\n \x03(\x0b\x32\x0e.devices.Steer\x12\x19\n\x03\x65\x63u\x18\x0b \x03(\x0b\x32\x0c.devices.Ecub\x06proto3'
 )
 
 
@@ -317,31 +317,6 @@ _PEDALS = _descriptor.Descriptor(
 )
 
 
-_ECU = _descriptor.Descriptor(
-  name='Ecu',
-  full_name='devices.Ecu',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  create_key=_descriptor._internal_create_key,
-  fields=[
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=592,
-  serialized_end=597,
-)
-
-
 _INVERTER = _descriptor.Descriptor(
   name='Inverter',
   full_name='devices.Inverter',
@@ -422,8 +397,8 @@ _INVERTER = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=600,
-  serialized_end=792,
+  serialized_start=593,
+  serialized_end=785,
 )
 
 
@@ -519,8 +494,45 @@ _BMS = _descriptor.Descriptor(
       create_key=_descriptor._internal_create_key,
     fields=[]),
   ],
-  serialized_start=795,
-  serialized_end=1028,
+  serialized_start=788,
+  serialized_end=1021,
+)
+
+
+_ECU = _descriptor.Descriptor(
+  name='Ecu',
+  full_name='devices.Ecu',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  create_key=_descriptor._internal_create_key,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='timestamp', full_name='devices.Ecu.timestamp', index=0,
+      number=1, type=2, cpp_type=6, label=1,
+      has_default_value=False, default_value=float(0),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR,  create_key=_descriptor._internal_create_key),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+    _descriptor.OneofDescriptor(
+      name='_timestamp', full_name='devices.Ecu._timestamp',
+      index=0, containing_type=None,
+      create_key=_descriptor._internal_create_key,
+    fields=[]),
+  ],
+  serialized_start=1023,
+  serialized_end=1066,
 )
 
 
@@ -621,8 +633,8 @@ _CHIMERA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1031,
-  serialized_end=1413,
+  serialized_start=1069,
+  serialized_end=1451,
 )
 
 _IMU.oneofs_by_name['_timestamp'].fields.append(
@@ -706,6 +718,9 @@ _BMS.fields_by_name['voltage'].containing_oneof = _BMS.oneofs_by_name['_voltage'
 _BMS.oneofs_by_name['_power'].fields.append(
   _BMS.fields_by_name['power'])
 _BMS.fields_by_name['power'].containing_oneof = _BMS.oneofs_by_name['_power']
+_ECU.oneofs_by_name['_timestamp'].fields.append(
+  _ECU.fields_by_name['timestamp'])
+_ECU.fields_by_name['timestamp'].containing_oneof = _ECU.oneofs_by_name['_timestamp']
 _CHIMERA.fields_by_name['accel'].message_type = _IMU
 _CHIMERA.fields_by_name['gyro'].message_type = _IMU
 _CHIMERA.fields_by_name['encoder_left'].message_type = _ENCODER
@@ -721,9 +736,9 @@ DESCRIPTOR.message_types_by_name['Imu'] = _IMU
 DESCRIPTOR.message_types_by_name['Encoder'] = _ENCODER
 DESCRIPTOR.message_types_by_name['Steer'] = _STEER
 DESCRIPTOR.message_types_by_name['Pedals'] = _PEDALS
-DESCRIPTOR.message_types_by_name['Ecu'] = _ECU
 DESCRIPTOR.message_types_by_name['Inverter'] = _INVERTER
 DESCRIPTOR.message_types_by_name['Bms'] = _BMS
+DESCRIPTOR.message_types_by_name['Ecu'] = _ECU
 DESCRIPTOR.message_types_by_name['Chimera'] = _CHIMERA
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -755,13 +770,6 @@ Pedals = _reflection.GeneratedProtocolMessageType('Pedals', (_message.Message,),
   })
 _sym_db.RegisterMessage(Pedals)
 
-Ecu = _reflection.GeneratedProtocolMessageType('Ecu', (_message.Message,), {
-  'DESCRIPTOR' : _ECU,
-  '__module__' : 'devices_pb2'
-  # @@protoc_insertion_point(class_scope:devices.Ecu)
-  })
-_sym_db.RegisterMessage(Ecu)
-
 Inverter = _reflection.GeneratedProtocolMessageType('Inverter', (_message.Message,), {
   'DESCRIPTOR' : _INVERTER,
   '__module__' : 'devices_pb2'
@@ -775,6 +783,13 @@ Bms = _reflection.GeneratedProtocolMessageType('Bms', (_message.Message,), {
   # @@protoc_insertion_point(class_scope:devices.Bms)
   })
 _sym_db.RegisterMessage(Bms)
+
+Ecu = _reflection.GeneratedProtocolMessageType('Ecu', (_message.Message,), {
+  'DESCRIPTOR' : _ECU,
+  '__module__' : 'devices_pb2'
+  # @@protoc_insertion_point(class_scope:devices.Ecu)
+  })
+_sym_db.RegisterMessage(Ecu)
 
 Chimera = _reflection.GeneratedProtocolMessageType('Chimera', (_message.Message,), {
   'DESCRIPTOR' : _CHIMERA,

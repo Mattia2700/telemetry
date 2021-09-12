@@ -30,10 +30,6 @@ message Pedals{
   optional float brake_rear = 5;
 };
 
-message Ecu {
-
-};
-
 message Inverter{
   optional float timestamp = 1;
   optional float temperature = 2;
@@ -49,6 +45,10 @@ message Bms {
   optional float current = 4;
   optional float voltage = 5;
   optional float power = 6;
+};
+
+message Ecu {
+  optional float timestamp = 1;
 };
 
 

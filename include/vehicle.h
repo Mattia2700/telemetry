@@ -2,6 +2,8 @@
 #define VEHICLE_H
 
 #include <vector>
+#include <exception>
+#include <unordered_map>
 
 #include "devices.h"
 #include "devices.pb.h"
@@ -65,13 +67,17 @@ public:
   */
   void serialize();
 
+  /*
+  * Serialize only the pointer of the device passed
+  */
+  void serialize_device(Device*);
+
   /**
-  * Serailizes class with protobuffer
+  * From protobuf object to string serialized
   *
   * @param out serialized string in output
   */
-  void serialize_to_string(string *out){
-    serialize();
+  void serialized_to_string(string *out){
     chimera_proto->SerializeToString(out);
   }
 
@@ -80,8 +86,7 @@ public:
   *
   * @param outout string
   */
-  void serialize_to_text(string *out){
-    serialize();
+  void serialized_to_text(string *out){
     TextFormat::PrintToString(*chimera_proto, out);
   }
   /**
@@ -89,8 +94,7 @@ public:
   *
   * @param outout string
   */
-  void serialize_to_json(string *out){
-    serialize();
+  void serialized_to_json(string *out){
     MessageToJsonString(*chimera_proto, out);
   }
 
@@ -124,6 +128,10 @@ public:
   */
   vector<Device*> devices;
   vector<Device *> modifiedDevices;
+
+  vector<string> proto_names;
+  vector<Message *> proto_messages;
+  unordered_map<string, string> device_headers;
 
 private:
   // protobuffer object

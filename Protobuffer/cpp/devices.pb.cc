@@ -77,17 +77,6 @@ struct PedalsDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PedalsDefaultTypeInternal _Pedals_default_instance_;
-constexpr Ecu::Ecu(
-  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized){}
-struct EcuDefaultTypeInternal {
-  constexpr EcuDefaultTypeInternal()
-    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
-  ~EcuDefaultTypeInternal() {}
-  union {
-    Ecu _instance;
-  };
-};
-PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT EcuDefaultTypeInternal _Ecu_default_instance_;
 constexpr Inverter::Inverter(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : timestamp_(0)
@@ -121,6 +110,18 @@ struct BmsDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT BmsDefaultTypeInternal _Bms_default_instance_;
+constexpr Ecu::Ecu(
+  ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
+  : timestamp_(0){}
+struct EcuDefaultTypeInternal {
+  constexpr EcuDefaultTypeInternal()
+    : _instance(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized{}) {}
+  ~EcuDefaultTypeInternal() {}
+  union {
+    Ecu _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT EcuDefaultTypeInternal _Ecu_default_instance_;
 constexpr Chimera::Chimera(
   ::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized)
   : accel_()
@@ -201,11 +202,6 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   2,
   3,
   4,
-  ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::devices::Ecu, _internal_metadata_),
-  ~0u,  // no _extensions_
-  ~0u,  // no _oneof_case_
-  ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -238,6 +234,13 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   3,
   4,
   5,
+  PROTOBUF_FIELD_OFFSET(::devices::Ecu, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::devices::Ecu, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::devices::Ecu, timestamp_),
+  0,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::devices::Chimera, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -260,10 +263,10 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 15, 24, sizeof(::devices::Encoder)},
   { 28, 35, sizeof(::devices::Steer)},
   { 37, 47, sizeof(::devices::Pedals)},
-  { 52, -1, sizeof(::devices::Ecu)},
-  { 57, 67, sizeof(::devices::Inverter)},
-  { 72, 83, sizeof(::devices::Bms)},
-  { 89, -1, sizeof(::devices::Chimera)},
+  { 52, 62, sizeof(::devices::Inverter)},
+  { 67, 78, sizeof(::devices::Bms)},
+  { 84, 90, sizeof(::devices::Ecu)},
+  { 91, -1, sizeof(::devices::Chimera)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -271,9 +274,9 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Encoder_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Steer_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Pedals_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Ecu_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Inverter_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Bms_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Ecu_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::devices::_Chimera_default_instance_),
 };
 
@@ -292,32 +295,33 @@ const char descriptor_table_protodef_devices_2eproto[] PROTOBUF_SECTION_VARIABLE
   "\001\001\022\026\n\tthrottle2\030\003 \001(\002H\002\210\001\001\022\030\n\013brake_fron"
   "t\030\004 \001(\002H\003\210\001\001\022\027\n\nbrake_rear\030\005 \001(\002H\004\210\001\001B\014\n"
   "\n_timestampB\014\n\n_throttle1B\014\n\n_throttle2B"
-  "\016\n\014_brake_frontB\r\n\013_brake_rear\"\005\n\003Ecu\"\300\001"
-  "\n\010Inverter\022\026\n\ttimestamp\030\001 \001(\002H\000\210\001\001\022\030\n\013te"
-  "mperature\030\002 \001(\002H\001\210\001\001\022\027\n\nmotor_temp\030\003 \001(\002"
-  "H\002\210\001\001\022\023\n\006torque\030\004 \001(\002H\003\210\001\001\022\022\n\005speed\030\005 \001("
-  "\002H\004\210\001\001B\014\n\n_timestampB\016\n\014_temperatureB\r\n\013"
-  "_motor_tempB\t\n\007_torqueB\010\n\006_speed\"\351\001\n\003Bms"
-  "\022\026\n\ttimestamp\030\001 \001(\002H\000\210\001\001\022\030\n\013temperature\030"
-  "\002 \001(\002H\001\210\001\001\022\034\n\017max_temperature\030\003 \001(\002H\002\210\001\001"
-  "\022\024\n\007current\030\004 \001(\002H\003\210\001\001\022\024\n\007voltage\030\005 \001(\002H"
-  "\004\210\001\001\022\022\n\005power\030\006 \001(\002H\005\210\001\001B\014\n\n_timestampB\016"
-  "\n\014_temperatureB\022\n\020_max_temperatureB\n\n\010_c"
-  "urrentB\n\n\010_voltageB\010\n\006_power\"\376\002\n\007Chimera"
-  "\022\033\n\005accel\030\001 \003(\0132\014.devices.Imu\022\032\n\004gyro\030\002 "
-  "\003(\0132\014.devices.Imu\022&\n\014encoder_left\030\003 \003(\0132"
-  "\020.devices.Encoder\022\'\n\rencoder_right\030\004 \003(\013"
-  "2\020.devices.Encoder\022\034\n\006bms_lv\030\005 \003(\0132\014.dev"
-  "ices.Bms\022\034\n\006bms_hv\030\006 \003(\0132\014.devices.Bms\022("
-  "\n\rinverter_left\030\007 \003(\0132\021.devices.Inverter"
-  "\022)\n\016inverter_right\030\010 \003(\0132\021.devices.Inver"
-  "ter\022\036\n\005pedal\030\t \003(\0132\017.devices.Pedals\022\035\n\005s"
-  "teer\030\n \003(\0132\016.devices.Steer\022\031\n\003ecu\030\013 \003(\0132"
-  "\014.devices.Ecub\006proto3"
+  "\016\n\014_brake_frontB\r\n\013_brake_rear\"\300\001\n\010Inver"
+  "ter\022\026\n\ttimestamp\030\001 \001(\002H\000\210\001\001\022\030\n\013temperatu"
+  "re\030\002 \001(\002H\001\210\001\001\022\027\n\nmotor_temp\030\003 \001(\002H\002\210\001\001\022\023"
+  "\n\006torque\030\004 \001(\002H\003\210\001\001\022\022\n\005speed\030\005 \001(\002H\004\210\001\001B"
+  "\014\n\n_timestampB\016\n\014_temperatureB\r\n\013_motor_"
+  "tempB\t\n\007_torqueB\010\n\006_speed\"\351\001\n\003Bms\022\026\n\ttim"
+  "estamp\030\001 \001(\002H\000\210\001\001\022\030\n\013temperature\030\002 \001(\002H\001"
+  "\210\001\001\022\034\n\017max_temperature\030\003 \001(\002H\002\210\001\001\022\024\n\007cur"
+  "rent\030\004 \001(\002H\003\210\001\001\022\024\n\007voltage\030\005 \001(\002H\004\210\001\001\022\022\n"
+  "\005power\030\006 \001(\002H\005\210\001\001B\014\n\n_timestampB\016\n\014_temp"
+  "eratureB\022\n\020_max_temperatureB\n\n\010_currentB"
+  "\n\n\010_voltageB\010\n\006_power\"+\n\003Ecu\022\026\n\ttimestam"
+  "p\030\001 \001(\002H\000\210\001\001B\014\n\n_timestamp\"\376\002\n\007Chimera\022\033"
+  "\n\005accel\030\001 \003(\0132\014.devices.Imu\022\032\n\004gyro\030\002 \003("
+  "\0132\014.devices.Imu\022&\n\014encoder_left\030\003 \003(\0132\020."
+  "devices.Encoder\022\'\n\rencoder_right\030\004 \003(\0132\020"
+  ".devices.Encoder\022\034\n\006bms_lv\030\005 \003(\0132\014.devic"
+  "es.Bms\022\034\n\006bms_hv\030\006 \003(\0132\014.devices.Bms\022(\n\r"
+  "inverter_left\030\007 \003(\0132\021.devices.Inverter\022)"
+  "\n\016inverter_right\030\010 \003(\0132\021.devices.Inverte"
+  "r\022\036\n\005pedal\030\t \003(\0132\017.devices.Pedals\022\035\n\005ste"
+  "er\030\n \003(\0132\016.devices.Steer\022\031\n\003ecu\030\013 \003(\0132\014."
+  "devices.Ecub\006proto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_devices_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_devices_2eproto = {
-  false, false, 1421, descriptor_table_protodef_devices_2eproto, "devices.proto", 
+  false, false, 1459, descriptor_table_protodef_devices_2eproto, "devices.proto", 
   &descriptor_table_devices_2eproto_once, nullptr, 0, 8,
   schemas, file_default_instances, TableStruct_devices_2eproto::offsets,
   file_level_metadata_devices_2eproto, file_level_enum_descriptors_devices_2eproto, file_level_service_descriptors_devices_2eproto,
@@ -1510,163 +1514,6 @@ void Pedals::InternalSwap(Pedals* other) {
 
 // ===================================================================
 
-class Ecu::_Internal {
- public:
-};
-
-Ecu::Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena)
-  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
-  SharedCtor();
-  RegisterArenaDtor(arena);
-  // @@protoc_insertion_point(arena_constructor:devices.Ecu)
-}
-Ecu::Ecu(const Ecu& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message() {
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:devices.Ecu)
-}
-
-void Ecu::SharedCtor() {
-}
-
-Ecu::~Ecu() {
-  // @@protoc_insertion_point(destructor:devices.Ecu)
-  SharedDtor();
-  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-void Ecu::SharedDtor() {
-  GOOGLE_DCHECK(GetArena() == nullptr);
-}
-
-void Ecu::ArenaDtor(void* object) {
-  Ecu* _this = reinterpret_cast< Ecu* >(object);
-  (void)_this;
-}
-void Ecu::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
-}
-void Ecu::SetCachedSize(int size) const {
-  _cached_size_.Set(size);
-}
-
-void Ecu::Clear() {
-// @@protoc_insertion_point(message_clear_start:devices.Ecu)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
-}
-
-const char* Ecu::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
-#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  while (!ctx->Done(&ptr)) {
-    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
-    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
-    CHK_(ptr);
-        if ((tag & 7) == 4 || tag == 0) {
-          ctx->SetLastTag(tag);
-          goto success;
-        }
-        ptr = UnknownFieldParse(tag,
-            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
-            ptr, ctx);
-        CHK_(ptr != nullptr);
-        continue;
-  }  // while
-success:
-  return ptr;
-failure:
-  ptr = nullptr;
-  goto success;
-#undef CHK_
-}
-
-::PROTOBUF_NAMESPACE_ID::uint8* Ecu::_InternalSerialize(
-    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:devices.Ecu)
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
-        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
-  }
-  // @@protoc_insertion_point(serialize_to_array_end:devices.Ecu)
-  return target;
-}
-
-size_t Ecu::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:devices.Ecu)
-  size_t total_size = 0;
-
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  // Prevent compiler warnings about cached_has_bits being unused
-  (void) cached_has_bits;
-
-  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
-    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
-        _internal_metadata_, total_size, &_cached_size_);
-  }
-  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
-  SetCachedSize(cached_size);
-  return total_size;
-}
-
-void Ecu::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:devices.Ecu)
-  GOOGLE_DCHECK_NE(&from, this);
-  const Ecu* source =
-      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Ecu>(
-          &from);
-  if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:devices.Ecu)
-    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
-  } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:devices.Ecu)
-    MergeFrom(*source);
-  }
-}
-
-void Ecu::MergeFrom(const Ecu& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:devices.Ecu)
-  GOOGLE_DCHECK_NE(&from, this);
-  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
-  (void) cached_has_bits;
-
-}
-
-void Ecu::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:devices.Ecu)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-void Ecu::CopyFrom(const Ecu& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:devices.Ecu)
-  if (&from == this) return;
-  Clear();
-  MergeFrom(from);
-}
-
-bool Ecu::IsInitialized() const {
-  return true;
-}
-
-void Ecu::InternalSwap(Ecu* other) {
-  using std::swap;
-  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
-}
-
-::PROTOBUF_NAMESPACE_ID::Metadata Ecu::GetMetadata() const {
-  return GetMetadataStatic();
-}
-
-
-// ===================================================================
-
 class Inverter::_Internal {
  public:
   using HasBits = decltype(std::declval<Inverter>()._has_bits_);
@@ -2330,6 +2177,204 @@ void Bms::InternalSwap(Bms* other) {
 
 // ===================================================================
 
+class Ecu::_Internal {
+ public:
+  using HasBits = decltype(std::declval<Ecu>()._has_bits_);
+  static void set_has_timestamp(HasBits* has_bits) {
+    (*has_bits)[0] |= 1u;
+  }
+};
+
+Ecu::Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena) {
+  SharedCtor();
+  RegisterArenaDtor(arena);
+  // @@protoc_insertion_point(arena_constructor:devices.Ecu)
+}
+Ecu::Ecu(const Ecu& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _has_bits_(from._has_bits_) {
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  timestamp_ = from.timestamp_;
+  // @@protoc_insertion_point(copy_constructor:devices.Ecu)
+}
+
+void Ecu::SharedCtor() {
+timestamp_ = 0;
+}
+
+Ecu::~Ecu() {
+  // @@protoc_insertion_point(destructor:devices.Ecu)
+  SharedDtor();
+  _internal_metadata_.Delete<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+void Ecu::SharedDtor() {
+  GOOGLE_DCHECK(GetArena() == nullptr);
+}
+
+void Ecu::ArenaDtor(void* object) {
+  Ecu* _this = reinterpret_cast< Ecu* >(object);
+  (void)_this;
+}
+void Ecu::RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena*) {
+}
+void Ecu::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+
+void Ecu::Clear() {
+// @@protoc_insertion_point(message_clear_start:devices.Ecu)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  timestamp_ = 0;
+  _has_bits_.Clear();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* Ecu::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  _Internal::HasBits has_bits{};
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // float timestamp = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
+          _Internal::set_has_timestamp(&has_bits);
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
+          ptr += sizeof(float);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag,
+            _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+            ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  _has_bits_.Or(has_bits);
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* Ecu::_InternalSerialize(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:devices.Ecu)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // float timestamp = 1;
+  if (_internal_has_timestamp()) {
+    target = stream->EnsureSpace(target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:devices.Ecu)
+  return target;
+}
+
+size_t Ecu::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:devices.Ecu)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // float timestamp = 1;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 + 4;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void Ecu::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:devices.Ecu)
+  GOOGLE_DCHECK_NE(&from, this);
+  const Ecu* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Ecu>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:devices.Ecu)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:devices.Ecu)
+    MergeFrom(*source);
+  }
+}
+
+void Ecu::MergeFrom(const Ecu& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:devices.Ecu)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (from._internal_has_timestamp()) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
+}
+
+void Ecu::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:devices.Ecu)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void Ecu::CopyFrom(const Ecu& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:devices.Ecu)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool Ecu::IsInitialized() const {
+  return true;
+}
+
+void Ecu::InternalSwap(Ecu* other) {
+  using std::swap;
+  _internal_metadata_.Swap<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(&other->_internal_metadata_);
+  swap(_has_bits_[0], other->_has_bits_[0]);
+  swap(timestamp_, other->timestamp_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata Ecu::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
 class Chimera::_Internal {
  public:
 };
@@ -2857,14 +2902,14 @@ template<> PROTOBUF_NOINLINE ::devices::Steer* Arena::CreateMaybeMessage< ::devi
 template<> PROTOBUF_NOINLINE ::devices::Pedals* Arena::CreateMaybeMessage< ::devices::Pedals >(Arena* arena) {
   return Arena::CreateMessageInternal< ::devices::Pedals >(arena);
 }
-template<> PROTOBUF_NOINLINE ::devices::Ecu* Arena::CreateMaybeMessage< ::devices::Ecu >(Arena* arena) {
-  return Arena::CreateMessageInternal< ::devices::Ecu >(arena);
-}
 template<> PROTOBUF_NOINLINE ::devices::Inverter* Arena::CreateMaybeMessage< ::devices::Inverter >(Arena* arena) {
   return Arena::CreateMessageInternal< ::devices::Inverter >(arena);
 }
 template<> PROTOBUF_NOINLINE ::devices::Bms* Arena::CreateMaybeMessage< ::devices::Bms >(Arena* arena) {
   return Arena::CreateMessageInternal< ::devices::Bms >(arena);
+}
+template<> PROTOBUF_NOINLINE ::devices::Ecu* Arena::CreateMaybeMessage< ::devices::Ecu >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::devices::Ecu >(arena);
 }
 template<> PROTOBUF_NOINLINE ::devices::Chimera* Arena::CreateMaybeMessage< ::devices::Chimera >(Arena* arena) {
   return Arena::CreateMessageInternal< ::devices::Chimera >(arena);

@@ -19,7 +19,7 @@ int main(){
     }
   }
   cout << get_colored("Opened Socket: " + string(CAN_DEVICE), 6) << endl;
-
+  
   can_frame message;
   vector<Device*> modifiedDevices;
   double prev_timestamp = -1;
@@ -31,22 +31,18 @@ int main(){
     can->receive(&message);
     modifiedDevices = chimera.parse_message(timestamp, message.can_id, message.data, message.can_dlc);
 
-    if(modifiedDevices.size() > 0){
-      chimera.serialize_to_string(&serialized_string);
+    for(auto device : modifiedDevices){
+      chimera.serialize_device(device);
+      // chimera.serialize_to_string(&serialized_string);
       // chimera.serialize_to_text(&serialized_string);
       // chimera.serialize_to_json(&serialized_string);
     }
-    if(prev_timestamp > 0){
-      usleep((timestamp - prev_timestamp)*1000000);
-    }
-
-    prev_timestamp = timestamp;
 
     if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
       start_time = steady_clock::now();
-      // cout << serialized_string << endl;
+      chimera.serialized_to_string(&serialized_string);
+      send_text("http://192.168.1.180:8000/Dashboard/realTime/setData", serialized_string);
       chimera.clear_serialized();
-      send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
     }
   }
   return  0;

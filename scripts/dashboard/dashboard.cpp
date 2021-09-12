@@ -36,8 +36,9 @@ int main(){
 
       modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
-      if(modifiedDevices.size() > 0){
-        chimera.serialize_to_string(&serialized_string);
+      for(auto device : modifiedDevices){
+        chimera.serialize_device(device);
+        // chimera.serialize_to_string(&serialized_string);
         // chimera.serialize_to_text(&serialized_string);
         // chimera.serialize_to_json(&serialized_string);
       }
@@ -52,15 +53,11 @@ int main(){
         if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
           start_time = steady_clock::now();
           // cout << serialized_string << endl;
-          chimera.clear_serialized();
+          chimera.serialized_to_string(&serialized_string);
           send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
+          chimera.clear_serialized();
         }
       }
-    }
-
-    if(REAL_TIME == false){
-      send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
-      chimera.clear_serialized();
     }
   }
 

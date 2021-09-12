@@ -842,130 +842,6 @@ class Pedals PROTOBUF_FINAL :
 };
 // -------------------------------------------------------------------
 
-class Ecu PROTOBUF_FINAL :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:devices.Ecu) */ {
- public:
-  inline Ecu() : Ecu(nullptr) {}
-  virtual ~Ecu();
-  explicit constexpr Ecu(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
-
-  Ecu(const Ecu& from);
-  Ecu(Ecu&& from) noexcept
-    : Ecu() {
-    *this = ::std::move(from);
-  }
-
-  inline Ecu& operator=(const Ecu& from) {
-    CopyFrom(from);
-    return *this;
-  }
-  inline Ecu& operator=(Ecu&& from) noexcept {
-    if (GetArena() == from.GetArena()) {
-      if (this != &from) InternalSwap(&from);
-    } else {
-      CopyFrom(from);
-    }
-    return *this;
-  }
-
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
-    return GetDescriptor();
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
-    return GetMetadataStatic().descriptor;
-  }
-  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
-    return GetMetadataStatic().reflection;
-  }
-  static const Ecu& default_instance() {
-    return *internal_default_instance();
-  }
-  static inline const Ecu* internal_default_instance() {
-    return reinterpret_cast<const Ecu*>(
-               &_Ecu_default_instance_);
-  }
-  static constexpr int kIndexInFileMessages =
-    4;
-
-  friend void swap(Ecu& a, Ecu& b) {
-    a.Swap(&b);
-  }
-  inline void Swap(Ecu* other) {
-    if (other == this) return;
-    if (GetArena() == other->GetArena()) {
-      InternalSwap(other);
-    } else {
-      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
-    }
-  }
-  void UnsafeArenaSwap(Ecu* other) {
-    if (other == this) return;
-    GOOGLE_DCHECK(GetArena() == other->GetArena());
-    InternalSwap(other);
-  }
-
-  // implements Message ----------------------------------------------
-
-  inline Ecu* New() const final {
-    return CreateMaybeMessage<Ecu>(nullptr);
-  }
-
-  Ecu* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
-    return CreateMaybeMessage<Ecu>(arena);
-  }
-  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
-  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
-  void CopyFrom(const Ecu& from);
-  void MergeFrom(const Ecu& from);
-  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
-  bool IsInitialized() const final;
-
-  size_t ByteSizeLong() const final;
-  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
-  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
-      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
-  int GetCachedSize() const final { return _cached_size_.Get(); }
-
-  private:
-  inline void SharedCtor();
-  inline void SharedDtor();
-  void SetCachedSize(int size) const final;
-  void InternalSwap(Ecu* other);
-  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
-  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "devices.Ecu";
-  }
-  protected:
-  explicit Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-  private:
-  static void ArenaDtor(void* object);
-  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
-  public:
-
-  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
-  private:
-  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
-    return ::descriptor_table_devices_2eproto_metadata_getter(kIndexInFileMessages);
-  }
-
-  public:
-
-  // nested types ----------------------------------------------------
-
-  // accessors -------------------------------------------------------
-
-  // @@protoc_insertion_point(class_scope:devices.Ecu)
- private:
-  class _Internal;
-
-  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
-  typedef void InternalArenaConstructable_;
-  typedef void DestructorSkippable_;
-  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  friend struct ::TableStruct_devices_2eproto;
-};
-// -------------------------------------------------------------------
-
 class Inverter PROTOBUF_FINAL :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:devices.Inverter) */ {
  public:
@@ -1009,7 +885,7 @@ class Inverter PROTOBUF_FINAL :
                &_Inverter_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    5;
+    4;
 
   friend void swap(Inverter& a, Inverter& b) {
     a.Swap(&b);
@@ -1211,7 +1087,7 @@ class Bms PROTOBUF_FINAL :
                &_Bms_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    6;
+    5;
 
   friend void swap(Bms& a, Bms& b) {
     a.Swap(&b);
@@ -1381,6 +1257,148 @@ class Bms PROTOBUF_FINAL :
   float current_;
   float voltage_;
   float power_;
+  friend struct ::TableStruct_devices_2eproto;
+};
+// -------------------------------------------------------------------
+
+class Ecu PROTOBUF_FINAL :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:devices.Ecu) */ {
+ public:
+  inline Ecu() : Ecu(nullptr) {}
+  virtual ~Ecu();
+  explicit constexpr Ecu(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  Ecu(const Ecu& from);
+  Ecu(Ecu&& from) noexcept
+    : Ecu() {
+    *this = ::std::move(from);
+  }
+
+  inline Ecu& operator=(const Ecu& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline Ecu& operator=(Ecu&& from) noexcept {
+    if (GetArena() == from.GetArena()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const Ecu& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const Ecu* internal_default_instance() {
+    return reinterpret_cast<const Ecu*>(
+               &_Ecu_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    6;
+
+  friend void swap(Ecu& a, Ecu& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(Ecu* other) {
+    if (other == this) return;
+    if (GetArena() == other->GetArena()) {
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(Ecu* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetArena() == other->GetArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline Ecu* New() const final {
+    return CreateMaybeMessage<Ecu>(nullptr);
+  }
+
+  Ecu* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<Ecu>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const Ecu& from);
+  void MergeFrom(const Ecu& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* _InternalSerialize(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(Ecu* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "devices.Ecu";
+  }
+  protected:
+  explicit Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  private:
+  static void ArenaDtor(void* object);
+  inline void RegisterArenaDtor(::PROTOBUF_NAMESPACE_ID::Arena* arena);
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    return ::descriptor_table_devices_2eproto_metadata_getter(kIndexInFileMessages);
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kTimestampFieldNumber = 1,
+  };
+  // float timestamp = 1;
+  bool has_timestamp() const;
+  private:
+  bool _internal_has_timestamp() const;
+  public:
+  void clear_timestamp();
+  float timestamp() const;
+  void set_timestamp(float value);
+  private:
+  float _internal_timestamp() const;
+  void _internal_set_timestamp(float value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:devices.Ecu)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  float timestamp_;
   friend struct ::TableStruct_devices_2eproto;
 };
 // -------------------------------------------------------------------
@@ -2202,10 +2220,6 @@ inline void Pedals::set_brake_rear(float value) {
 
 // -------------------------------------------------------------------
 
-// Ecu
-
-// -------------------------------------------------------------------
-
 // Inverter
 
 // float timestamp = 1;
@@ -2518,6 +2532,38 @@ inline void Bms::_internal_set_power(float value) {
 inline void Bms::set_power(float value) {
   _internal_set_power(value);
   // @@protoc_insertion_point(field_set:devices.Bms.power)
+}
+
+// -------------------------------------------------------------------
+
+// Ecu
+
+// float timestamp = 1;
+inline bool Ecu::_internal_has_timestamp() const {
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
+  return value;
+}
+inline bool Ecu::has_timestamp() const {
+  return _internal_has_timestamp();
+}
+inline void Ecu::clear_timestamp() {
+  timestamp_ = 0;
+  _has_bits_[0] &= ~0x00000001u;
+}
+inline float Ecu::_internal_timestamp() const {
+  return timestamp_;
+}
+inline float Ecu::timestamp() const {
+  // @@protoc_insertion_point(field_get:devices.Ecu.timestamp)
+  return _internal_timestamp();
+}
+inline void Ecu::_internal_set_timestamp(float value) {
+  _has_bits_[0] |= 0x00000001u;
+  timestamp_ = value;
+}
+inline void Ecu::set_timestamp(float value) {
+  _internal_set_timestamp(value);
+  // @@protoc_insertion_point(field_set:devices.Ecu.timestamp)
 }
 
 // -------------------------------------------------------------------

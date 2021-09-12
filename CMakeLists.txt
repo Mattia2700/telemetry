@@ -36,9 +36,14 @@ include_directories(
   ${PROJECT_SOURCE_DIR}/Protobuffer/cpp
 
   ${CURL_INCLUDE_DIR}
-  ${PYTHON_INCLUDE_DIRS}
-
   )
+
+
+if(PythonLibs_FOUND)
+  include_directories(
+    ${PYTHON_INCLUDE_DIRS}
+  )
+endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
@@ -73,16 +78,13 @@ target_link_libraries(dashboard ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LI
 add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
 target_link_libraries(dashboard_can ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-
 add_executable(share scripts/port/share.cpp)
 target_link_libraries(share ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
 add_executable(read scripts/port/reader.cpp)
 target_link_libraries(read ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-
-add_executable(graph scripts/graph/graph.cpp)
-target_link_libraries(graph ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
-
-add_executable(protobuff scripts/protobuff/protobuff.cpp)
-target_link_libraries(protobuff ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES})
+if(PythonLibs_FOUND)
+  add_executable(graph scripts/graph/graph.cpp)
+  target_link_libraries(graph ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
+endif()

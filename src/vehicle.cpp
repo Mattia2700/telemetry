@@ -2,23 +2,21 @@
 
 
 Chimera::Chimera(){
+
+  // Device initialization
+  ecu = new Ecu("Ecu");
   gyro  = new Imu("Gyro");
   accel = new Imu("Accel");
-
+  bms_lv = new Bms("BMS LV");
+  bms_hv = new Bms("BMS HV");
+  steer = new Steer("Steer");
+  pedal = new Pedals("Pedals");
   encoder_left  = new Encoder("Encoder Left");
   encoder_right = new Encoder("Encoder Right");
-
   inverter_left  = new Inverter("Inverter Left");
   inverter_right = new Inverter("Inverter Right");
 
-  bms_lv = new Bms("BMS LV");
-  bms_hv = new Bms("BMS HV");
-
-  pedal = new Pedals("Pedals");
-  steer = new Steer("Steer");
-
-  ecu = new Ecu("Ecu");
-
+  // Device list
   devices.push_back(gyro);
   devices.push_back(accel);
   devices.push_back(encoder_left);
@@ -31,7 +29,39 @@ Chimera::Chimera(){
   devices.push_back(steer);
   devices.push_back(ecu);
 
+  // Protobuffer section
+
+  // Initializing chimera protobuffer
   chimera_proto = new devices::Chimera();
+
+  // Initialize vector containing protobuffer (message) of each device
+  // Must be in the same order as the vector of devices
+  proto_messages.push_back(new devices::Imu());
+  proto_messages.push_back(new devices::Imu());
+  proto_messages.push_back(new devices::Encoder());
+  proto_messages.push_back(new devices::Encoder());
+  proto_messages.push_back(new devices::Inverter());
+  proto_messages.push_back(new devices::Inverter());
+  proto_messages.push_back(new devices::Bms());
+  proto_messages.push_back(new devices::Bms());
+  proto_messages.push_back(new devices::Pedals());
+  proto_messages.push_back(new devices::Steer());
+  proto_messages.push_back(new devices::Ecu());
+
+  if(devices.size() != proto_messages.size()){
+    throw logic_error("Chimera initialization incorrect, vectors of devices and messages not of the same size");
+  }
+
+  // Get all names of the chimera message
+  auto descriptor = chimera_proto->GetDescriptor();
+  string separator = ";";
+  for(int i = 0; i < descriptor->field_count(); i++){
+    string field = descriptor->field(i)->json_name();
+    auto descriptor = proto_messages[i]->GetDescriptor();
+
+    proto_names.push_back(field);
+    device_headers.insert({field, Device::get_header(descriptor, separator)});
+  }
 }
 
 
@@ -276,4 +306,31 @@ void Chimera::serialize(){
   this->steer->serialize(chimera_proto->add_steer());
 
   this->ecu->serialize(chimera_proto->add_ecu());
+}
+
+
+void Chimera::serialize_device(Device* device){
+  if (device == accel){
+    this->accel->serialize(chimera_proto->add_accel());
+  }else if(device == gyro){
+    this->gyro->serialize(chimera_proto->add_gyro());
+  }else if(device == encoder_left){
+    this->encoder_left->serialize(chimera_proto->add_encoder_left());
+  }else if(device == encoder_right){
+    this->encoder_right->serialize(chimera_proto->add_encoder_right());
+  }else if(device == inverter_left){
+    this->inverter_left->serialize(chimera_proto->add_inverter_left());
+  }else if(device == inverter_right){
+    this->inverter_right->serialize(chimera_proto->add_inverter_right());
+  }else if(device == bms_lv){
+    this->bms_lv->serialize(chimera_proto->add_bms_lv());
+  }else if(device == bms_hv){
+    this->bms_hv->serialize(chimera_proto->add_bms_hv());
+  }else if(device == pedal){
+    this->pedal->serialize(chimera_proto->add_pedal());
+  }else if(device == steer){
+    this->steer->serialize(chimera_proto->add_steer());
+  }else if(device == ecu){
+    this->ecu->serialize(chimera_proto->add_ecu());
+  }
 }

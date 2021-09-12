@@ -12,6 +12,31 @@ Device::Device(string name)
 }
 Device::~Device() {}
 
+vector<string> Device::get_field_names(const Descriptor* descriptor){
+  vector<string> fields;
+  for(int i = 0; i < descriptor->field_count(); i++){
+    fields.push_back(descriptor->field(i)->json_name());
+  }
+  return fields;
+}
+string Device::get_header(const vector<string>& fields, string separator){
+  string header = "";
+  for(int i = 0; i < fields.size()-1; i++){
+    header += fields[i] + separator;
+  }
+  header += fields[fields.size()-1];
+  return header;
+}
+string Device::get_header(const Descriptor* descriptor, string separator){
+  string header = "";
+  int count = descriptor->field_count();
+  for(int i = 0; i < count-1; i++){
+    header += descriptor->field(i)->json_name() + separator;
+  }
+  header += descriptor->field(count-1)->json_name();
+  return header;
+}
+
 string Imu::get_header(string separator)
 {
   string ret = "";
