@@ -224,19 +224,57 @@ int main()
     }
 
     {
+
+      // Fill the struct
+      logger_stat.date = date_c;
+      logger_stat.pilot = PILOTS[i1].c_str();
+      logger_stat.race = RACES[i2].c_str();
+      logger_stat.circuit = CIRCUITS[i3].c_str();
+      logger_stat.can_messages = messages_count;
+      logger_stat.can_frequency = int(messages_count / log_duration);
+      logger_stat.can_duration = log_duration;
+
+      // Wait for GPS thread if was started
       std::unique_lock<std::mutex> lck(mMutex);
-      st["Date"] = date_c;
 
-      st["Pilot"] = PILOTS[i1];
-      st["Race"] = RACES[i2];
-      st["Circuit"] = CIRCUITS[i3];
+      doc.SetObject();
 
-      st["Data"]["CAN"]["Messages"] = messages_count;
-      st["Data"]["CAN"]["Average Frequency (Hz)"] = int(messages_count / log_duration);
-      st["Data"]["CAN"]["Duration (seconds)"] = log_duration;
+      // Add keys and string values
+      doc.AddMember("Date", Value().SetString(StringRef(date_c)), alloc);
+      doc.AddMember("Pilot", Value().SetString(StringRef(PILOTS[i1].c_str())), alloc);
+      doc.AddMember("Race", Value().SetString(StringRef(RACES[i2].c_str())), alloc);
+      doc.AddMember("Circuit", Value().SetString(StringRef(CIRCUITS[i3].c_str())), alloc);
 
+      // Add subobject
+      Value sub_obj;
+      sub_obj.SetObject();
+      {
+        Value val;
+        val.SetObject();
+        {
+          val.AddMember("Messages", messages_count, alloc);
+          val.AddMember("Average Frequency (Hz)", int(messages_count / log_duration), alloc);
+          val.AddMember("Duration (seconds)", log_duration, alloc);
+        }
+        sub_obj.AddMember("CAN", val, alloc);
+      }
+      doc.AddMember("Data", sub_obj, alloc);
+
+      if (logger_stat.gps_messages == 0)
+      {
+        Value val;
+        val.SetObject();
+        {
+          val.AddMember("Messages", logger_stat.gps_messages, alloc);
+          val.AddMember("Average Frequency (Hz)", logger_stat.gps_frequency, alloc);
+          val.AddMember("Duration (seconds)", logger_stat.gps_duration, alloc);
+        }
+        doc["Data"].AddMember("GPS", val, alloc);
+      }
+
+      doc.Accept(writer);
       std::ofstream stat_f(folder + "/LoggerInfo.json");
-      stat_f << st.dump(2);
+      stat_f << json_ss.GetString();
       stat_f.close();
     }
   }
@@ -280,7 +318,7 @@ void log_gps(string fname, string header)
                   .count() /
               1000;
 
-  st["Data"]["GPS"]["Messages"] = count;
-  st["Data"]["GPS"]["Average Frequency [Hz]"] = int(count / dt);
-  st["Data"]["GPS"]["Duration [seconds]"] = dt;
+  logger_stat.gps_frequency = count;
+  logger_stat.gps_messages = int(count / dt);
+  logger_stat.gps_duration = dt;
 }

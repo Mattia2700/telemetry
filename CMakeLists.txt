@@ -84,6 +84,9 @@ target_link_libraries(share ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRAR
 add_executable(read scripts/port/reader.cpp)
 target_link_libraries(read ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
+add_executable(websocket scripts/websocket/websocket.cpp)
+target_link_libraries(websocket ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
 if(PythonLibs_FOUND)
   add_executable(graph scripts/graph/graph.cpp)
   target_link_libraries(graph ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})

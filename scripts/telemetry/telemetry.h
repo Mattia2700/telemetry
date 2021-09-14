@@ -22,9 +22,31 @@
 #include <mutex>
 #include <thread>
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-nlohmann::ordered_json st;
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+using namespace rapidjson;
+Document doc;
+StringBuffer json_ss;
+PrettyWriter<StringBuffer> writer(json_ss);
+rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
+
+struct stats
+{
+    const char *date;
+    const char *pilot;
+    const char *race;
+    const char *circuit;
+
+    int can_messages;
+    float can_frequency;
+    float can_duration;
+
+    int gps_messages;
+    float gps_frequency;
+    float gps_duration;
+};
+
+stats logger_stat;
 
 #include "can.h"
 #include "utils.h"
