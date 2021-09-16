@@ -13,13 +13,6 @@ find_package(Boost  1.54.0
    COMPONENTS serialization filesystem
 )
 
-find_package(nlohmann_json)
-if(${nlohmann_json_FOUND})
-  add_definitions(-DJSON=1)
-else()
-  message("JSON not found!")
-endif()
-
 find_package(CURL REQUIRED)
 
 find_package(PythonLibs 2.7 REQUIRED)
@@ -28,6 +21,12 @@ find_package(Protobuf REQUIRED)
 if(Protobuf_FOUND)
     message(STATUS "Using Protocol Buffers ${Protobuf_VERSION}")
 endif()
+
+find_package(websocketpp)
+if(websocketpp_FOUND)
+  message(STATUS "Websocketpp FOUND")
+endif()
+
 
 include_directories(
   ${PROJECT_SOURCE_DIR}
@@ -75,17 +74,19 @@ target_link_libraries(checker ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBR
 add_executable(dashboard scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
-target_link_libraries(dashboard_can ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
-
 add_executable(share scripts/port/share.cpp)
 target_link_libraries(share ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
 add_executable(read scripts/port/reader.cpp)
 target_link_libraries(read ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
 
-add_executable(websocket scripts/websocket/websocket.cpp)
-target_link_libraries(websocket ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES})
+
+if(websocketpp_FOUND)
+  add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
+  target_link_libraries(dashboard_can ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES} websocketpp::websocketpp)
+  add_executable(websocket scripts/websocket/websocket.cpp)
+  target_link_libraries(websocket ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${CURL_LIBRARIES} websocketpp::websocketpp)
+endif()
 
 if(PythonLibs_FOUND)
   add_executable(graph scripts/graph/graph.cpp)

@@ -12,9 +12,6 @@
 #include <mutex>
 #include <thread>
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
-
 #include "utils.h"
 #include "browse.h"
 #include "devices.h"

@@ -14,10 +14,16 @@ Start and stop logging by sending specific command messages.
 ~~~bash
 sudo apt-get install libboost-all-dev
 ~~~
-- Optional nlohmann_json:  
-~~~bash
-sudo apt-get install -y nlohmann-json-dev
-~~~
+
+- Required Google Protobuf
+
+- Optional if using dashboard websocketpp  
+  ~~~
+  git clone git://github.com/zaphoyd/websocketpp.git  
+  cd websocketpp  
+  cmake .  
+  sudo make install  
+  ~~~
 
 - Curl if using dashboard
 

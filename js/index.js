@@ -40,6 +40,7 @@ wss.on('connection', function connection(ws) {
       // This os the key needed to recognize the type of connection
 
       var type = obj["identifier"];
+      console.log(type);
       if (type == "telemetry") {
         // can be only one telemetry so is there is already one close incoming connection
         if (telemetry != null) {
@@ -74,6 +75,7 @@ wss.on('connection', function connection(ws) {
 
 function telemetry_on_message(data) {
   data = data.toString();
+  console.log("Message: ", data);
   try {
     data = JSON.parse(data);
     if (!has_all_keys(data, ["type"]))

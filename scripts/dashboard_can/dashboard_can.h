@@ -17,8 +17,6 @@
 #include <mutex>
 #include <thread>
 
-#include <nlohmann/json.hpp>
-using json = nlohmann::json;
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
