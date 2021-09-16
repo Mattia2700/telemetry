@@ -26,6 +26,7 @@ wss.on('connection', function connection(ws) {
     // Can be accepted only one message in this phase, so remove immediately the callback
 
     data = data.toString();
+    console.log(data);
     var obj;
     try {
       obj = JSON.parse(data);
