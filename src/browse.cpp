@@ -300,7 +300,11 @@ int Browse::get_selected_index(string path){
 
 void Browse::update_dirs(){
     all_dirs.clear();
-    copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
+    try{
+      copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
+    }catch(exception e){
+      cout << "Error" << endl;
+    }
     if(hide_hidden_files){
       remove_hidden();
     }

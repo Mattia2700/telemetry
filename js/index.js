@@ -76,7 +76,6 @@ wss.on('connection', function connection(ws) {
 
 function telemetry_on_message(data) {
   data = data.toString();
-  console.log("Message: ", data);
   try {
     data = JSON.parse(data);
     if (!has_all_keys(data, ["type"]))

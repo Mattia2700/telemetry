@@ -9,9 +9,14 @@
 
 using namespace std;
 
+using websocketpp::lib::bind;
+using websocketpp::lib::placeholders::_1;
+using websocketpp::lib::placeholders::_2;
+typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
+typedef websocketpp::client<websocketpp::config::asio_client> client;
+
 class Client {
 public:
-    typedef websocketpp::client<websocketpp::config::asio_client> client;
     typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
     Client() : m_open(false),m_done(false) {
@@ -25,12 +30,15 @@ public:
         m_client.init_asio();
 
         // Bind the handlers we are using
-        using websocketpp::lib::placeholders::_1;
-        using websocketpp::lib::bind;
         m_client.set_open_handler(bind(&Client::on_open,this,_1));
         m_client.set_close_handler(bind(&Client::on_close,this,_1));
         m_client.set_fail_handler(bind(&Client::on_fail,this,_1));
+        // m_client.set_message_handler(bind(&oon_message,&m_client,::_1,::_2));
         m_new_data.store(false);
+    }
+
+    void set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr)){
+      m_client.set_message_handler(bind(clbk,&m_client,::_1,::_2));
     }
 
     // This method will block until the connection is complete
@@ -103,7 +111,7 @@ public:
             m_cv.wait(lck);
 
           m_client.get_alog().write(websocketpp::log::alevel::app, m_to_send_data.front());
-          m_client.send(m_hdl,m_to_send_data.front(),websocketpp::frame::opcode::text,ec);
+          m_client.send(m_hdl,m_to_send_data.front(),websocketpp::frame::opcode::binary,ec);
 
           m_to_send_data.pop();
 

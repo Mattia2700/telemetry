@@ -48,10 +48,11 @@ int main()
   string port = "/dev/ttyACM0";
   serial s(port);
 
-  if (s.open_port() < 0)
-  {
-    cout << "Failed opening " << port << endl;
-    return -1;
+  uint32_t count = 0;
+  while (s.open_port() < 0){
+    cout << " -> "<< to_string(count) << " Failed opening " << port << "\r" << flush;
+    count ++;
+    usleep(1000000);
   }
 
   // Start one thread for each fifo file (pipe)

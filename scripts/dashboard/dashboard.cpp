@@ -1,13 +1,17 @@
 #include "dashboard.h"
 
-Document j;
-
 int main(){
 
-  /*if(setup_curl("http://127.0.0.1:8000/Dashboard/realTime/setData") < 0){
-    cout << "FAILED SETUP CURL" << endl;
+  Client c;
+  auto current_thread = c.run(uri);
+  if(current_thread == nullptr){
+    cout << get_colored("Failed connecting to server: " + uri, 1) << endl;
+    cout << "Exiting" << endl;
     return -1;
-  }*/
+  }
+  d.Accept(w);
+  // Login as telemetry
+  c.set_data("{\"identifier\":\"telemetry\"}");
 
 
   Browse b;
@@ -43,56 +47,30 @@ int main(){
         // chimera.serialize_to_json(&serialized_string);
       }
 
-      if(REAL_TIME == true){
-        if(prev_timestamp > 0){
-          usleep((msg.timestamp - prev_timestamp)*1000000);
-        }
+      if(prev_timestamp > 0){
+        usleep((msg.timestamp - prev_timestamp)*1000000);
+      }
 
-        prev_timestamp = msg.timestamp;
+      prev_timestamp = msg.timestamp;
 
-        if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
-          start_time = steady_clock::now();
-          // cout << serialized_string << endl;
-          chimera.serialized_to_string(&serialized_string);
-          send_text("http://127.0.0.1:8000/Dashboard/realTime/setData", serialized_string);
-          chimera.clear_serialized();
-        }
+      if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
+        start_time = steady_clock::now();
+        chimera.serialized_to_string(&serialized_string);
+        if(serialized_string.size() == 0)
+          continue;
+
+        sb.Clear();
+        w.Reset(sb);
+        d.SetObject();
+        d.AddMember("type", Value().SetString("update_data"), alloc);
+        d.AddMember("data", Value().SetString(StringRef(serialized_string.c_str())), alloc);
+        d.Accept(w);
+
+        c.set_data(sb.GetString());
+        chimera.clear_serialized();
       }
     }
   }
 
   return  0;
-}
-
-int send_text(string url, string data){
-  CURLcode res;
-  struct curl_slist *slist1;
-
-  slist1 = NULL;
-  slist1 = curl_slist_append(slist1, "Content-Type: text/plain");
-
-  curl = curl_easy_init();
-
-  if(!curl)
-  return -1;
-
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_POST, 1);
-
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
-  res = curl_easy_perform(curl);
-
-  // if(res != CURLE_OK)
-  //   cout << "Error: " << curl_easy_strerror(res) << endl;
-
-  curl_easy_cleanup(curl);
-  return 0;
-}
-
-// "http://127.0.0.1:8000/Dashboard/realTime/setData"
-// "https://driverless-configurator.herokuapp.com/Dashboard/setData"
-int setup_curl(string url){
-
-  //curl_easy_cleanup(curl);
 }

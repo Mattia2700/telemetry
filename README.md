@@ -12,10 +12,19 @@ Start and stop logging by sending specific command messages.
 ## Requirements
 - Required Boost libs, install them with:  
 ~~~bash
-sudo apt-get install libboost-all-dev
+sudo apt-get install libboost-serialization-dev libboost-filesystem-dev
 ~~~
 
 - Required Google Protobuf
+  Download [lastest](https://github.com/protocolbuffers/protobuf/releases)  
+  Extract files and cd into it.  
+  ~~~
+  ./configure
+  make
+  make check
+  sudo make install
+  sudo ldconfig
+  ~~~
 
 - Optional if using dashboard websocketpp  
   ~~~

@@ -19,7 +19,18 @@ int main(){
     }
   }
   cout << get_colored("Opened Socket: " + string(CAN_DEVICE), 6) << endl;
-  
+
+  Client c;
+  auto current_thread = c.run(uri);
+  if(current_thread == nullptr){
+    cout << get_colored("Failed connecting to server: " + uri, 1) << endl;
+    cout << "Exiting" << endl;
+    return -1;
+  }
+  d.Accept(w);
+  // Login as telemetry
+  c.set_data("{\"identifier\":\"telemetry\"}");
+
   can_frame message;
   vector<Device*> modifiedDevices;
   double prev_timestamp = -1;
@@ -33,53 +44,39 @@ int main(){
 
     for(auto device : modifiedDevices){
       chimera.serialize_device(device);
-      // chimera.serialize_to_string(&serialized_string);
-      // chimera.serialize_to_text(&serialized_string);
-      // chimera.serialize_to_json(&serialized_string);
+      // chimera.serialized_to_string(&serialized_string);
+      // chimera.serialized_to_text(&serialized_string);
+      // chimera.serialized_to_json(&serialized_string);
     }
 
     if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
       start_time = steady_clock::now();
       chimera.serialized_to_string(&serialized_string);
-      send_text("http://192.168.1.180:8000/Dashboard/realTime/setData", serialized_string);
+      if(serialized_string.size() == 0)
+        continue;
+      sb.Clear();
+      w.Reset(sb);
+      d.SetObject();
+      d.AddMember("type", Value().SetString("update_data"), alloc);
+      d.AddMember("data", Value().SetString(StringRef(serialized_string.c_str())), alloc);
+      d.Accept(w);
+      c.set_data(sb.GetString());
       chimera.clear_serialized();
+
+      devices::Chimera* chimera_proto = new devices::Chimera();
+      Value::MemberIterator itr = d.FindMember("data");
+      string n = itr->name.GetString();
+      Value& v = itr->value;
+      chimera_proto->ParseFromString(v.GetString());
+      string out;
+      TextFormat::PrintToString(*chimera_proto, &out);
+      cout << out << endl;
+      delete chimera_proto;
     }
   }
   return  0;
 }
 
-int send_text(string url, string data){
-  CURLcode res;
-  struct curl_slist *slist1;
-
-  slist1 = NULL;
-  slist1 = curl_slist_append(slist1, "Content-Type: text/plain");
-
-  curl = curl_easy_init();
-
-  if(!curl)
-  return -1;
-
-  curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-  curl_easy_setopt(curl, CURLOPT_POST, 1);
-
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data.c_str());
-  curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, data.length());
-  res = curl_easy_perform(curl);
-
-  // if(res != CURLE_OK)
-  //   cout << "Error: " << curl_easy_strerror(res) << endl;
-
-  curl_easy_cleanup(curl);
-  return 0;
-}
-
-// "http://127.0.0.1:8000/Dashboard/realTime/setData"
-// "https://driverless-configurator.herokuapp.com/Dashboard/setData"
-int setup_curl(string url){
-
-  //curl_easy_cleanup(curl);
-}
 
 double get_timestamp()
 {

@@ -28,23 +28,28 @@ void serial::close_port(){
   close(fd);
 }
 
+bool serial::file_exists(){
+  struct stat buffer;
+  return (stat(device.c_str(), &buffer) == 0);
+}
+
 int serial::open_file(){
-  fd = open(device.c_str(), O_RDONLY);
-  if(fd < 0) {
-    cout << "Error port" << endl;
+  if(!file_exists())
     return -1;
-  }
+  fd = open(device.c_str(), O_RDONLY);
+  if(fd < 0)
+    return -1;
   return 1;
 }
 
 int serial::open_port(){
-  fd = open(device.c_str(), O_RDWR);
-
-  // Handle in case of error
-  if(fd < 0) {
-    cout << "Error port" << endl;
+  if(!file_exists())
     return -1;
-  }
+
+  fd = open(device.c_str(), O_RDWR);
+  // Handle in case of error
+  if(fd < 0)
+    return -1;
 
   struct termios tty;
 

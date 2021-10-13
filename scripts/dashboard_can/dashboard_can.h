@@ -12,11 +12,9 @@
 #include <iostream>
 
 #include <boost/filesystem.hpp>
-#include <curl/curl.h>
 
 #include <mutex>
 #include <thread>
-
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -27,6 +25,7 @@ using namespace rapidjson;
 #include "utils.h"
 #include "utils.h"
 #include "vehicle.h"
+#include "websocket.h"
 
 #include "devices.pb.h"
 
@@ -42,14 +41,18 @@ using namespace boost::filesystem;
 #define TIMEOUT 200
 
 Chimera chimera;
-CURL *curl;
 
 const char* CAN_DEVICE = "vcan0";
 
+string uri = "ws://localhost:8080";
+
 string serialized_string;
 
-int setup_curl(string url);
-int send_text(string url, string data);
+Document d;
+StringBuffer sb;
+Writer<StringBuffer> w(sb);
+rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
 double get_timestamp();
 
 
