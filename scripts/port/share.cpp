@@ -11,6 +11,8 @@
 #include <condition_variable>
 #include <signal.h>
 
+#include <cstdio>
+
 #include "serial.h"
 
 using namespace std;
@@ -44,6 +46,15 @@ int main()
   // Ignore when the pipe closes (from a reader that disconnects)
   signal(SIGPIPE, SIG_IGN);
 
+  {
+    int counter = 0;
+    while( remove((BASENAME + to_string(counter)).c_str() ) == 0 ){
+      counter ++;
+      cout << "Deleted: " << BASENAME << counter << endl;
+    }
+    cout << "Removed " << counter << " previous ports" << endl;
+  }
+
   // serialport
   string port = "/dev/ttyACM0";
   serial s(port);
@@ -54,6 +65,7 @@ int main()
     count ++;
     usleep(1000000);
   }
+  cout << "Opened port: " << port << endl;
 
   // Start one thread for each fifo file (pipe)
   string filename = "";

@@ -29,8 +29,8 @@ void serial::close_port(){
 }
 
 bool serial::file_exists(){
-  struct stat buffer;
-  return (stat(device.c_str(), &buffer) == 0);
+  ifstream f(device.c_str());
+  return f.fail()|| f.good();
 }
 
 int serial::open_file(){
