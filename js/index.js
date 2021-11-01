@@ -75,10 +75,10 @@ wss.on('connection', function connection(ws) {
 });
 
 function telemetry_on_message(data) {
-  data = data.toString();
+  // data = data.toString();
   try {
-    data = JSON.parse(data);
-    if (!has_all_keys(data, ["type"]))
+    data_json = JSON.parse(data);
+    if (!has_all_keys(data_json, ["type"]))
       throw ("json has not all keys required");
   } catch {
     telemetry.send(MESSAGE_MALFORMED);
@@ -86,14 +86,14 @@ function telemetry_on_message(data) {
   }
   // Can be accepted only JSON object
 
-  if (data["type"] == "update_data") {
+  if (data_json["type"] == "update_data") {
     var obj = {
-      type: data["type"],
-      data: data["data"]
+      type: data_json["type"],
+      data: data_json["data"]
     }
     // crete an object to be sent to the clients containing data coming from telemetry
-    broadcast_to_clients(JSON.stringify(obj));
   }
+  broadcast_to_clients(data);
 }
 
 

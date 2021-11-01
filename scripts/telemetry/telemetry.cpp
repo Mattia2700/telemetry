@@ -213,7 +213,8 @@ int main()
       logger_stat.can_duration = log_duration;
 
       // Wait for GPS thread if was started
-      std::unique_lock<std::mutex> lck(mtx);
+      if(USE_GPS == 1)
+      	std::unique_lock<std::mutex> lck(mtx);
 
       doc.SetObject();
 

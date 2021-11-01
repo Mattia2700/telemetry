@@ -27,6 +27,8 @@ int main(){
 
   string folder = boost::filesystem::path(selected_paths[0]).parent_path().filename().string();
 
+  devices::Chimera chimera_proto;
+
   for (auto file : selected_paths){
     message msg;
     vector<string> lines;
@@ -41,6 +43,7 @@ int main(){
       modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
       for(auto device : modifiedDevices){
+
         chimera.serialize_device(device);
         // chimera.serialize_to_string(&serialized_string);
         // chimera.serialize_to_text(&serialized_string);
@@ -56,6 +59,7 @@ int main(){
       if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
         start_time = steady_clock::now();
         chimera.serialized_to_string(&serialized_string);
+
         if(serialized_string.size() == 0)
           continue;
 
@@ -63,7 +67,7 @@ int main(){
         w.Reset(sb);
         d.SetObject();
         d.AddMember("type", Value().SetString("update_data"), alloc);
-        d.AddMember("data", Value().SetString(StringRef(serialized_string.c_str())), alloc);
+        d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
         d.Accept(w);
 
         c.set_data(sb.GetString());
