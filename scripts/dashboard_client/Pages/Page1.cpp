@@ -64,15 +64,15 @@ void Page1::SetGraphData(ChimeraData* chim)
 
   int speed_left_size = chim->data->encoder_left_size();
   int speed_right_size = chim->data->encoder_right_size();
-  int min_size = speed_left_size < speed_right_size ? speed_left_size : speed_right_size;
-  if(min_size == 0)
+  int max_size = speed_left_size > speed_right_size ? speed_left_size : speed_right_size;
+  if(max_size == 0)
     return;
 
-  x.resize(min_size);
+  x.resize(max_size);
   ys[0].resize(speed_left_size); // speed left
   ys.push_back(vector<double>(speed_right_size,0)); // throttle1
 
-  for(int i = 0; i < min_size; i++)
+  for(int i = 0; i < max_size; i++)
   {
     if(i < chim->data->encoder_left_size())
     {

@@ -4,6 +4,7 @@
 #include "renderer.h"
 #include "Pages/Page1.h"
 #include "Pages/Page2.h"
+#include "Pages/Page3.h"
 
 #include "websocket.h"
 #include <ostream>
@@ -26,6 +27,7 @@ devices::Chimera* chimera_proto;
 
 Page1* page1;
 Page2* page2;
+Page3* page3;
 Renderer* renderer;
 
 int W = 800, H = 800;

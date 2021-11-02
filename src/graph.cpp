@@ -1,6 +1,6 @@
 #include "graph.h"
 
-void Graph::PushData(vector<double> x_, vector<vector<double>> ys_)
+void Graph::PushData(vector<double> &x_, vector<vector<double>> &ys_)
 {
   if(this->ys.size() != 0 &&this->ys.size() != ys_.size())
     return;
@@ -24,24 +24,26 @@ void Graph::Draw(Mat* img)
 
   DrawAxes(img);
 
-  float dx = float(position.w) / x.size();
-  float dy = float(position.h) / (scaleY * 2);
+  float dx = 0.0;
+  float dy = float(position.h) / (scaleY * 2)*-1;
 
   float cx = position.x;
   float cy = position.y + position.h/2;
 
 
-  for(int i = 1; i < x.size(); i++)
+  for(int i = 0; i < ys.size(); i++)
   {
-    for(int j = 0; j < ys.size(); j++)
-    {
-      if(line_colors.size() <= j)
-        line_colors.push_back(GenerateColor());
+    if(line_colors.size() <= i)
+      line_colors.push_back(GenerateColor());
 
+    dx = float(position.w) / ys[i].size();
+
+    for(int j = 1; j < ys[i].size(); j++)
+    {
       cv::line(*img,
-        cv::Point(((i-1) * dx) + cx, (ys[j][i-1] * dy) + cy),
-        cv::Point(((i  ) * dx) + cx, (ys[j][i  ] * dy) + cy),
-        line_colors[j],
+        cv::Point(((j-1) * dx) + cx, (ys[i][j-1] * dy) + cy),
+        cv::Point(((j  ) * dx) + cx, (ys[i][j  ] * dy) + cy),
+        line_colors[i],
         1,
         LINE_AA
       );
@@ -56,7 +58,7 @@ void Graph::DrawAxes(Mat* img)
     scale = 10;
 
   float dx = float(position.w) / x.size();
-  float dy = float(position.h) / (scale * 2);
+  float dy = float(position.h) / (scale * 2)*-1;
 
   float cx = position.x;
   float cy = position.y + position.h/2;
@@ -147,9 +149,9 @@ void Graph::SetPosition(Box box)
 Scalar Graph::GenerateColor()
 {
   cv::Scalar color(
-    (double)std::rand() / (RAND_MAX) * 255,
-    (double)std::rand() / (RAND_MAX-1) * 255,
-    (double)std::rand() / (RAND_MAX-2) * 255,
+    (double)std::rand() / (RAND_MAX) * 215+40,
+    (double)std::rand() / (RAND_MAX) * 215+40,
+    (double)std::rand() / (RAND_MAX) * 215+40,
     255
   );
   return color;

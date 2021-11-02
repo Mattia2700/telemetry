@@ -46,9 +46,9 @@ void Page2::SetAccelGyroData(ChimeraData* chim)
   vector<double> x(accel_size, 0);
   vector<vector<double>> ys;
 
-  ys.push_back(vector<double>(accel_size,0)); // x
-  ys.push_back(vector<double>(accel_size,0)); // y
-  ys.push_back(vector<double>(accel_size,0)); // z
+  ys.push_back(vector<double>(accel_size, 0));
+  ys.push_back(vector<double>(accel_size, 0));
+  ys.push_back(vector<double>(accel_size, 0));
 
   for(int i = 0; i < accel_size; i++)
   {
@@ -69,10 +69,16 @@ void Page2::SetAccelGyroData(ChimeraData* chim)
   if(gyro_size == 0)
     return;
 
-  x.resize(gyro_size);
-  ys[0].resize(gyro_size); // x
-  ys[1].resize(gyro_size); // y
-  ys[2].resize(gyro_size); // z
+  try{
+    x.resize(gyro_size);
+  }catch(exception e)
+  {
+    cout << e.what() << endl;
+    return;
+  }
+  ys[0].resize(gyro_size);
+  ys[1].resize(gyro_size);
+  ys[2].resize(gyro_size);
 
   for(int i = 0; i < gyro_size; i++)
   {

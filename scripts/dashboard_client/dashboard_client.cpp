@@ -50,6 +50,10 @@ int main(int argc, char* argv[]) {
     page2->SetData(chimera_data);
     renderer->AddPage(page2);
 
+    page3 = new Page3(W, H);
+    page3->SetData(chimera_data);
+    renderer->AddPage(page3);
+
     renderer->SetOnKeyPress(on_key_press);
 
 

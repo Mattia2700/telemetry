@@ -34,7 +34,7 @@ public:
     std::srand(time(nullptr));
   }
 
-  void PushData(vector<double> x, vector<vector<double>> ys);
+  void PushData(vector<double>& x, vector<vector<double>>& ys);
   void Draw(Mat* img);
 
   void SetMaxLenght(int);
