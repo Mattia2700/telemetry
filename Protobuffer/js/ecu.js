@@ -108,7 +108,7 @@ proto.devices.Ecu.deserializeBinaryFromReader = function(msg, reader) {
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = /** @type {number} */ (reader.readFloat());
+      var value = /** @type {number} */ (reader.readDouble());
       msg.setTimestamp(value);
       break;
     default:
@@ -140,9 +140,9 @@ proto.devices.Ecu.prototype.serializeBinary = function() {
  */
 proto.devices.Ecu.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = /** @type {number} */ (jspb.Message.getField(message, 1));
-  if (f != null) {
-    writer.writeFloat(
+  f = message.getTimestamp();
+  if (f !== 0.0) {
+    writer.writeDouble(
       1,
       f
     );
@@ -151,7 +151,7 @@ proto.devices.Ecu.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional float timestamp = 1;
+ * optional double timestamp = 1;
  * @return {number}
  */
 proto.devices.Ecu.prototype.getTimestamp = function() {
@@ -164,25 +164,7 @@ proto.devices.Ecu.prototype.getTimestamp = function() {
  * @return {!proto.devices.Ecu} returns this
  */
 proto.devices.Ecu.prototype.setTimestamp = function(value) {
-  return jspb.Message.setField(this, 1, value);
-};
-
-
-/**
- * Clears the field making it undefined.
- * @return {!proto.devices.Ecu} returns this
- */
-proto.devices.Ecu.prototype.clearTimestamp = function() {
-  return jspb.Message.setField(this, 1, undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {boolean}
- */
-proto.devices.Ecu.prototype.hasTimestamp = function() {
-  return jspb.Message.getField(this, 1) != null;
+  return jspb.Message.setProto3FloatField(this, 1, value);
 };
 
 

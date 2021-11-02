@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   syntax='proto3',
   serialized_options=None,
   create_key=_descriptor._internal_create_key,
-  serialized_pb=b'\n\rdevices.proto\x12\x07\x64\x65vices\"\x8b\x01\n\x03Imu\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x0e\n\x01x\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0e\n\x01y\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x0e\n\x01z\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05scale\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x04\n\x02_xB\x04\n\x02_yB\x04\n\x02_zB\x08\n\x06_scale\"\x89\x01\n\x07\x45ncoder\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x11\n\x04rads\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x0f\n\x02km\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x16\n\trotations\x18\x04 \x01(\x02H\x03\x88\x01\x01\x42\x0c\n\n_timestampB\x07\n\x05_radsB\x05\n\x03_kmB\x0c\n\n_rotations\"K\n\x05Steer\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x12\n\x05\x61ngle\x18\x02 \x01(\x02H\x01\x88\x01\x01\x42\x0c\n\n_timestampB\x08\n\x06_angle\"\xcc\x01\n\x06Pedals\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x16\n\tthrottle1\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x16\n\tthrottle2\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x18\n\x0b\x62rake_front\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x17\n\nbrake_rear\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0c\n\n_throttle1B\x0c\n\n_throttle2B\x0e\n\x0c_brake_frontB\r\n\x0b_brake_rear\"\xc0\x01\n\x08Inverter\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x17\n\nmotor_temp\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x13\n\x06torque\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05speed\x18\x05 \x01(\x02H\x04\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\r\n\x0b_motor_tempB\t\n\x07_torqueB\x08\n\x06_speed\"\xe9\x01\n\x03\x42ms\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x01\x88\x01\x01\x12\x1c\n\x0fmax_temperature\x18\x03 \x01(\x02H\x02\x88\x01\x01\x12\x14\n\x07\x63urrent\x18\x04 \x01(\x02H\x03\x88\x01\x01\x12\x14\n\x07voltage\x18\x05 \x01(\x02H\x04\x88\x01\x01\x12\x12\n\x05power\x18\x06 \x01(\x02H\x05\x88\x01\x01\x42\x0c\n\n_timestampB\x0e\n\x0c_temperatureB\x12\n\x10_max_temperatureB\n\n\x08_currentB\n\n\x08_voltageB\x08\n\x06_power\"+\n\x03\x45\x63u\x12\x16\n\ttimestamp\x18\x01 \x01(\x02H\x00\x88\x01\x01\x42\x0c\n\n_timestamp\"\xfe\x02\n\x07\x43himera\x12\x1b\n\x05\x61\x63\x63\x65l\x18\x01 \x03(\x0b\x32\x0c.devices.Imu\x12\x1a\n\x04gyro\x18\x02 \x03(\x0b\x32\x0c.devices.Imu\x12&\n\x0c\x65ncoder_left\x18\x03 \x03(\x0b\x32\x10.devices.Encoder\x12\'\n\rencoder_right\x18\x04 \x03(\x0b\x32\x10.devices.Encoder\x12\x1c\n\x06\x62ms_lv\x18\x05 \x03(\x0b\x32\x0c.devices.Bms\x12\x1c\n\x06\x62ms_hv\x18\x06 \x03(\x0b\x32\x0c.devices.Bms\x12(\n\rinverter_left\x18\x07 \x03(\x0b\x32\x11.devices.Inverter\x12)\n\x0einverter_right\x18\x08 \x03(\x0b\x32\x11.devices.Inverter\x12\x1e\n\x05pedal\x18\t \x03(\x0b\x32\x0f.devices.Pedals\x12\x1d\n\x05steer\x18\n \x03(\x0b\x32\x0e.devices.Steer\x12\x19\n\x03\x65\x63u\x18\x0b \x03(\x0b\x32\x0c.devices.Ecub\x06proto3'
+  serialized_pb=b'\n\rdevices.proto\x12\x07\x64\x65vices\"x\n\x03Imu\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x0e\n\x01x\x18\x02 \x01(\x02H\x00\x88\x01\x01\x12\x0e\n\x01y\x18\x03 \x01(\x02H\x01\x88\x01\x01\x12\x0e\n\x01z\x18\x04 \x01(\x02H\x02\x88\x01\x01\x12\x12\n\x05scale\x18\x05 \x01(\x02H\x03\x88\x01\x01\x42\x04\n\x02_xB\x04\n\x02_yB\x04\n\x02_zB\x08\n\x06_scale\"v\n\x07\x45ncoder\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x11\n\x04rads\x18\x02 \x01(\x02H\x00\x88\x01\x01\x12\x0f\n\x02km\x18\x03 \x01(\x02H\x01\x88\x01\x01\x12\x16\n\trotations\x18\x04 \x01(\x02H\x02\x88\x01\x01\x42\x07\n\x05_radsB\x05\n\x03_kmB\x0c\n\n_rotations\"8\n\x05Steer\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x12\n\x05\x61ngle\x18\x02 \x01(\x02H\x00\x88\x01\x01\x42\x08\n\x06_angle\"\xb9\x01\n\x06Pedals\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x16\n\tthrottle1\x18\x02 \x01(\x02H\x00\x88\x01\x01\x12\x16\n\tthrottle2\x18\x03 \x01(\x02H\x01\x88\x01\x01\x12\x18\n\x0b\x62rake_front\x18\x04 \x01(\x02H\x02\x88\x01\x01\x12\x17\n\nbrake_rear\x18\x05 \x01(\x02H\x03\x88\x01\x01\x42\x0c\n\n_throttle1B\x0c\n\n_throttle2B\x0e\n\x0c_brake_frontB\r\n\x0b_brake_rear\"\xad\x01\n\x08Inverter\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x00\x88\x01\x01\x12\x17\n\nmotor_temp\x18\x03 \x01(\x02H\x01\x88\x01\x01\x12\x13\n\x06torque\x18\x04 \x01(\x02H\x02\x88\x01\x01\x12\x12\n\x05speed\x18\x05 \x01(\x02H\x03\x88\x01\x01\x42\x0e\n\x0c_temperatureB\r\n\x0b_motor_tempB\t\n\x07_torqueB\x08\n\x06_speed\"\xd6\x01\n\x03\x42ms\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\x12\x18\n\x0btemperature\x18\x02 \x01(\x02H\x00\x88\x01\x01\x12\x1c\n\x0fmax_temperature\x18\x03 \x01(\x02H\x01\x88\x01\x01\x12\x14\n\x07\x63urrent\x18\x04 \x01(\x02H\x02\x88\x01\x01\x12\x14\n\x07voltage\x18\x05 \x01(\x02H\x03\x88\x01\x01\x12\x12\n\x05power\x18\x06 \x01(\x02H\x04\x88\x01\x01\x42\x0e\n\x0c_temperatureB\x12\n\x10_max_temperatureB\n\n\x08_currentB\n\n\x08_voltageB\x08\n\x06_power\"\x18\n\x03\x45\x63u\x12\x11\n\ttimestamp\x18\x01 \x01(\x01\"\xfe\x02\n\x07\x43himera\x12\x1b\n\x05\x61\x63\x63\x65l\x18\x01 \x03(\x0b\x32\x0c.devices.Imu\x12\x1a\n\x04gyro\x18\x02 \x03(\x0b\x32\x0c.devices.Imu\x12&\n\x0c\x65ncoder_left\x18\x03 \x03(\x0b\x32\x10.devices.Encoder\x12\'\n\rencoder_right\x18\x04 \x03(\x0b\x32\x10.devices.Encoder\x12\x1c\n\x06\x62ms_lv\x18\x05 \x03(\x0b\x32\x0c.devices.Bms\x12\x1c\n\x06\x62ms_hv\x18\x06 \x03(\x0b\x32\x0c.devices.Bms\x12(\n\rinverter_left\x18\x07 \x03(\x0b\x32\x11.devices.Inverter\x12)\n\x0einverter_right\x18\x08 \x03(\x0b\x32\x11.devices.Inverter\x12\x1e\n\x05pedal\x18\t \x03(\x0b\x32\x0f.devices.Pedals\x12\x1d\n\x05steer\x18\n \x03(\x0b\x32\x0e.devices.Steer\x12\x19\n\x03\x65\x63u\x18\x0b \x03(\x0b\x32\x0c.devices.Ecub\x06proto3'
 )
 
 
@@ -35,7 +35,7 @@ _IMU = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Imu.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -80,33 +80,28 @@ _IMU = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Imu._timestamp',
+      name='_x', full_name='devices.Imu._x',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_x', full_name='devices.Imu._x',
+      name='_y', full_name='devices.Imu._y',
       index=1, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_y', full_name='devices.Imu._y',
+      name='_z', full_name='devices.Imu._z',
       index=2, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_z', full_name='devices.Imu._z',
+      name='_scale', full_name='devices.Imu._scale',
       index=3, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_scale', full_name='devices.Imu._scale',
-      index=4, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=27,
-  serialized_end=166,
+  serialized_start=26,
+  serialized_end=146,
 )
 
 
@@ -120,7 +115,7 @@ _ENCODER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Encoder.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -158,28 +153,23 @@ _ENCODER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Encoder._timestamp',
+      name='_rads', full_name='devices.Encoder._rads',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_rads', full_name='devices.Encoder._rads',
+      name='_km', full_name='devices.Encoder._km',
       index=1, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_km', full_name='devices.Encoder._km',
+      name='_rotations', full_name='devices.Encoder._rotations',
       index=2, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_rotations', full_name='devices.Encoder._rotations',
-      index=3, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=169,
-  serialized_end=306,
+  serialized_start=148,
+  serialized_end=266,
 )
 
 
@@ -193,7 +183,7 @@ _STEER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Steer.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -217,18 +207,13 @@ _STEER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Steer._timestamp',
+      name='_angle', full_name='devices.Steer._angle',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_angle', full_name='devices.Steer._angle',
-      index=1, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=308,
-  serialized_end=383,
+  serialized_start=268,
+  serialized_end=324,
 )
 
 
@@ -242,7 +227,7 @@ _PEDALS = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Pedals.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -287,33 +272,28 @@ _PEDALS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Pedals._timestamp',
+      name='_throttle1', full_name='devices.Pedals._throttle1',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_throttle1', full_name='devices.Pedals._throttle1',
+      name='_throttle2', full_name='devices.Pedals._throttle2',
       index=1, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_throttle2', full_name='devices.Pedals._throttle2',
+      name='_brake_front', full_name='devices.Pedals._brake_front',
       index=2, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_brake_front', full_name='devices.Pedals._brake_front',
+      name='_brake_rear', full_name='devices.Pedals._brake_rear',
       index=3, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_brake_rear', full_name='devices.Pedals._brake_rear',
-      index=4, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=386,
-  serialized_end=590,
+  serialized_start=327,
+  serialized_end=512,
 )
 
 
@@ -327,7 +307,7 @@ _INVERTER = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Inverter.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -372,33 +352,28 @@ _INVERTER = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Inverter._timestamp',
+      name='_temperature', full_name='devices.Inverter._temperature',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_temperature', full_name='devices.Inverter._temperature',
+      name='_motor_temp', full_name='devices.Inverter._motor_temp',
       index=1, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_motor_temp', full_name='devices.Inverter._motor_temp',
+      name='_torque', full_name='devices.Inverter._torque',
       index=2, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_torque', full_name='devices.Inverter._torque',
+      name='_speed', full_name='devices.Inverter._speed',
       index=3, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_speed', full_name='devices.Inverter._speed',
-      index=4, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=593,
-  serialized_end=785,
+  serialized_start=515,
+  serialized_end=688,
 )
 
 
@@ -412,7 +387,7 @@ _BMS = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Bms.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -464,38 +439,33 @@ _BMS = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
     _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Bms._timestamp',
+      name='_temperature', full_name='devices.Bms._temperature',
       index=0, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_temperature', full_name='devices.Bms._temperature',
+      name='_max_temperature', full_name='devices.Bms._max_temperature',
       index=1, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_max_temperature', full_name='devices.Bms._max_temperature',
+      name='_current', full_name='devices.Bms._current',
       index=2, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_current', full_name='devices.Bms._current',
+      name='_voltage', full_name='devices.Bms._voltage',
       index=3, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
     _descriptor.OneofDescriptor(
-      name='_voltage', full_name='devices.Bms._voltage',
+      name='_power', full_name='devices.Bms._power',
       index=4, containing_type=None,
       create_key=_descriptor._internal_create_key,
     fields=[]),
-    _descriptor.OneofDescriptor(
-      name='_power', full_name='devices.Bms._power',
-      index=5, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=788,
-  serialized_end=1021,
+  serialized_start=691,
+  serialized_end=905,
 )
 
 
@@ -509,7 +479,7 @@ _ECU = _descriptor.Descriptor(
   fields=[
     _descriptor.FieldDescriptor(
       name='timestamp', full_name='devices.Ecu.timestamp', index=0,
-      number=1, type=2, cpp_type=6, label=1,
+      number=1, type=1, cpp_type=5, label=1,
       has_default_value=False, default_value=float(0),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -525,14 +495,9 @@ _ECU = _descriptor.Descriptor(
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
-    _descriptor.OneofDescriptor(
-      name='_timestamp', full_name='devices.Ecu._timestamp',
-      index=0, containing_type=None,
-      create_key=_descriptor._internal_create_key,
-    fields=[]),
   ],
-  serialized_start=1023,
-  serialized_end=1066,
+  serialized_start=907,
+  serialized_end=931,
 )
 
 
@@ -633,13 +598,10 @@ _CHIMERA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=1069,
-  serialized_end=1451,
+  serialized_start=934,
+  serialized_end=1316,
 )
 
-_IMU.oneofs_by_name['_timestamp'].fields.append(
-  _IMU.fields_by_name['timestamp'])
-_IMU.fields_by_name['timestamp'].containing_oneof = _IMU.oneofs_by_name['_timestamp']
 _IMU.oneofs_by_name['_x'].fields.append(
   _IMU.fields_by_name['x'])
 _IMU.fields_by_name['x'].containing_oneof = _IMU.oneofs_by_name['_x']
@@ -652,9 +614,6 @@ _IMU.fields_by_name['z'].containing_oneof = _IMU.oneofs_by_name['_z']
 _IMU.oneofs_by_name['_scale'].fields.append(
   _IMU.fields_by_name['scale'])
 _IMU.fields_by_name['scale'].containing_oneof = _IMU.oneofs_by_name['_scale']
-_ENCODER.oneofs_by_name['_timestamp'].fields.append(
-  _ENCODER.fields_by_name['timestamp'])
-_ENCODER.fields_by_name['timestamp'].containing_oneof = _ENCODER.oneofs_by_name['_timestamp']
 _ENCODER.oneofs_by_name['_rads'].fields.append(
   _ENCODER.fields_by_name['rads'])
 _ENCODER.fields_by_name['rads'].containing_oneof = _ENCODER.oneofs_by_name['_rads']
@@ -664,15 +623,9 @@ _ENCODER.fields_by_name['km'].containing_oneof = _ENCODER.oneofs_by_name['_km']
 _ENCODER.oneofs_by_name['_rotations'].fields.append(
   _ENCODER.fields_by_name['rotations'])
 _ENCODER.fields_by_name['rotations'].containing_oneof = _ENCODER.oneofs_by_name['_rotations']
-_STEER.oneofs_by_name['_timestamp'].fields.append(
-  _STEER.fields_by_name['timestamp'])
-_STEER.fields_by_name['timestamp'].containing_oneof = _STEER.oneofs_by_name['_timestamp']
 _STEER.oneofs_by_name['_angle'].fields.append(
   _STEER.fields_by_name['angle'])
 _STEER.fields_by_name['angle'].containing_oneof = _STEER.oneofs_by_name['_angle']
-_PEDALS.oneofs_by_name['_timestamp'].fields.append(
-  _PEDALS.fields_by_name['timestamp'])
-_PEDALS.fields_by_name['timestamp'].containing_oneof = _PEDALS.oneofs_by_name['_timestamp']
 _PEDALS.oneofs_by_name['_throttle1'].fields.append(
   _PEDALS.fields_by_name['throttle1'])
 _PEDALS.fields_by_name['throttle1'].containing_oneof = _PEDALS.oneofs_by_name['_throttle1']
@@ -685,9 +638,6 @@ _PEDALS.fields_by_name['brake_front'].containing_oneof = _PEDALS.oneofs_by_name[
 _PEDALS.oneofs_by_name['_brake_rear'].fields.append(
   _PEDALS.fields_by_name['brake_rear'])
 _PEDALS.fields_by_name['brake_rear'].containing_oneof = _PEDALS.oneofs_by_name['_brake_rear']
-_INVERTER.oneofs_by_name['_timestamp'].fields.append(
-  _INVERTER.fields_by_name['timestamp'])
-_INVERTER.fields_by_name['timestamp'].containing_oneof = _INVERTER.oneofs_by_name['_timestamp']
 _INVERTER.oneofs_by_name['_temperature'].fields.append(
   _INVERTER.fields_by_name['temperature'])
 _INVERTER.fields_by_name['temperature'].containing_oneof = _INVERTER.oneofs_by_name['_temperature']
@@ -700,9 +650,6 @@ _INVERTER.fields_by_name['torque'].containing_oneof = _INVERTER.oneofs_by_name['
 _INVERTER.oneofs_by_name['_speed'].fields.append(
   _INVERTER.fields_by_name['speed'])
 _INVERTER.fields_by_name['speed'].containing_oneof = _INVERTER.oneofs_by_name['_speed']
-_BMS.oneofs_by_name['_timestamp'].fields.append(
-  _BMS.fields_by_name['timestamp'])
-_BMS.fields_by_name['timestamp'].containing_oneof = _BMS.oneofs_by_name['_timestamp']
 _BMS.oneofs_by_name['_temperature'].fields.append(
   _BMS.fields_by_name['temperature'])
 _BMS.fields_by_name['temperature'].containing_oneof = _BMS.oneofs_by_name['_temperature']
@@ -718,9 +665,6 @@ _BMS.fields_by_name['voltage'].containing_oneof = _BMS.oneofs_by_name['_voltage'
 _BMS.oneofs_by_name['_power'].fields.append(
   _BMS.fields_by_name['power'])
 _BMS.fields_by_name['power'].containing_oneof = _BMS.oneofs_by_name['_power']
-_ECU.oneofs_by_name['_timestamp'].fields.append(
-  _ECU.fields_by_name['timestamp'])
-_ECU.fields_by_name['timestamp'].containing_oneof = _ECU.oneofs_by_name['_timestamp']
 _CHIMERA.fields_by_name['accel'].message_type = _IMU
 _CHIMERA.fields_by_name['gyro'].message_type = _IMU
 _CHIMERA.fields_by_name['encoder_left'].message_type = _ENCODER

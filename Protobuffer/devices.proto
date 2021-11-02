@@ -3,7 +3,7 @@ syntax = "proto3";
 package devices;
 
 message Imu {
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float x = 2;
   optional float y = 3;
   optional float z = 4;
@@ -11,19 +11,19 @@ message Imu {
 }
 
 message Encoder{
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float rads = 2;
   optional float km = 3;
   optional float rotations = 4;
 }
 
 message Steer{
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float angle = 2;
 }
 
 message Pedals{
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float throttle1 = 2;
   optional float throttle2 = 3;
   optional float brake_front = 4;
@@ -31,7 +31,7 @@ message Pedals{
 };
 
 message Inverter{
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float temperature = 2;
   optional float motor_temp = 3;
   optional float torque = 4;
@@ -39,7 +39,7 @@ message Inverter{
 };
 
 message Bms {
-  optional float timestamp = 1;
+  double timestamp = 1;
   optional float temperature = 2;
   optional float max_temperature = 3;
   optional float current = 4;
@@ -48,7 +48,7 @@ message Bms {
 };
 
 message Ecu {
-  optional float timestamp = 1;
+  double timestamp = 1;
 };
 
 

@@ -29,7 +29,7 @@ public:
   * @param size of the payload
   * return vector containing pointers to devices modified with this message
   */
-  vector<Device*> parse_message(const float &timestamp, const int &id, uint8_t data[], const int &size);
+  vector<Device*> parse_message(double& timestamp, const int &id, uint8_t data[], const int &size);
 
   /**
   * Defines a filename to every device called DeviceName.extension

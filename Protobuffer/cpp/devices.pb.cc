@@ -161,11 +161,11 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::devices::Imu, y_),
   PROTOBUF_FIELD_OFFSET(::devices::Imu, z_),
   PROTOBUF_FIELD_OFFSET(::devices::Imu, scale_),
+  ~0u,
   0,
   1,
   2,
   3,
-  4,
   PROTOBUF_FIELD_OFFSET(::devices::Encoder, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Encoder, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -176,10 +176,10 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::devices::Encoder, rads_),
   PROTOBUF_FIELD_OFFSET(::devices::Encoder, km_),
   PROTOBUF_FIELD_OFFSET(::devices::Encoder, rotations_),
+  ~0u,
   0,
   1,
   2,
-  3,
   PROTOBUF_FIELD_OFFSET(::devices::Steer, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Steer, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -188,8 +188,8 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::devices::Steer, timestamp_),
   PROTOBUF_FIELD_OFFSET(::devices::Steer, angle_),
+  ~0u,
   0,
-  1,
   PROTOBUF_FIELD_OFFSET(::devices::Pedals, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Pedals, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -201,11 +201,11 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::devices::Pedals, throttle2_),
   PROTOBUF_FIELD_OFFSET(::devices::Pedals, brake_front_),
   PROTOBUF_FIELD_OFFSET(::devices::Pedals, brake_rear_),
+  ~0u,
   0,
   1,
   2,
   3,
-  4,
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -217,11 +217,11 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, motor_temp_),
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, torque_),
   PROTOBUF_FIELD_OFFSET(::devices::Inverter, speed_),
+  ~0u,
   0,
   1,
   2,
   3,
-  4,
   PROTOBUF_FIELD_OFFSET(::devices::Bms, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::devices::Bms, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -234,20 +234,19 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_devices_2eproto::offsets[] PRO
   PROTOBUF_FIELD_OFFSET(::devices::Bms, current_),
   PROTOBUF_FIELD_OFFSET(::devices::Bms, voltage_),
   PROTOBUF_FIELD_OFFSET(::devices::Bms, power_),
+  ~0u,
   0,
   1,
   2,
   3,
   4,
-  5,
-  PROTOBUF_FIELD_OFFSET(::devices::Ecu, _has_bits_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::devices::Ecu, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::devices::Ecu, timestamp_),
-  0,
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::devices::Chimera, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -273,8 +272,8 @@ static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOB
   { 40, 51, -1, sizeof(::devices::Pedals)},
   { 56, 67, -1, sizeof(::devices::Inverter)},
   { 72, 84, -1, sizeof(::devices::Bms)},
-  { 90, 97, -1, sizeof(::devices::Ecu)},
-  { 98, -1, -1, sizeof(::devices::Chimera)},
+  { 90, -1, -1, sizeof(::devices::Ecu)},
+  { 97, -1, -1, sizeof(::devices::Chimera)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
@@ -289,47 +288,44 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 };
 
 const char descriptor_table_protodef_devices_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\rdevices.proto\022\007devices\"\213\001\n\003Imu\022\026\n\ttime"
-  "stamp\030\001 \001(\002H\000\210\001\001\022\016\n\001x\030\002 \001(\002H\001\210\001\001\022\016\n\001y\030\003 "
-  "\001(\002H\002\210\001\001\022\016\n\001z\030\004 \001(\002H\003\210\001\001\022\022\n\005scale\030\005 \001(\002H"
-  "\004\210\001\001B\014\n\n_timestampB\004\n\002_xB\004\n\002_yB\004\n\002_zB\010\n\006"
-  "_scale\"\211\001\n\007Encoder\022\026\n\ttimestamp\030\001 \001(\002H\000\210"
-  "\001\001\022\021\n\004rads\030\002 \001(\002H\001\210\001\001\022\017\n\002km\030\003 \001(\002H\002\210\001\001\022\026"
-  "\n\trotations\030\004 \001(\002H\003\210\001\001B\014\n\n_timestampB\007\n\005"
-  "_radsB\005\n\003_kmB\014\n\n_rotations\"K\n\005Steer\022\026\n\tt"
-  "imestamp\030\001 \001(\002H\000\210\001\001\022\022\n\005angle\030\002 \001(\002H\001\210\001\001B"
-  "\014\n\n_timestampB\010\n\006_angle\"\314\001\n\006Pedals\022\026\n\tti"
-  "mestamp\030\001 \001(\002H\000\210\001\001\022\026\n\tthrottle1\030\002 \001(\002H\001\210"
-  "\001\001\022\026\n\tthrottle2\030\003 \001(\002H\002\210\001\001\022\030\n\013brake_fron"
-  "t\030\004 \001(\002H\003\210\001\001\022\027\n\nbrake_rear\030\005 \001(\002H\004\210\001\001B\014\n"
-  "\n_timestampB\014\n\n_throttle1B\014\n\n_throttle2B"
-  "\016\n\014_brake_frontB\r\n\013_brake_rear\"\300\001\n\010Inver"
-  "ter\022\026\n\ttimestamp\030\001 \001(\002H\000\210\001\001\022\030\n\013temperatu"
-  "re\030\002 \001(\002H\001\210\001\001\022\027\n\nmotor_temp\030\003 \001(\002H\002\210\001\001\022\023"
-  "\n\006torque\030\004 \001(\002H\003\210\001\001\022\022\n\005speed\030\005 \001(\002H\004\210\001\001B"
-  "\014\n\n_timestampB\016\n\014_temperatureB\r\n\013_motor_"
-  "tempB\t\n\007_torqueB\010\n\006_speed\"\351\001\n\003Bms\022\026\n\ttim"
-  "estamp\030\001 \001(\002H\000\210\001\001\022\030\n\013temperature\030\002 \001(\002H\001"
-  "\210\001\001\022\034\n\017max_temperature\030\003 \001(\002H\002\210\001\001\022\024\n\007cur"
-  "rent\030\004 \001(\002H\003\210\001\001\022\024\n\007voltage\030\005 \001(\002H\004\210\001\001\022\022\n"
-  "\005power\030\006 \001(\002H\005\210\001\001B\014\n\n_timestampB\016\n\014_temp"
-  "eratureB\022\n\020_max_temperatureB\n\n\010_currentB"
-  "\n\n\010_voltageB\010\n\006_power\"+\n\003Ecu\022\026\n\ttimestam"
-  "p\030\001 \001(\002H\000\210\001\001B\014\n\n_timestamp\"\376\002\n\007Chimera\022\033"
-  "\n\005accel\030\001 \003(\0132\014.devices.Imu\022\032\n\004gyro\030\002 \003("
-  "\0132\014.devices.Imu\022&\n\014encoder_left\030\003 \003(\0132\020."
-  "devices.Encoder\022\'\n\rencoder_right\030\004 \003(\0132\020"
-  ".devices.Encoder\022\034\n\006bms_lv\030\005 \003(\0132\014.devic"
-  "es.Bms\022\034\n\006bms_hv\030\006 \003(\0132\014.devices.Bms\022(\n\r"
-  "inverter_left\030\007 \003(\0132\021.devices.Inverter\022)"
-  "\n\016inverter_right\030\010 \003(\0132\021.devices.Inverte"
-  "r\022\036\n\005pedal\030\t \003(\0132\017.devices.Pedals\022\035\n\005ste"
-  "er\030\n \003(\0132\016.devices.Steer\022\031\n\003ecu\030\013 \003(\0132\014."
-  "devices.Ecub\006proto3"
+  "\n\rdevices.proto\022\007devices\"x\n\003Imu\022\021\n\ttimes"
+  "tamp\030\001 \001(\001\022\016\n\001x\030\002 \001(\002H\000\210\001\001\022\016\n\001y\030\003 \001(\002H\001\210"
+  "\001\001\022\016\n\001z\030\004 \001(\002H\002\210\001\001\022\022\n\005scale\030\005 \001(\002H\003\210\001\001B\004"
+  "\n\002_xB\004\n\002_yB\004\n\002_zB\010\n\006_scale\"v\n\007Encoder\022\021\n"
+  "\ttimestamp\030\001 \001(\001\022\021\n\004rads\030\002 \001(\002H\000\210\001\001\022\017\n\002k"
+  "m\030\003 \001(\002H\001\210\001\001\022\026\n\trotations\030\004 \001(\002H\002\210\001\001B\007\n\005"
+  "_radsB\005\n\003_kmB\014\n\n_rotations\"8\n\005Steer\022\021\n\tt"
+  "imestamp\030\001 \001(\001\022\022\n\005angle\030\002 \001(\002H\000\210\001\001B\010\n\006_a"
+  "ngle\"\271\001\n\006Pedals\022\021\n\ttimestamp\030\001 \001(\001\022\026\n\tth"
+  "rottle1\030\002 \001(\002H\000\210\001\001\022\026\n\tthrottle2\030\003 \001(\002H\001\210"
+  "\001\001\022\030\n\013brake_front\030\004 \001(\002H\002\210\001\001\022\027\n\nbrake_re"
+  "ar\030\005 \001(\002H\003\210\001\001B\014\n\n_throttle1B\014\n\n_throttle"
+  "2B\016\n\014_brake_frontB\r\n\013_brake_rear\"\255\001\n\010Inv"
+  "erter\022\021\n\ttimestamp\030\001 \001(\001\022\030\n\013temperature\030"
+  "\002 \001(\002H\000\210\001\001\022\027\n\nmotor_temp\030\003 \001(\002H\001\210\001\001\022\023\n\006t"
+  "orque\030\004 \001(\002H\002\210\001\001\022\022\n\005speed\030\005 \001(\002H\003\210\001\001B\016\n\014"
+  "_temperatureB\r\n\013_motor_tempB\t\n\007_torqueB\010"
+  "\n\006_speed\"\326\001\n\003Bms\022\021\n\ttimestamp\030\001 \001(\001\022\030\n\013t"
+  "emperature\030\002 \001(\002H\000\210\001\001\022\034\n\017max_temperature"
+  "\030\003 \001(\002H\001\210\001\001\022\024\n\007current\030\004 \001(\002H\002\210\001\001\022\024\n\007vol"
+  "tage\030\005 \001(\002H\003\210\001\001\022\022\n\005power\030\006 \001(\002H\004\210\001\001B\016\n\014_"
+  "temperatureB\022\n\020_max_temperatureB\n\n\010_curr"
+  "entB\n\n\010_voltageB\010\n\006_power\"\030\n\003Ecu\022\021\n\ttime"
+  "stamp\030\001 \001(\001\"\376\002\n\007Chimera\022\033\n\005accel\030\001 \003(\0132\014"
+  ".devices.Imu\022\032\n\004gyro\030\002 \003(\0132\014.devices.Imu"
+  "\022&\n\014encoder_left\030\003 \003(\0132\020.devices.Encoder"
+  "\022\'\n\rencoder_right\030\004 \003(\0132\020.devices.Encode"
+  "r\022\034\n\006bms_lv\030\005 \003(\0132\014.devices.Bms\022\034\n\006bms_h"
+  "v\030\006 \003(\0132\014.devices.Bms\022(\n\rinverter_left\030\007"
+  " \003(\0132\021.devices.Inverter\022)\n\016inverter_righ"
+  "t\030\010 \003(\0132\021.devices.Inverter\022\036\n\005pedal\030\t \003("
+  "\0132\017.devices.Pedals\022\035\n\005steer\030\n \003(\0132\016.devi"
+  "ces.Steer\022\031\n\003ecu\030\013 \003(\0132\014.devices.Ecub\006pr"
+  "oto3"
   ;
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_devices_2eproto_once;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_devices_2eproto = {
-  false, false, 1459, descriptor_table_protodef_devices_2eproto, "devices.proto", 
+  false, false, 1324, descriptor_table_protodef_devices_2eproto, "devices.proto", 
   &descriptor_table_devices_2eproto_once, nullptr, 0, 8,
   schemas, file_default_instances, TableStruct_devices_2eproto::offsets,
   file_level_metadata_devices_2eproto, file_level_enum_descriptors_devices_2eproto, file_level_service_descriptors_devices_2eproto,
@@ -347,20 +343,17 @@ namespace devices {
 class Imu::_Internal {
  public:
   using HasBits = decltype(std::declval<Imu>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
+  static void set_has_x(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
-  static void set_has_x(HasBits* has_bits) {
+  static void set_has_y(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
-  static void set_has_y(HasBits* has_bits) {
+  static void set_has_z(HasBits* has_bits) {
     (*has_bits)[0] |= 4u;
   }
-  static void set_has_z(HasBits* has_bits) {
-    (*has_bits)[0] |= 8u;
-  }
   static void set_has_scale(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
+    (*has_bits)[0] |= 8u;
   }
 };
 
@@ -417,11 +410,12 @@ void Imu::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  timestamp_ = 0;
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
+  if (cached_has_bits & 0x0000000fu) {
+    ::memset(&x_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&scale_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(scale_));
+        reinterpret_cast<char*>(&x_)) + sizeof(scale_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -434,12 +428,11 @@ const char* Imu::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::intern
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -509,10 +502,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float x = 2;
@@ -555,30 +548,30 @@ size_t Imu::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
+  }
+
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    // optional float timestamp = 1;
+  if (cached_has_bits & 0x0000000fu) {
+    // optional float x = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 + 4;
     }
 
-    // optional float x = 2;
+    // optional float y = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += 1 + 4;
     }
 
-    // optional float y = 3;
+    // optional float z = 4;
     if (cached_has_bits & 0x00000004u) {
       total_size += 1 + 4;
     }
 
-    // optional float z = 4;
-    if (cached_has_bits & 0x00000008u) {
-      total_size += 1 + 4;
-    }
-
     // optional float scale = 5;
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       total_size += 1 + 4;
     }
 
@@ -605,21 +598,21 @@ void Imu::MergeFrom(const Imu& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
+  if (cached_has_bits & 0x0000000fu) {
     if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
       x_ = from.x_;
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000002u) {
       y_ = from.y_;
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       z_ = from.z_;
     }
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       scale_ = from.scale_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -661,17 +654,14 @@ void Imu::InternalSwap(Imu* other) {
 class Encoder::_Internal {
  public:
   using HasBits = decltype(std::declval<Encoder>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
+  static void set_has_rads(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
-  static void set_has_rads(HasBits* has_bits) {
+  static void set_has_km(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
-  static void set_has_km(HasBits* has_bits) {
-    (*has_bits)[0] |= 4u;
-  }
   static void set_has_rotations(HasBits* has_bits) {
-    (*has_bits)[0] |= 8u;
+    (*has_bits)[0] |= 4u;
   }
 };
 
@@ -728,11 +718,12 @@ void Encoder::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  timestamp_ = 0;
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
+  if (cached_has_bits & 0x00000007u) {
+    ::memset(&rads_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&rotations_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(rotations_));
+        reinterpret_cast<char*>(&rads_)) + sizeof(rotations_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -745,12 +736,11 @@ const char* Encoder::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::in
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -811,10 +801,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float rads = 2;
@@ -851,25 +841,25 @@ size_t Encoder::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
+  }
+
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
-    // optional float timestamp = 1;
+  if (cached_has_bits & 0x00000007u) {
+    // optional float rads = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 + 4;
     }
 
-    // optional float rads = 2;
+    // optional float km = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += 1 + 4;
     }
 
-    // optional float km = 3;
-    if (cached_has_bits & 0x00000004u) {
-      total_size += 1 + 4;
-    }
-
     // optional float rotations = 4;
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       total_size += 1 + 4;
     }
 
@@ -896,18 +886,18 @@ void Encoder::MergeFrom(const Encoder& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000000fu) {
+  if (cached_has_bits & 0x00000007u) {
     if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
       rads_ = from.rads_;
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000002u) {
       km_ = from.km_;
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       rotations_ = from.rotations_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -949,11 +939,8 @@ void Encoder::InternalSwap(Encoder* other) {
 class Steer::_Internal {
  public:
   using HasBits = decltype(std::declval<Steer>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
-    (*has_bits)[0] |= 1u;
-  }
   static void set_has_angle(HasBits* has_bits) {
-    (*has_bits)[0] |= 2u;
+    (*has_bits)[0] |= 1u;
   }
 };
 
@@ -1010,12 +997,8 @@ void Steer::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
-        reinterpret_cast<char*>(&angle_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(angle_));
-  }
+  timestamp_ = 0;
+  angle_ = 0;
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
@@ -1027,12 +1010,11 @@ const char* Steer::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inte
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -1075,10 +1057,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float angle = 2;
@@ -1103,19 +1085,17 @@ size_t Steer::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
-    // optional float timestamp = 1;
-    if (cached_has_bits & 0x00000001u) {
-      total_size += 1 + 4;
-    }
-
-    // optional float angle = 2;
-    if (cached_has_bits & 0x00000002u) {
-      total_size += 1 + 4;
-    }
-
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
   }
+
+  // optional float angle = 2;
+  cached_has_bits = _has_bits_[0];
+  if (cached_has_bits & 0x00000001u) {
+    total_size += 1 + 4;
+  }
+
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
 }
 
@@ -1138,15 +1118,11 @@ void Steer::MergeFrom(const Steer& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x00000003u) {
-    if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
-      angle_ = from.angle_;
-    }
-    _has_bits_[0] |= cached_has_bits;
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
+  if (from._internal_has_angle()) {
+    _internal_set_angle(from._internal_angle());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -1185,20 +1161,17 @@ void Steer::InternalSwap(Steer* other) {
 class Pedals::_Internal {
  public:
   using HasBits = decltype(std::declval<Pedals>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
+  static void set_has_throttle1(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
-  static void set_has_throttle1(HasBits* has_bits) {
+  static void set_has_throttle2(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
-  static void set_has_throttle2(HasBits* has_bits) {
+  static void set_has_brake_front(HasBits* has_bits) {
     (*has_bits)[0] |= 4u;
   }
-  static void set_has_brake_front(HasBits* has_bits) {
-    (*has_bits)[0] |= 8u;
-  }
   static void set_has_brake_rear(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
+    (*has_bits)[0] |= 8u;
   }
 };
 
@@ -1255,11 +1228,12 @@ void Pedals::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  timestamp_ = 0;
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
+  if (cached_has_bits & 0x0000000fu) {
+    ::memset(&throttle1_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&brake_rear_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(brake_rear_));
+        reinterpret_cast<char*>(&throttle1_)) + sizeof(brake_rear_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -1272,12 +1246,11 @@ const char* Pedals::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::int
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -1347,10 +1320,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float throttle1 = 2;
@@ -1393,30 +1366,30 @@ size_t Pedals::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
+  }
+
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    // optional float timestamp = 1;
+  if (cached_has_bits & 0x0000000fu) {
+    // optional float throttle1 = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 + 4;
     }
 
-    // optional float throttle1 = 2;
+    // optional float throttle2 = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += 1 + 4;
     }
 
-    // optional float throttle2 = 3;
+    // optional float brake_front = 4;
     if (cached_has_bits & 0x00000004u) {
       total_size += 1 + 4;
     }
 
-    // optional float brake_front = 4;
-    if (cached_has_bits & 0x00000008u) {
-      total_size += 1 + 4;
-    }
-
     // optional float brake_rear = 5;
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       total_size += 1 + 4;
     }
 
@@ -1443,21 +1416,21 @@ void Pedals::MergeFrom(const Pedals& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
+  if (cached_has_bits & 0x0000000fu) {
     if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
       throttle1_ = from.throttle1_;
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000002u) {
       throttle2_ = from.throttle2_;
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       brake_front_ = from.brake_front_;
     }
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       brake_rear_ = from.brake_rear_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -1499,20 +1472,17 @@ void Pedals::InternalSwap(Pedals* other) {
 class Inverter::_Internal {
  public:
   using HasBits = decltype(std::declval<Inverter>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
+  static void set_has_temperature(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
-  static void set_has_temperature(HasBits* has_bits) {
+  static void set_has_motor_temp(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
-  static void set_has_motor_temp(HasBits* has_bits) {
+  static void set_has_torque(HasBits* has_bits) {
     (*has_bits)[0] |= 4u;
   }
-  static void set_has_torque(HasBits* has_bits) {
-    (*has_bits)[0] |= 8u;
-  }
   static void set_has_speed(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
+    (*has_bits)[0] |= 8u;
   }
 };
 
@@ -1569,11 +1539,12 @@ void Inverter::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  timestamp_ = 0;
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
+  if (cached_has_bits & 0x0000000fu) {
+    ::memset(&temperature_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&speed_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(speed_));
+        reinterpret_cast<char*>(&temperature_)) + sizeof(speed_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -1586,12 +1557,11 @@ const char* Inverter::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::i
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -1661,10 +1631,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float temperature = 2;
@@ -1707,30 +1677,30 @@ size_t Inverter::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
+  }
+
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
-    // optional float timestamp = 1;
+  if (cached_has_bits & 0x0000000fu) {
+    // optional float temperature = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 + 4;
     }
 
-    // optional float temperature = 2;
+    // optional float motor_temp = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += 1 + 4;
     }
 
-    // optional float motor_temp = 3;
+    // optional float torque = 4;
     if (cached_has_bits & 0x00000004u) {
       total_size += 1 + 4;
     }
 
-    // optional float torque = 4;
-    if (cached_has_bits & 0x00000008u) {
-      total_size += 1 + 4;
-    }
-
     // optional float speed = 5;
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       total_size += 1 + 4;
     }
 
@@ -1757,21 +1727,21 @@ void Inverter::MergeFrom(const Inverter& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000001fu) {
+  if (cached_has_bits & 0x0000000fu) {
     if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
       temperature_ = from.temperature_;
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000002u) {
       motor_temp_ = from.motor_temp_;
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       torque_ = from.torque_;
     }
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       speed_ = from.speed_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -1813,23 +1783,20 @@ void Inverter::InternalSwap(Inverter* other) {
 class Bms::_Internal {
  public:
   using HasBits = decltype(std::declval<Bms>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
+  static void set_has_temperature(HasBits* has_bits) {
     (*has_bits)[0] |= 1u;
   }
-  static void set_has_temperature(HasBits* has_bits) {
+  static void set_has_max_temperature(HasBits* has_bits) {
     (*has_bits)[0] |= 2u;
   }
-  static void set_has_max_temperature(HasBits* has_bits) {
+  static void set_has_current(HasBits* has_bits) {
     (*has_bits)[0] |= 4u;
   }
-  static void set_has_current(HasBits* has_bits) {
+  static void set_has_voltage(HasBits* has_bits) {
     (*has_bits)[0] |= 8u;
   }
-  static void set_has_voltage(HasBits* has_bits) {
-    (*has_bits)[0] |= 16u;
-  }
   static void set_has_power(HasBits* has_bits) {
-    (*has_bits)[0] |= 32u;
+    (*has_bits)[0] |= 16u;
   }
 };
 
@@ -1886,11 +1853,12 @@ void Bms::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  timestamp_ = 0;
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000003fu) {
-    ::memset(&timestamp_, 0, static_cast<size_t>(
+  if (cached_has_bits & 0x0000001fu) {
+    ::memset(&temperature_, 0, static_cast<size_t>(
         reinterpret_cast<char*>(&power_) -
-        reinterpret_cast<char*>(&timestamp_)) + sizeof(power_));
+        reinterpret_cast<char*>(&temperature_)) + sizeof(power_));
   }
   _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
@@ -1903,12 +1871,11 @@ const char* Bms::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::intern
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -1987,10 +1954,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   // optional float temperature = 2;
@@ -2039,35 +2006,35 @@ size_t Bms::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
+  }
+
   cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x0000003fu) {
-    // optional float timestamp = 1;
+  if (cached_has_bits & 0x0000001fu) {
+    // optional float temperature = 2;
     if (cached_has_bits & 0x00000001u) {
       total_size += 1 + 4;
     }
 
-    // optional float temperature = 2;
+    // optional float max_temperature = 3;
     if (cached_has_bits & 0x00000002u) {
       total_size += 1 + 4;
     }
 
-    // optional float max_temperature = 3;
+    // optional float current = 4;
     if (cached_has_bits & 0x00000004u) {
       total_size += 1 + 4;
     }
 
-    // optional float current = 4;
+    // optional float voltage = 5;
     if (cached_has_bits & 0x00000008u) {
       total_size += 1 + 4;
     }
 
-    // optional float voltage = 5;
-    if (cached_has_bits & 0x00000010u) {
-      total_size += 1 + 4;
-    }
-
     // optional float power = 6;
-    if (cached_has_bits & 0x00000020u) {
+    if (cached_has_bits & 0x00000010u) {
       total_size += 1 + 4;
     }
 
@@ -2094,24 +2061,24 @@ void Bms::MergeFrom(const Bms& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
+    _internal_set_timestamp(from._internal_timestamp());
+  }
   cached_has_bits = from._has_bits_[0];
-  if (cached_has_bits & 0x0000003fu) {
+  if (cached_has_bits & 0x0000001fu) {
     if (cached_has_bits & 0x00000001u) {
-      timestamp_ = from.timestamp_;
-    }
-    if (cached_has_bits & 0x00000002u) {
       temperature_ = from.temperature_;
     }
-    if (cached_has_bits & 0x00000004u) {
+    if (cached_has_bits & 0x00000002u) {
       max_temperature_ = from.max_temperature_;
     }
-    if (cached_has_bits & 0x00000008u) {
+    if (cached_has_bits & 0x00000004u) {
       current_ = from.current_;
     }
-    if (cached_has_bits & 0x00000010u) {
+    if (cached_has_bits & 0x00000008u) {
       voltage_ = from.voltage_;
     }
-    if (cached_has_bits & 0x00000020u) {
+    if (cached_has_bits & 0x00000010u) {
       power_ = from.power_;
     }
     _has_bits_[0] |= cached_has_bits;
@@ -2152,10 +2119,6 @@ void Bms::InternalSwap(Bms* other) {
 
 class Ecu::_Internal {
  public:
-  using HasBits = decltype(std::declval<Ecu>()._has_bits_);
-  static void set_has_timestamp(HasBits* has_bits) {
-    (*has_bits)[0] |= 1u;
-  }
 };
 
 Ecu::Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena,
@@ -2168,8 +2131,7 @@ Ecu::Ecu(::PROTOBUF_NAMESPACE_ID::Arena* arena,
   // @@protoc_insertion_point(arena_constructor:devices.Ecu)
 }
 Ecu::Ecu(const Ecu& from)
-  : ::PROTOBUF_NAMESPACE_ID::Message(),
-      _has_bits_(from._has_bits_) {
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
   timestamp_ = from.timestamp_;
   // @@protoc_insertion_point(copy_constructor:devices.Ecu)
@@ -2207,23 +2169,20 @@ void Ecu::Clear() {
   (void) cached_has_bits;
 
   timestamp_ = 0;
-  _has_bits_.Clear();
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
 const char* Ecu::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
 #define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
-  _Internal::HasBits has_bits{};
   while (!ctx->Done(&ptr)) {
     ::PROTOBUF_NAMESPACE_ID::uint32 tag;
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // optional float timestamp = 1;
+      // double timestamp = 1;
       case 1:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 13)) {
-          _Internal::set_has_timestamp(&has_bits);
-          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<float>(ptr);
-          ptr += sizeof(float);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 9)) {
+          timestamp_ = ::PROTOBUF_NAMESPACE_ID::internal::UnalignedLoad<double>(ptr);
+          ptr += sizeof(double);
         } else
           goto handle_unusual;
         continue;
@@ -2243,7 +2202,6 @@ const char* Ecu::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::intern
     CHK_(ptr != nullptr);
   }  // while
 message_done:
-  _has_bits_.Or(has_bits);
   return ptr;
 failure:
   ptr = nullptr;
@@ -2257,10 +2215,10 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  if (_internal_has_timestamp()) {
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
     target = stream->EnsureSpace(target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteFloatToArray(1, this->_internal_timestamp(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteDoubleToArray(1, this->_internal_timestamp(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -2279,10 +2237,9 @@ size_t Ecu::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // optional float timestamp = 1;
-  cached_has_bits = _has_bits_[0];
-  if (cached_has_bits & 0x00000001u) {
-    total_size += 1 + 4;
+  // double timestamp = 1;
+  if (!(this->_internal_timestamp() <= 0 && this->_internal_timestamp() >= 0)) {
+    total_size += 1 + 8;
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_cached_size_);
@@ -2307,7 +2264,7 @@ void Ecu::MergeFrom(const Ecu& from) {
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (from._internal_has_timestamp()) {
+  if (!(from._internal_timestamp() <= 0 && from._internal_timestamp() >= 0)) {
     _internal_set_timestamp(from._internal_timestamp());
   }
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
@@ -2327,7 +2284,6 @@ bool Ecu::IsInitialized() const {
 void Ecu::InternalSwap(Ecu* other) {
   using std::swap;
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  swap(_has_bits_[0], other->_has_bits_[0]);
   swap(timestamp_, other->timestamp_);
 }
 

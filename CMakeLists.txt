@@ -16,17 +16,35 @@ if(Boost_FOUND)
   message(STATUS "Boost FOUND")
 endif()
 
+############
+## PYTHON ##
+############
 find_package(PythonLibs 2.7)
 
+###########
+## PROTO ##
+###########
 find_package(Protobuf REQUIRED)
 if(Protobuf_FOUND)
     message(STATUS "Using Protocol Buffers ${Protobuf_VERSION}")
     include_directories(${PROTOBUF_INCLUDE_DIR})
 endif()
 
+###############
+## WEBSOCKET ##
+###############
 find_package(websocketpp)
 if(websocketpp_FOUND)
   message(STATUS "Websocketpp FOUND")
+endif()
+
+
+############
+## OPENCV ##
+############
+find_package(OpenCV)
+if(OpenCV_FOUND)
+  message(STATUS "OpenCV FOUND")
 endif()
 
 
@@ -41,9 +59,7 @@ include_directories(
 
 
 if(PythonLibs_FOUND)
-  include_directories(
-    ${PYTHON_INCLUDE_DIRS}
-  )
+  include_directories(${PYTHON_INCLUDE_DIRS})
 endif()
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
@@ -72,10 +88,10 @@ if(Boost_FOUND)
   target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
 endif()
 
-add_library(
-  minimal SHARED
-  src/serial.cpp
-)
+if(OpenCV_FOUND)
+  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
+endif()
+
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
@@ -92,11 +108,8 @@ add_executable(checker scripts/checker/checker.cpp)
 target_link_libraries(checker ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 
-add_executable(share scripts/port/share.cpp)
-target_link_libraries(share minimal)
-
-add_executable(read scripts/port/reader.cpp)
-target_link_libraries(read minimal)
+add_executable(share scripts/port/share.cpp src/serial.cpp)
+add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 
 if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
@@ -108,6 +121,20 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
 
   add_executable(websocket scripts/websocket/websocket.cpp)
   target_link_libraries(websocket ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+
+  if(OpenCV_FOUND)
+    add_executable(dashboard_client
+      scripts/dashboard_client/dashboard_client.cpp
+      src/renderer.cpp
+    )
+    target_link_libraries(dashboard_client
+      ${Protobuf_LIBRARIES}
+      ${Boost_LIBRARIES}
+      websocketpp::websocketpp
+      ${OpenCV_LIBS}
+      ${PROJECT_NAME}
+    )
+  endif()
 endif()
 
 if(PythonLibs_FOUND)

@@ -102,7 +102,7 @@ void Chimera::write_all_headers(int index){
     *device->files[index] << device->get_header(";") << "\n";
 }
 
-vector<Device *> Chimera::parse_message(const float &timestamp, const int &id, uint8_t data[], const int &size){
+vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_t data[], const int &size){
   modifiedDevices.clear();
 
   switch (id) {

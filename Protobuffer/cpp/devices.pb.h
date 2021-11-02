@@ -218,17 +218,13 @@ class Imu final :
     kZFieldNumber = 4,
     kScaleFieldNumber = 5,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float x = 2;
@@ -292,7 +288,7 @@ class Imu final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float x_;
   float y_;
   float z_;
@@ -425,17 +421,13 @@ class Encoder final :
     kKmFieldNumber = 3,
     kRotationsFieldNumber = 4,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float rads = 2;
@@ -486,7 +478,7 @@ class Encoder final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float rads_;
   float km_;
   float rotations_;
@@ -616,17 +608,13 @@ class Steer final :
     kTimestampFieldNumber = 1,
     kAngleFieldNumber = 2,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float angle = 2;
@@ -651,7 +639,7 @@ class Steer final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float angle_;
   friend struct ::TableStruct_devices_2eproto;
 };
@@ -782,17 +770,13 @@ class Pedals final :
     kBrakeFrontFieldNumber = 4,
     kBrakeRearFieldNumber = 5,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float throttle1 = 2;
@@ -856,7 +840,7 @@ class Pedals final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float throttle1_;
   float throttle2_;
   float brake_front_;
@@ -990,17 +974,13 @@ class Inverter final :
     kTorqueFieldNumber = 4,
     kSpeedFieldNumber = 5,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float temperature = 2;
@@ -1064,7 +1044,7 @@ class Inverter final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float temperature_;
   float motor_temp_;
   float torque_;
@@ -1199,17 +1179,13 @@ class Bms final :
     kVoltageFieldNumber = 5,
     kPowerFieldNumber = 6,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // optional float temperature = 2;
@@ -1286,7 +1262,7 @@ class Bms final :
   typedef void DestructorSkippable_;
   ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
+  double timestamp_;
   float temperature_;
   float max_temperature_;
   float current_;
@@ -1417,17 +1393,13 @@ class Ecu final :
   enum : int {
     kTimestampFieldNumber = 1,
   };
-  // optional float timestamp = 1;
-  bool has_timestamp() const;
-  private:
-  bool _internal_has_timestamp() const;
-  public:
+  // double timestamp = 1;
   void clear_timestamp();
-  float timestamp() const;
-  void set_timestamp(float value);
+  double timestamp() const;
+  void set_timestamp(double value);
   private:
-  float _internal_timestamp() const;
-  void _internal_set_timestamp(float value);
+  double _internal_timestamp() const;
+  void _internal_set_timestamp(double value);
   public:
 
   // @@protoc_insertion_point(class_scope:devices.Ecu)
@@ -1437,9 +1409,8 @@ class Ecu final :
   template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
-  ::PROTOBUF_NAMESPACE_ID::internal::HasBits<1> _has_bits_;
+  double timestamp_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
-  float timestamp_;
   friend struct ::TableStruct_devices_2eproto;
 };
 // -------------------------------------------------------------------
@@ -1805,37 +1776,29 @@ class Chimera final :
 #endif  // __GNUC__
 // Imu
 
-// optional float timestamp = 1;
-inline bool Imu::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Imu::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Imu::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Imu::_internal_timestamp() const {
+inline double Imu::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Imu::timestamp() const {
+inline double Imu::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Imu.timestamp)
   return _internal_timestamp();
 }
-inline void Imu::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Imu::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Imu::set_timestamp(float value) {
+inline void Imu::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Imu.timestamp)
 }
 
 // optional float x = 2;
 inline bool Imu::_internal_has_x() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Imu::has_x() const {
@@ -1843,7 +1806,7 @@ inline bool Imu::has_x() const {
 }
 inline void Imu::clear_x() {
   x_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Imu::_internal_x() const {
   return x_;
@@ -1853,7 +1816,7 @@ inline float Imu::x() const {
   return _internal_x();
 }
 inline void Imu::_internal_set_x(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   x_ = value;
 }
 inline void Imu::set_x(float value) {
@@ -1863,7 +1826,7 @@ inline void Imu::set_x(float value) {
 
 // optional float y = 3;
 inline bool Imu::_internal_has_y() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Imu::has_y() const {
@@ -1871,7 +1834,7 @@ inline bool Imu::has_y() const {
 }
 inline void Imu::clear_y() {
   y_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline float Imu::_internal_y() const {
   return y_;
@@ -1881,7 +1844,7 @@ inline float Imu::y() const {
   return _internal_y();
 }
 inline void Imu::_internal_set_y(float value) {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
   y_ = value;
 }
 inline void Imu::set_y(float value) {
@@ -1891,7 +1854,7 @@ inline void Imu::set_y(float value) {
 
 // optional float z = 4;
 inline bool Imu::_internal_has_z() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Imu::has_z() const {
@@ -1899,7 +1862,7 @@ inline bool Imu::has_z() const {
 }
 inline void Imu::clear_z() {
   z_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline float Imu::_internal_z() const {
   return z_;
@@ -1909,7 +1872,7 @@ inline float Imu::z() const {
   return _internal_z();
 }
 inline void Imu::_internal_set_z(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
   z_ = value;
 }
 inline void Imu::set_z(float value) {
@@ -1919,7 +1882,7 @@ inline void Imu::set_z(float value) {
 
 // optional float scale = 5;
 inline bool Imu::_internal_has_scale() const {
-  bool value = (_has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool Imu::has_scale() const {
@@ -1927,7 +1890,7 @@ inline bool Imu::has_scale() const {
 }
 inline void Imu::clear_scale() {
   scale_ = 0;
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline float Imu::_internal_scale() const {
   return scale_;
@@ -1937,7 +1900,7 @@ inline float Imu::scale() const {
   return _internal_scale();
 }
 inline void Imu::_internal_set_scale(float value) {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
   scale_ = value;
 }
 inline void Imu::set_scale(float value) {
@@ -1949,37 +1912,29 @@ inline void Imu::set_scale(float value) {
 
 // Encoder
 
-// optional float timestamp = 1;
-inline bool Encoder::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Encoder::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Encoder::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Encoder::_internal_timestamp() const {
+inline double Encoder::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Encoder::timestamp() const {
+inline double Encoder::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Encoder.timestamp)
   return _internal_timestamp();
 }
-inline void Encoder::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Encoder::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Encoder::set_timestamp(float value) {
+inline void Encoder::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Encoder.timestamp)
 }
 
 // optional float rads = 2;
 inline bool Encoder::_internal_has_rads() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Encoder::has_rads() const {
@@ -1987,7 +1942,7 @@ inline bool Encoder::has_rads() const {
 }
 inline void Encoder::clear_rads() {
   rads_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Encoder::_internal_rads() const {
   return rads_;
@@ -1997,7 +1952,7 @@ inline float Encoder::rads() const {
   return _internal_rads();
 }
 inline void Encoder::_internal_set_rads(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   rads_ = value;
 }
 inline void Encoder::set_rads(float value) {
@@ -2007,7 +1962,7 @@ inline void Encoder::set_rads(float value) {
 
 // optional float km = 3;
 inline bool Encoder::_internal_has_km() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Encoder::has_km() const {
@@ -2015,7 +1970,7 @@ inline bool Encoder::has_km() const {
 }
 inline void Encoder::clear_km() {
   km_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline float Encoder::_internal_km() const {
   return km_;
@@ -2025,7 +1980,7 @@ inline float Encoder::km() const {
   return _internal_km();
 }
 inline void Encoder::_internal_set_km(float value) {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
   km_ = value;
 }
 inline void Encoder::set_km(float value) {
@@ -2035,7 +1990,7 @@ inline void Encoder::set_km(float value) {
 
 // optional float rotations = 4;
 inline bool Encoder::_internal_has_rotations() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Encoder::has_rotations() const {
@@ -2043,7 +1998,7 @@ inline bool Encoder::has_rotations() const {
 }
 inline void Encoder::clear_rotations() {
   rotations_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline float Encoder::_internal_rotations() const {
   return rotations_;
@@ -2053,7 +2008,7 @@ inline float Encoder::rotations() const {
   return _internal_rotations();
 }
 inline void Encoder::_internal_set_rotations(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
   rotations_ = value;
 }
 inline void Encoder::set_rotations(float value) {
@@ -2065,37 +2020,29 @@ inline void Encoder::set_rotations(float value) {
 
 // Steer
 
-// optional float timestamp = 1;
-inline bool Steer::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Steer::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Steer::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Steer::_internal_timestamp() const {
+inline double Steer::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Steer::timestamp() const {
+inline double Steer::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Steer.timestamp)
   return _internal_timestamp();
 }
-inline void Steer::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Steer::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Steer::set_timestamp(float value) {
+inline void Steer::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Steer.timestamp)
 }
 
 // optional float angle = 2;
 inline bool Steer::_internal_has_angle() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Steer::has_angle() const {
@@ -2103,7 +2050,7 @@ inline bool Steer::has_angle() const {
 }
 inline void Steer::clear_angle() {
   angle_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Steer::_internal_angle() const {
   return angle_;
@@ -2113,7 +2060,7 @@ inline float Steer::angle() const {
   return _internal_angle();
 }
 inline void Steer::_internal_set_angle(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   angle_ = value;
 }
 inline void Steer::set_angle(float value) {
@@ -2125,37 +2072,29 @@ inline void Steer::set_angle(float value) {
 
 // Pedals
 
-// optional float timestamp = 1;
-inline bool Pedals::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Pedals::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Pedals::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Pedals::_internal_timestamp() const {
+inline double Pedals::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Pedals::timestamp() const {
+inline double Pedals::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Pedals.timestamp)
   return _internal_timestamp();
 }
-inline void Pedals::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Pedals::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Pedals::set_timestamp(float value) {
+inline void Pedals::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Pedals.timestamp)
 }
 
 // optional float throttle1 = 2;
 inline bool Pedals::_internal_has_throttle1() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Pedals::has_throttle1() const {
@@ -2163,7 +2102,7 @@ inline bool Pedals::has_throttle1() const {
 }
 inline void Pedals::clear_throttle1() {
   throttle1_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Pedals::_internal_throttle1() const {
   return throttle1_;
@@ -2173,7 +2112,7 @@ inline float Pedals::throttle1() const {
   return _internal_throttle1();
 }
 inline void Pedals::_internal_set_throttle1(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   throttle1_ = value;
 }
 inline void Pedals::set_throttle1(float value) {
@@ -2183,7 +2122,7 @@ inline void Pedals::set_throttle1(float value) {
 
 // optional float throttle2 = 3;
 inline bool Pedals::_internal_has_throttle2() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Pedals::has_throttle2() const {
@@ -2191,7 +2130,7 @@ inline bool Pedals::has_throttle2() const {
 }
 inline void Pedals::clear_throttle2() {
   throttle2_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline float Pedals::_internal_throttle2() const {
   return throttle2_;
@@ -2201,7 +2140,7 @@ inline float Pedals::throttle2() const {
   return _internal_throttle2();
 }
 inline void Pedals::_internal_set_throttle2(float value) {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
   throttle2_ = value;
 }
 inline void Pedals::set_throttle2(float value) {
@@ -2211,7 +2150,7 @@ inline void Pedals::set_throttle2(float value) {
 
 // optional float brake_front = 4;
 inline bool Pedals::_internal_has_brake_front() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Pedals::has_brake_front() const {
@@ -2219,7 +2158,7 @@ inline bool Pedals::has_brake_front() const {
 }
 inline void Pedals::clear_brake_front() {
   brake_front_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline float Pedals::_internal_brake_front() const {
   return brake_front_;
@@ -2229,7 +2168,7 @@ inline float Pedals::brake_front() const {
   return _internal_brake_front();
 }
 inline void Pedals::_internal_set_brake_front(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
   brake_front_ = value;
 }
 inline void Pedals::set_brake_front(float value) {
@@ -2239,7 +2178,7 @@ inline void Pedals::set_brake_front(float value) {
 
 // optional float brake_rear = 5;
 inline bool Pedals::_internal_has_brake_rear() const {
-  bool value = (_has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool Pedals::has_brake_rear() const {
@@ -2247,7 +2186,7 @@ inline bool Pedals::has_brake_rear() const {
 }
 inline void Pedals::clear_brake_rear() {
   brake_rear_ = 0;
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline float Pedals::_internal_brake_rear() const {
   return brake_rear_;
@@ -2257,7 +2196,7 @@ inline float Pedals::brake_rear() const {
   return _internal_brake_rear();
 }
 inline void Pedals::_internal_set_brake_rear(float value) {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
   brake_rear_ = value;
 }
 inline void Pedals::set_brake_rear(float value) {
@@ -2269,37 +2208,29 @@ inline void Pedals::set_brake_rear(float value) {
 
 // Inverter
 
-// optional float timestamp = 1;
-inline bool Inverter::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Inverter::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Inverter::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Inverter::_internal_timestamp() const {
+inline double Inverter::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Inverter::timestamp() const {
+inline double Inverter::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Inverter.timestamp)
   return _internal_timestamp();
 }
-inline void Inverter::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Inverter::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Inverter::set_timestamp(float value) {
+inline void Inverter::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Inverter.timestamp)
 }
 
 // optional float temperature = 2;
 inline bool Inverter::_internal_has_temperature() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Inverter::has_temperature() const {
@@ -2307,7 +2238,7 @@ inline bool Inverter::has_temperature() const {
 }
 inline void Inverter::clear_temperature() {
   temperature_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Inverter::_internal_temperature() const {
   return temperature_;
@@ -2317,7 +2248,7 @@ inline float Inverter::temperature() const {
   return _internal_temperature();
 }
 inline void Inverter::_internal_set_temperature(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   temperature_ = value;
 }
 inline void Inverter::set_temperature(float value) {
@@ -2327,7 +2258,7 @@ inline void Inverter::set_temperature(float value) {
 
 // optional float motor_temp = 3;
 inline bool Inverter::_internal_has_motor_temp() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Inverter::has_motor_temp() const {
@@ -2335,7 +2266,7 @@ inline bool Inverter::has_motor_temp() const {
 }
 inline void Inverter::clear_motor_temp() {
   motor_temp_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline float Inverter::_internal_motor_temp() const {
   return motor_temp_;
@@ -2345,7 +2276,7 @@ inline float Inverter::motor_temp() const {
   return _internal_motor_temp();
 }
 inline void Inverter::_internal_set_motor_temp(float value) {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
   motor_temp_ = value;
 }
 inline void Inverter::set_motor_temp(float value) {
@@ -2355,7 +2286,7 @@ inline void Inverter::set_motor_temp(float value) {
 
 // optional float torque = 4;
 inline bool Inverter::_internal_has_torque() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Inverter::has_torque() const {
@@ -2363,7 +2294,7 @@ inline bool Inverter::has_torque() const {
 }
 inline void Inverter::clear_torque() {
   torque_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline float Inverter::_internal_torque() const {
   return torque_;
@@ -2373,7 +2304,7 @@ inline float Inverter::torque() const {
   return _internal_torque();
 }
 inline void Inverter::_internal_set_torque(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
   torque_ = value;
 }
 inline void Inverter::set_torque(float value) {
@@ -2383,7 +2314,7 @@ inline void Inverter::set_torque(float value) {
 
 // optional float speed = 5;
 inline bool Inverter::_internal_has_speed() const {
-  bool value = (_has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool Inverter::has_speed() const {
@@ -2391,7 +2322,7 @@ inline bool Inverter::has_speed() const {
 }
 inline void Inverter::clear_speed() {
   speed_ = 0;
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline float Inverter::_internal_speed() const {
   return speed_;
@@ -2401,7 +2332,7 @@ inline float Inverter::speed() const {
   return _internal_speed();
 }
 inline void Inverter::_internal_set_speed(float value) {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
   speed_ = value;
 }
 inline void Inverter::set_speed(float value) {
@@ -2413,37 +2344,29 @@ inline void Inverter::set_speed(float value) {
 
 // Bms
 
-// optional float timestamp = 1;
-inline bool Bms::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Bms::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Bms::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Bms::_internal_timestamp() const {
+inline double Bms::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Bms::timestamp() const {
+inline double Bms::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Bms.timestamp)
   return _internal_timestamp();
 }
-inline void Bms::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Bms::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Bms::set_timestamp(float value) {
+inline void Bms::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Bms.timestamp)
 }
 
 // optional float temperature = 2;
 inline bool Bms::_internal_has_temperature() const {
-  bool value = (_has_bits_[0] & 0x00000002u) != 0;
+  bool value = (_has_bits_[0] & 0x00000001u) != 0;
   return value;
 }
 inline bool Bms::has_temperature() const {
@@ -2451,7 +2374,7 @@ inline bool Bms::has_temperature() const {
 }
 inline void Bms::clear_temperature() {
   temperature_ = 0;
-  _has_bits_[0] &= ~0x00000002u;
+  _has_bits_[0] &= ~0x00000001u;
 }
 inline float Bms::_internal_temperature() const {
   return temperature_;
@@ -2461,7 +2384,7 @@ inline float Bms::temperature() const {
   return _internal_temperature();
 }
 inline void Bms::_internal_set_temperature(float value) {
-  _has_bits_[0] |= 0x00000002u;
+  _has_bits_[0] |= 0x00000001u;
   temperature_ = value;
 }
 inline void Bms::set_temperature(float value) {
@@ -2471,7 +2394,7 @@ inline void Bms::set_temperature(float value) {
 
 // optional float max_temperature = 3;
 inline bool Bms::_internal_has_max_temperature() const {
-  bool value = (_has_bits_[0] & 0x00000004u) != 0;
+  bool value = (_has_bits_[0] & 0x00000002u) != 0;
   return value;
 }
 inline bool Bms::has_max_temperature() const {
@@ -2479,7 +2402,7 @@ inline bool Bms::has_max_temperature() const {
 }
 inline void Bms::clear_max_temperature() {
   max_temperature_ = 0;
-  _has_bits_[0] &= ~0x00000004u;
+  _has_bits_[0] &= ~0x00000002u;
 }
 inline float Bms::_internal_max_temperature() const {
   return max_temperature_;
@@ -2489,7 +2412,7 @@ inline float Bms::max_temperature() const {
   return _internal_max_temperature();
 }
 inline void Bms::_internal_set_max_temperature(float value) {
-  _has_bits_[0] |= 0x00000004u;
+  _has_bits_[0] |= 0x00000002u;
   max_temperature_ = value;
 }
 inline void Bms::set_max_temperature(float value) {
@@ -2499,7 +2422,7 @@ inline void Bms::set_max_temperature(float value) {
 
 // optional float current = 4;
 inline bool Bms::_internal_has_current() const {
-  bool value = (_has_bits_[0] & 0x00000008u) != 0;
+  bool value = (_has_bits_[0] & 0x00000004u) != 0;
   return value;
 }
 inline bool Bms::has_current() const {
@@ -2507,7 +2430,7 @@ inline bool Bms::has_current() const {
 }
 inline void Bms::clear_current() {
   current_ = 0;
-  _has_bits_[0] &= ~0x00000008u;
+  _has_bits_[0] &= ~0x00000004u;
 }
 inline float Bms::_internal_current() const {
   return current_;
@@ -2517,7 +2440,7 @@ inline float Bms::current() const {
   return _internal_current();
 }
 inline void Bms::_internal_set_current(float value) {
-  _has_bits_[0] |= 0x00000008u;
+  _has_bits_[0] |= 0x00000004u;
   current_ = value;
 }
 inline void Bms::set_current(float value) {
@@ -2527,7 +2450,7 @@ inline void Bms::set_current(float value) {
 
 // optional float voltage = 5;
 inline bool Bms::_internal_has_voltage() const {
-  bool value = (_has_bits_[0] & 0x00000010u) != 0;
+  bool value = (_has_bits_[0] & 0x00000008u) != 0;
   return value;
 }
 inline bool Bms::has_voltage() const {
@@ -2535,7 +2458,7 @@ inline bool Bms::has_voltage() const {
 }
 inline void Bms::clear_voltage() {
   voltage_ = 0;
-  _has_bits_[0] &= ~0x00000010u;
+  _has_bits_[0] &= ~0x00000008u;
 }
 inline float Bms::_internal_voltage() const {
   return voltage_;
@@ -2545,7 +2468,7 @@ inline float Bms::voltage() const {
   return _internal_voltage();
 }
 inline void Bms::_internal_set_voltage(float value) {
-  _has_bits_[0] |= 0x00000010u;
+  _has_bits_[0] |= 0x00000008u;
   voltage_ = value;
 }
 inline void Bms::set_voltage(float value) {
@@ -2555,7 +2478,7 @@ inline void Bms::set_voltage(float value) {
 
 // optional float power = 6;
 inline bool Bms::_internal_has_power() const {
-  bool value = (_has_bits_[0] & 0x00000020u) != 0;
+  bool value = (_has_bits_[0] & 0x00000010u) != 0;
   return value;
 }
 inline bool Bms::has_power() const {
@@ -2563,7 +2486,7 @@ inline bool Bms::has_power() const {
 }
 inline void Bms::clear_power() {
   power_ = 0;
-  _has_bits_[0] &= ~0x00000020u;
+  _has_bits_[0] &= ~0x00000010u;
 }
 inline float Bms::_internal_power() const {
   return power_;
@@ -2573,7 +2496,7 @@ inline float Bms::power() const {
   return _internal_power();
 }
 inline void Bms::_internal_set_power(float value) {
-  _has_bits_[0] |= 0x00000020u;
+  _has_bits_[0] |= 0x00000010u;
   power_ = value;
 }
 inline void Bms::set_power(float value) {
@@ -2585,30 +2508,22 @@ inline void Bms::set_power(float value) {
 
 // Ecu
 
-// optional float timestamp = 1;
-inline bool Ecu::_internal_has_timestamp() const {
-  bool value = (_has_bits_[0] & 0x00000001u) != 0;
-  return value;
-}
-inline bool Ecu::has_timestamp() const {
-  return _internal_has_timestamp();
-}
+// double timestamp = 1;
 inline void Ecu::clear_timestamp() {
   timestamp_ = 0;
-  _has_bits_[0] &= ~0x00000001u;
 }
-inline float Ecu::_internal_timestamp() const {
+inline double Ecu::_internal_timestamp() const {
   return timestamp_;
 }
-inline float Ecu::timestamp() const {
+inline double Ecu::timestamp() const {
   // @@protoc_insertion_point(field_get:devices.Ecu.timestamp)
   return _internal_timestamp();
 }
-inline void Ecu::_internal_set_timestamp(float value) {
-  _has_bits_[0] |= 0x00000001u;
+inline void Ecu::_internal_set_timestamp(double value) {
+  
   timestamp_ = value;
 }
-inline void Ecu::set_timestamp(float value) {
+inline void Ecu::set_timestamp(double value) {
   _internal_set_timestamp(value);
   // @@protoc_insertion_point(field_set:devices.Ecu.timestamp)
 }

@@ -78,7 +78,7 @@ public:
     MessageToJsonString(*message, out);
   }
 
-  float timestamp;
+  double timestamp;
 
   int count;
   float helper_variable = 0;
