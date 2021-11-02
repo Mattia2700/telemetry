@@ -28,6 +28,25 @@ using namespace google::protobuf::util;
 class Data{};
 class Page;
 
+class UIElement
+{
+public:
+  UIElement(string name): name(name)
+  {
+    id = ui_elements_instances;
+    ui_elements_instances ++;
+  };
+
+  int id;
+  string name;
+  bool command_mode = false;
+  bool hovered = false;
+
+  virtual void CommandMode(char key)=0;
+private:
+  static int ui_elements_instances;
+};
+
 class ChimeraData : public Data
 {
 public:
@@ -114,10 +133,10 @@ private:
 };
 
 
-class Page
+class Page : public UIElement
 {
 public:
-  Page(int w, int h):W(w),H(h)
+  Page(string name, int w, int h):UIElement(name),W(w),H(h)
   {
     background_color = cv::Scalar(0, 0, 0, 0);
     background = new Mat(h, w, CV_8UC4, background_color);
@@ -144,7 +163,9 @@ public:
     background->setTo(background_color);
   };
 
+
   virtual void Draw() = 0;
+  virtual void CommandMode(char c);
 
   static int instance_count;
 protected:
@@ -156,4 +177,7 @@ protected:
   int W, H;
 
   mutex mtx;
+
+  vector<UIElement*> ui_elements;
+  int ui_element_hovered = -1;
 };

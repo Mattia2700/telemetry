@@ -22,7 +22,7 @@ using namespace cv;
 class Page1 : public Page
 {
 public:
-  Page1(int w, int h);
+  Page1(string name, int w, int h);
 
   virtual void Draw();
 private:

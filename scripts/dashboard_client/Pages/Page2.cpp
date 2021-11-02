@@ -1,6 +1,6 @@
 #include "Page2.h"
 
-Page2::Page2(int w, int h): Page(w, h)
+Page2::Page2(string name, int w, int h): Page(name, w, h)
 {
   accel_graph = new Graph();
   gyro_graph  = new Graph();

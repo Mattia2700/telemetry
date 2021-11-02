@@ -42,15 +42,15 @@ int main(int argc, char* argv[]) {
 
 
     renderer->SetBackground(50, 40, 32);
-    page1 = new Page1(W, H);
+    page1 = new Page1("Page1", W, H);
     page1->SetData(chimera_data);
     renderer->AddPage(page1);
 
-    page2 = new Page2(W, H);
+    page2 = new Page2("Page2", W, H);
     page2->SetData(chimera_data);
     renderer->AddPage(page2);
 
-    page3 = new Page3(W, H);
+    page3 = new Page3("Page3", W, H);
     page3->SetData(chimera_data);
     renderer->AddPage(page3);
 

@@ -1,6 +1,7 @@
 #include "renderer.h"
 
 int Page::instance_count = 0;
+int UIElement::ui_elements_instances = 0;
 
 Renderer::Renderer(int w, int h):
 W(w), H(h)
@@ -141,9 +142,15 @@ void Renderer::Render()
     // outputVideo << render_image;
 
     char c = cv::waitKey((1.0/frame_rate)*1000);
-    if(int(c) != -1 && on_key_press != nullptr)
+    if(c == -1)
+      continue;
+    if(current_page->command_mode){
+      current_page->CommandMode(c);
+    }else if (c == 13){
+      current_page->command_mode = true;
+    }else if(on_key_press != nullptr){
       (*on_key_press)(c);
-
+    }
   }
 }
 
@@ -160,5 +167,40 @@ void Renderer::DrawFooter(Mat* img)
       Scalar(255, 255, 255, 255),
       page_idx == i ? -1 : 1
     );
+  }
+}
+
+
+void Page::CommandMode(char c)
+{
+  if(ui_element_hovered != -1 && ui_elements[ui_element_hovered]->command_mode){
+    ui_elements[ui_element_hovered]->CommandMode(c);
+    return;
+  }
+  switch(c)
+  {
+    case 'a':
+      if(ui_element_hovered != -1)
+        ui_elements[ui_element_hovered]->hovered = false;
+      ui_element_hovered --;
+      if(ui_element_hovered < 0)
+        ui_element_hovered = ui_elements.size()-1;
+      ui_elements[ui_element_hovered]->hovered = true;
+    break;
+    case 'd':
+      if(ui_element_hovered != -1)
+        ui_elements[ui_element_hovered]->hovered = false;
+      ui_element_hovered = (ui_element_hovered + 1) % ui_elements.size();
+      ui_elements[ui_element_hovered]->hovered = true;
+    break;
+    case 13:
+      if(ui_element_hovered != -1)
+        ui_elements[ui_element_hovered]->command_mode = true;
+    break;
+    case 27:
+      command_mode = false;
+      if(ui_element_hovered != -1)
+        ui_elements[ui_element_hovered]->hovered = false;
+    break;
   }
 }

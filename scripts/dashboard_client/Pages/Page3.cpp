@@ -1,6 +1,6 @@
 #include "Page3.h"
 
-Page3::Page3(int w, int h): Page(w, h)
+Page3::Page3(string name, int w, int h): Page(name, w, h)
 {
   bms_graph = new Graph();
   inv_graph  = new Graph();
@@ -139,5 +139,4 @@ void Page3::SetGraphData(ChimeraData* chim)
         inv_graph->SetOffsetX(chim->data->inverter_left(0).timestamp());
     }
   }
-  cout << "1" << endl;
 }

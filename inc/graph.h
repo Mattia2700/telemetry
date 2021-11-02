@@ -16,6 +16,7 @@
 using namespace std;
 using namespace cv;
 
+#include "renderer.h"
 
 struct Box
 {
@@ -26,10 +27,10 @@ struct Box
 };
 
 
-class Graph
+class Graph : public UIElement
 {
 public:
-  Graph(): auto_resize(false)
+  Graph(string name = ""): UIElement(name), auto_resize(false)
   {
     std::srand(time(nullptr));
   }
@@ -48,6 +49,8 @@ private:
   void CheckLength(vector<double>* to_check);
   void DrawAxes(Mat* img);
   Scalar GenerateColor();
+
+  virtual void CommandMode(char);
 
   // Vector containing x axis values
   vector<double> x;

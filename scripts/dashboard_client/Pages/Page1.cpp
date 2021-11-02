@@ -1,6 +1,6 @@
 #include "Page1.h"
 
-Page1::Page1(int w, int h): Page(w, h)
+Page1::Page1(string name, int w, int h): Page(name, w, h)
 {
   pedal_graph = new Graph();
   speed_graph  = new Graph();
@@ -15,6 +15,9 @@ Page1::Page1(int w, int h): Page(w, h)
 
   pedal_graph->SetPosition(pedal_box);
   speed_graph->SetPosition(speed_box);
+
+  ui_elements.push_back(pedal_graph);
+  ui_elements.push_back(speed_graph);
 };
 
 void Page1::Draw()

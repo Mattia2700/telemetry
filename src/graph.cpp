@@ -24,6 +24,15 @@ void Graph::Draw(Mat* img)
 
   DrawAxes(img);
 
+  if(hovered){
+    cv::circle(*img,
+      Point(position.x+10, position.y+10),
+      8,
+      Scalar(0, 0, 255, 255),
+      command_mode?-1:1
+    );
+  }
+
   float dx = 0.0;
   float dy = float(position.h) / (scaleY * 2)*-1;
 
@@ -155,4 +164,23 @@ Scalar Graph::GenerateColor()
     255
   );
   return color;
+}
+
+
+void Graph::CommandMode(char c)
+{
+  switch(c)
+  {
+    case 'a':
+    break;
+    case 'd':
+
+    break;
+    case 13:
+
+    break;
+    case 27:
+      command_mode = false;
+    break;
+  }
 }
