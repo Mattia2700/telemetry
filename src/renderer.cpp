@@ -2,7 +2,8 @@
 
 int Page::instance_count = 0;
 
-Renderer::Renderer(int w, int h)
+Renderer::Renderer(int w, int h):
+W(w), H(h)
 {
   background = Mat(h, w, CV_8UC4, Scalar(0, 0, 0, 0));
   render_image = Mat(h, w, CV_8UC4, Scalar(0, 0, 0, 0));
@@ -85,6 +86,14 @@ void Renderer::MoveToIndex(int idx)
     page_idx = idx;
 }
 
+Page* Renderer::GetPage(int idx)
+{
+  if(idx < 0 || idx > pages.size()-1)
+    return pages.back();
+  else
+    return pages[idx];
+}
+
 void Renderer::Render()
 {
   cv::namedWindow("Dashboard");
@@ -98,30 +107,32 @@ void Renderer::Render()
   //     return ;
   // }
 
+  Mat* page_img = nullptr;
+
   while(true)
   {
-    if(pages.size() == 0)
+    if(pages.size() == 0 || pause == 1)
     {
       usleep((1.0/frame_rate) * 1000000);
+      char c = cv::waitKey((1.0/frame_rate)*1000);
+      if(int(c) != -1 && on_key_press != nullptr)
+        (*on_key_press)(c);
       continue;
     }
     current_page = pages[page_idx];
 
     current_page->Draw();
+    page_img = current_page->GetImage();
+    DrawFooter(page_img);
 
-    Mat* page_img = current_page->GetImage();
     for(int i = 0; i < background.rows; i++)
     {
       for(int j = 0; j < background.cols; j++)
       {
         if(page_img->at<cv::Vec4b>(i, j)[3] == 0)
-        {
           render_image.at<cv::Vec4b>(i,j) = background.at<cv::Vec4b>(i,j);
-        }
         else
-        {
           render_image.at<cv::Vec4b>(i,j) = page_img->at<cv::Vec4b>(i,j);
-        }
       }
     }
 
@@ -129,90 +140,25 @@ void Renderer::Render()
     cv::imshow("Dashboard", render_image);
     // outputVideo << render_image;
 
-    cv::waitKey((1.0/frame_rate)*1000);
+    char c = cv::waitKey((1.0/frame_rate)*1000);
+    if(int(c) != -1 && on_key_press != nullptr)
+      (*on_key_press)(c);
+
   }
 }
 
-void Page::SetData(Data* data)
+void Renderer::DrawFooter(Mat* img)
 {
-  mtx.lock();
-  current_data = data;
-  mtx.unlock();
-}
-Mat* Page::GetImage()
-{
-  return background;
-}
-void Page::SetBackground(int R, int G, int B){
-  background_color = cv::Scalar(R,G,B, 0);
-  background->setTo(background_color);
-}
-
-void Page1::Draw()
-{
-  if(current_data == nullptr)
-    return;
-  mtx.lock();
-
-  background->setTo(background_color);
-
-  ChimeraData* chim = (ChimeraData*)current_data;
-
-  int accel_size = chim->data->accel_size();
-  if(accel_size > 1)
+  int page_indicator_w = W / pages.size();
+  int page_indicator_h = H / 100;
+  for(int i = 0; i < pages.size(); i++)
   {
-    int scale = chim->data->accel(0).scale();
+    cv::rectangle(*img,
+      Point((i  )*page_indicator_w, 0),
+      Point((i+1)*page_indicator_w, page_indicator_h),
 
-    double xi = chim->data->accel(0).timestamp();
-    double xf = chim->data->accel(accel_size-1).timestamp();
-
-    float dx = float(this->W) / accel_size;
-    float dy = float(this->H) / (scale * 2);
-
-    float cx = 0;
-    float cy = this->H/2;
-
-    for(int i = -scale; i < scale; i++)
-    {
-      cv::line(*background,
-        cv::Point(0, cy + i*dy),
-        cv::Point(W, cy + i*dy),
-        Scalar(100, 100, 100, 1),
-        1,
-        LINE_8
-      );
-    }
-
-    for(int i = 1; i < accel_size; i++)
-    {
-      if( i >= chim->data->accel_size())
-        continue;
-      const devices::Imu& dev1 = chim->data->accel(i-1);
-      const devices::Imu& dev2 = chim->data->accel(i);
-
-      cv::line(*background,
-        cv::Point(((i-1) * dx) + cx, (dev1.x() * dy) + cy),
-        cv::Point(((i  ) * dx) + cx, (dev2.x() * dy) + cy),
-        Scalar(0, 0, 255, 255),
-        1,
-        LINE_AA
-      );
-      cv::line(*background,
-        cv::Point(((i-1) * dx) + cx, (dev1.y() * dy) + cy),
-        cv::Point(((i  ) * dx) + cx, (dev2.y() * dy) + cy),
-        Scalar(0, 255, 0, 255),
-        1,
-        LINE_AA
-      );
-      cv::line(*background,
-        cv::Point(((i-1) * dx) + cx, (dev1.z() * dy) + cy),
-        cv::Point(((i  ) * dx) + cx, (dev2.z() * dy) + cy),
-        Scalar(255, 0, 0, 255),
-        1,
-        LINE_AA
-      );
-    }
+      Scalar(255, 255, 255, 255),
+      page_idx == i ? -1 : 1
+    );
   }
-
-  mtx.unlock();
 }

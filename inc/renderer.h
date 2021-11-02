@@ -56,6 +56,11 @@ public:
   void Start();
   void ToggleStartStop();
 
+  void SetOnKeyPress(void (*func)(char& ))
+  {
+    on_key_press = func;
+  };
+
   /**
   * Adds a page to vector of pages that can be rendered
   * @param *page pointer to page
@@ -72,6 +77,12 @@ public:
   */
   void RemovePage(int idx=-1);
 
+  /**
+  * Returns page at index
+  * @param idx index of page to be returned if -1 returns current
+  */
+  Page* GetPage(int idx=-1);
+
   void MoveLeft();
   void MoveRight();
   /**
@@ -81,10 +92,13 @@ public:
   void MoveToIndex(int idx=-1);
 private:
   void Render();
+  void DrawFooter(Mat*);
 
   Page* current_page = nullptr;
   vector<Page *> pages;
   int page_idx;
+
+  int W, H;
 
   thread* render_thread = nullptr;
 
@@ -95,6 +109,8 @@ private:
 
   atomic<int> pause;
   atomic<bool> kill;
+
+  void (*on_key_press)(char&) = nullptr;
 };
 
 
@@ -112,9 +128,21 @@ public:
     instance_count --;
   }
 
-  Mat* GetImage();
-  void SetData(Data*);
-  void SetBackground(int, int, int);
+  Mat* GetImage()
+  {
+    return background;
+  };
+  void SetData(Data* data)
+  {
+    mtx.lock();
+    current_data = data;
+    mtx.unlock();
+  };
+  void SetBackground(int R, int G, int B)
+  {
+    background_color = cv::Scalar(R,G,B, 0);
+    background->setTo(background_color);
+  };
 
   virtual void Draw() = 0;
 
@@ -128,11 +156,4 @@ protected:
   int W, H;
 
   mutex mtx;
-};
-
-class Page1 : public Page
-{
-public:
-  Page1(int w, int h): Page(w, h){};
-  virtual void Draw();
 };
