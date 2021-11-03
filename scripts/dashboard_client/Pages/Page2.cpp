@@ -2,8 +2,8 @@
 
 Page2::Page2(string name, int w, int h): Page(name, w, h)
 {
-  accel_graph = new Graph();
-  gyro_graph  = new Graph();
+  accel_graph = new Graph("Accel");
+  gyro_graph  = new Graph("Gyro");
 
   int margin = H/10;
   int graph_height = H/2 - margin*3/2;
@@ -15,6 +15,12 @@ Page2::Page2(string name, int w, int h): Page(name, w, h)
 
   accel_graph->SetPosition(accel_box);
   gyro_graph->SetPosition(gyro_box);
+
+  accel_graph->SetLabels({"x", "y", "z"});
+  gyro_graph->SetLabels({"x", "y", "z"});
+
+  ui_elements.push_back(accel_graph);
+  ui_elements.push_back(gyro_graph);
 };
 
 void Page2::Draw()

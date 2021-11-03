@@ -2,8 +2,8 @@
 
 Page3::Page3(string name, int w, int h): Page(name, w, h)
 {
-  bms_graph = new Graph();
-  inv_graph  = new Graph();
+  bms_graph = new Graph("BMS");
+  inv_graph  = new Graph("Inveter");
 
   int margin = H/10;
   int graph_height = H/2 - margin*3/2;
@@ -15,6 +15,12 @@ Page3::Page3(string name, int w, int h): Page(name, w, h)
 
   bms_graph->SetPosition(bms_box);
   inv_graph->SetPosition(inv_box);
+
+  bms_graph->SetLabels({"lv_temp", "hv_temp", "lv_volt", "hv_volt", "hv_current"});
+
+  inv_graph->SetLabels({"right_temp", "left_temp", "right_motor_temp", "left_motor_temp"});
+  ui_elements.push_back(bms_graph);
+  ui_elements.push_back(inv_graph);
 };
 
 void Page3::Draw()

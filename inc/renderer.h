@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <chrono>
 
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -22,6 +23,7 @@
 
 using namespace std;
 using namespace cv;
+using namespace std::chrono;
 using namespace google::protobuf;
 using namespace google::protobuf::util;
 

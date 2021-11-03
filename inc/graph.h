@@ -16,7 +16,22 @@
 using namespace std;
 using namespace cv;
 
+
 #include "renderer.h"
+
+static vector<Scalar> colors{
+  Scalar(25 , 225, 255, 255),
+  Scalar(48 , 130, 245, 255),
+  Scalar(240, 240, 70 , 255),
+  Scalar(230, 50 , 240, 255),
+  Scalar(195, 255, 170, 255),
+  Scalar(255, 190, 220,255),
+  Scalar(75 , 25 , 230, 255),
+  Scalar(60 , 245, 210, 255),
+  Scalar(40 , 110, 170, 255),
+  Scalar(128, 128, 0  , 255),
+  Scalar(0  , 128, 128, 255),
+};
 
 struct Box
 {
@@ -45,6 +60,8 @@ public:
   void SetPosition(Box box);
   void SetOffsetX(double x){offset_x = x;};
 
+  void SetLabels(vector<string> vec);
+
 private:
   void CheckLength(vector<double>* to_check);
   void DrawAxes(Mat* img);
@@ -59,7 +76,9 @@ private:
   // value to substract from x axis values
   double offset_x;
 
-  int max_length = 1000;
+  vector<string> labels;
+
+  int max_length = 10000;
 
   float scaleX;
   float scaleY;
@@ -68,4 +87,6 @@ private:
 
   Box position;
   vector<Scalar> line_colors;
+  vector<bool> show_line;
+  int label_hover_idx=-1;
 };

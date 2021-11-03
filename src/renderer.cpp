@@ -109,7 +109,7 @@ void Renderer::Render()
   // }
 
   Mat* page_img = nullptr;
-
+  uint64_t t1, t2;
   while(true)
   {
     if(pages.size() == 0 || pause == 1)
@@ -120,6 +120,9 @@ void Renderer::Render()
         (*on_key_press)(c);
       continue;
     }
+    t1 = duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
+
+
     current_page = pages[page_idx];
 
     current_page->Draw();
@@ -140,14 +143,16 @@ void Renderer::Render()
 
     cv::imshow("Dashboard", render_image);
     // outputVideo << render_image;
-
-    char c = cv::waitKey((1.0/frame_rate)*1000);
+    t2 = duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
+    int to_sleep = (1.0/frame_rate)*1000 - (t2-t1)/1000.0;
+    char c = cv::waitKey(to_sleep<=0?1:to_sleep);
     if(c == -1)
       continue;
     if(current_page->command_mode){
       current_page->CommandMode(c);
     }else if (c == 13){
       current_page->command_mode = true;
+      current_page->CommandMode(c);
     }else if(on_key_press != nullptr){
       (*on_key_press)(c);
     }
@@ -180,27 +185,44 @@ void Page::CommandMode(char c)
   switch(c)
   {
     case 'a':
+      if(ui_elements.size() == 0)
+        return;
       if(ui_element_hovered != -1)
         ui_elements[ui_element_hovered]->hovered = false;
+
       ui_element_hovered --;
       if(ui_element_hovered < 0)
         ui_element_hovered = ui_elements.size()-1;
+
       ui_elements[ui_element_hovered]->hovered = true;
     break;
     case 'd':
+      if(ui_elements.size() == 0)
+        return;
       if(ui_element_hovered != -1)
         ui_elements[ui_element_hovered]->hovered = false;
+
       ui_element_hovered = (ui_element_hovered + 1) % ui_elements.size();
+
       ui_elements[ui_element_hovered]->hovered = true;
     break;
     case 13:
-      if(ui_element_hovered != -1)
+      if(ui_element_hovered != -1){
         ui_elements[ui_element_hovered]->command_mode = true;
+        ui_elements[ui_element_hovered]->CommandMode(c);
+      }
+      else{
+        ui_element_hovered = 0;
+        ui_elements[ui_element_hovered]->hovered = true;
+      }
     break;
     case 27:
       command_mode = false;
-      if(ui_element_hovered != -1)
+      if(ui_element_hovered != -1){
         ui_elements[ui_element_hovered]->hovered = false;
+        ui_elements[ui_element_hovered]->command_mode = false;
+      }
+      ui_element_hovered = -1;
     break;
   }
 }

@@ -2,8 +2,8 @@
 
 Page1::Page1(string name, int w, int h): Page(name, w, h)
 {
-  pedal_graph = new Graph();
-  speed_graph  = new Graph();
+  pedal_graph = new Graph("Pedal");
+  speed_graph  = new Graph("Speed");
 
   int margin = H/10;
   int graph_height = H/2 - margin*3/2;
@@ -15,6 +15,9 @@ Page1::Page1(string name, int w, int h): Page(name, w, h)
 
   pedal_graph->SetPosition(pedal_box);
   speed_graph->SetPosition(speed_box);
+
+  pedal_graph->SetLabels({"throttle1"});
+  speed_graph->SetLabels({"rads_left", "rads_right"});
 
   ui_elements.push_back(pedal_graph);
   ui_elements.push_back(speed_graph);
