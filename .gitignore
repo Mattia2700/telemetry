@@ -37,3 +37,4 @@ bin/
 
 # VSCode
 .vscode/
+node_modules/

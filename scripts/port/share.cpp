@@ -22,7 +22,7 @@ std::condition_variable cv;
 
 string shared_string;
 
-int N = 4;
+int N = 6;
 string BASENAME = "/home/gps";
 
 void writer(string fname)

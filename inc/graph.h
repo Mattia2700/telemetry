@@ -78,7 +78,7 @@ private:
 
   vector<string> labels;
 
-  int max_length = 10000;
+  int max_length = 1000;
 
   float scaleX;
   float scaleY;

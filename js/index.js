@@ -7,9 +7,17 @@
  * For each message from telemetry of type "update" will be send the "data" to all the clients
  */
 
+const fs = require('fs');
+
+let rawdata = fs.readFileSync('config.json');
+let config = JSON.parse(rawdata);
+console.log(config);
+
 const WebSocket = require('ws');
 
-const wss = new WebSocket.Server({ port: 8080 })
+console.log("Opening websocket with config: ", { port: config["port"], host: config["ip"] });
+const wss = new WebSocket.Server({ port: config["port"], host: config["ip"] })
+console.log("DONE");
 
 var unauthenticated = []
 var clients = [];
