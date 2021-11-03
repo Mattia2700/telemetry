@@ -5,13 +5,15 @@
   "main": "index.js",
   "dependencies": {
     "http": "^0.0.1-security",
+    "webpack": "^5.61.0",
     "ws": "^8.2.2"
   },
   "devDependencies": {},
   "scripts": {
     "server": "node index.js",
     "client": "node client.js",
-    "sender": "node sender.js"
+    "sender": "node sender.js",
+    "start": "node index.js"
   },
   "author": "",
   "license": "ISC"
