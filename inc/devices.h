@@ -25,6 +25,52 @@ using namespace std::chrono;
 using namespace google::protobuf;
 using namespace google::protobuf::util;
 
+enum ECU_STATE_T
+{
+	IDLE,
+	SETUP,
+	RUN,
+  NUM_STATES
+};
+enum BMS_WARNING_T
+{
+	WARN_CELL_LOW_VOLTAGE,
+	WARN_CELL_DROPPING,
+	WARN_PRECHARGE_FAIL,
+  NUM_WARNINGS
+};
+enum BMS_ERROR_T
+{
+	ERROR_LTC6804_PEC_ERROR,
+	ERROR_CELL_UNDER_VOLTAGE,
+	ERROR_CELL_OVER_VOLTAGE,
+	ERROR_CELL_OVER_TEMPERATURE,
+	ERROR_OVER_CURRENT,
+	ERROR_CAN,
+  NUM_ERRORS
+};
+static string ECU_STATES[NUM_STATES] =
+{
+  "IDLE",
+  "SETUP",
+  "RUN"
+};
+static string BMS_WARNINGS[NUM_WARNINGS] =
+{
+  "WARN_CELL_LOW_VOLTAGE",
+  "WARN_CELL_DROPPING",
+  "WARN_PRECHARGE_FAIL",
+};
+static string BMS_ERRORS[NUM_ERRORS] =
+{
+  "ERROR_LTC6804_PEC_ERROR",
+  "ERROR_CELL_UNDER_VOLTAGE",
+  "ERROR_CELL_OVER_VOLTAGE",
+  "ERROR_CELL_OVER_TEMPERATURE",
+  "ERROR_OVER_CURRENT",
+  "ERROR_CAN"
+};
+
 class Device
 {
 public:
@@ -157,18 +203,6 @@ public:
   float brake_rear;
 };
 
-class Ecu : public Device
-{
-public:
-  Ecu(string name = "default") : Device(name){};
-
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
-
-  void serialize(devices::Ecu *);
-};
-
 class Inverter : public Device
 {
 public:
@@ -206,8 +240,37 @@ public:
   float voltage;
   float max_voltage;
   float min_voltage;
-  
+
   float power;
+};
+
+class State : public Device
+{
+public:
+  State(string name = "default") : Device(name){};
+
+  virtual string get_header(string separator);
+  virtual string get_string(string separator);
+  virtual Document json();
+
+  void serialize(devices::State *);
+
+  string value;
+};
+
+class Ecu : public Device
+{
+public:
+  Ecu(string name = "default") : Device(name){};
+
+  virtual string get_header(string separator);
+  virtual string get_string(string separator);
+  virtual Document json();
+
+  void serialize(devices::Ecu *);
+
+  double power_request_left;
+  double power_request_right;
 };
 
 #endif //DEVICES_H

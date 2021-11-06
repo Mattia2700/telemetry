@@ -121,6 +121,10 @@ public:
   Pedals* pedal;
   Steer* steer;
 
+  State* ecu_state;
+  State* bms_hv_state;
+  State* steering_wheel_state;
+
   Ecu* ecu;
 
   /**

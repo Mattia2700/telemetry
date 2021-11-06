@@ -181,28 +181,6 @@ void Pedals::serialize(devices::Pedals *pedals){
   pedals->set_brake_rear(brake_rear);
 }
 
-string Ecu::get_header(string separator)
-{
-  string ret = "";
-  return ret;
-}
-string Ecu::get_string(string separator)
-{
-  string ret = "";
-  return ret;
-}
-Document Ecu::json()
-{
-  Document d;
-  d.SetObject();
-  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-  d.AddMember("timestamp", timestamp, alloc);
-  return d;
-}
-void Ecu::serialize(devices::Ecu* ecu){
-
-}
-
 string Inverter::get_header(string separator)
 {
   string ret = "";
@@ -311,4 +289,64 @@ void Bms::serialize(devices::Bms* bms){
   bms->set_min_voltage(min_voltage);
 
   bms->set_power(power);
+}
+
+string State::get_header(string separator)
+{
+  string ret = "";
+  ret += "timestamp" + separator;
+  ret += "state";
+  return ret;
+}
+string State::get_string(string separator)
+{
+  string ret = "";
+  ret += to_string(timestamp) + separator;
+  ret += value;
+  return ret;
+}
+Document State::json()
+{
+  Document d;
+  d.SetObject();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+  d.AddMember("timestamp", timestamp, alloc);
+  d.AddMember("state", Value().SetString(value.c_str(), value.size(), alloc), alloc);
+  return d;
+}
+void State::serialize(devices::State* state){
+  state->set_timestamp(timestamp);
+  state->set_value(value);
+}
+
+string Ecu::get_header(string separator)
+{
+  string ret = "";
+  ret += "timestamp" + separator;
+  ret += "power request left" + separator;
+  ret += "power request right" + separator;
+  return ret;
+}
+string Ecu::get_string(string separator)
+{
+  string ret = "";
+  ret += to_string(timestamp) + separator;
+  ret += to_string(power_request_left) + separator;
+  ret += to_string(power_request_right);
+  return ret;
+}
+Document Ecu::json()
+{
+  Document d;
+  d.SetObject();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+  d.AddMember("timestamp", timestamp, alloc);
+  d.AddMember("power request left", power_request_left, alloc);
+  d.AddMember("power request right", power_request_right, alloc);
+  return d;
+}
+void Ecu::serialize(devices::Ecu* ecu){
+  ecu->set_timestamp(timestamp);
+  ecu->set_power_request(power_request_left);
+  ecu->set_power_request(power_request_right);
 }

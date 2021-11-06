@@ -4,7 +4,6 @@
 Chimera::Chimera(){
 
   // Device initialization
-  ecu = new Ecu("Ecu");
   gyro  = new Imu("Gyro");
   accel = new Imu("Accel");
   bms_lv = new Bms("BMS LV");
@@ -15,6 +14,11 @@ Chimera::Chimera(){
   encoder_right = new Encoder("Encoder Right");
   inverter_left  = new Inverter("Inverter Left");
   inverter_right = new Inverter("Inverter Right");
+  ecu_state = new State("State ECU");
+  bms_hv_state = new State("State BMS HV");
+  steering_wheel_state = new State("State Steering Wheel");
+  ecu = new Ecu("ECU");
+
 
   // Device list
   devices.push_back(gyro);
@@ -27,6 +31,9 @@ Chimera::Chimera(){
   devices.push_back(bms_hv);
   devices.push_back(pedal);
   devices.push_back(steer);
+  devices.push_back(ecu_state);
+  devices.push_back(bms_hv_state);
+  devices.push_back(steering_wheel_state);
   devices.push_back(ecu);
 
   // Protobuffer section
@@ -46,6 +53,9 @@ Chimera::Chimera(){
   proto_messages.push_back(new devices::Bms());
   proto_messages.push_back(new devices::Pedals());
   proto_messages.push_back(new devices::Steer());
+  proto_messages.push_back(new devices::State());
+  proto_messages.push_back(new devices::State());
+  proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::Ecu());
 
   if(devices.size() != proto_messages.size()){
@@ -215,6 +225,18 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         bms_hv->min_voltage = ((data[6] << 8)  +  data[7]) / 10000.0f;
         bms_hv->timestamp   =   timestamp;
         modifiedDevices.push_back(bms_hv);
+      }else if(data[0] == 0x03){
+        bms_hv_state->value = "TS ON";
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
+      }else if(data[0] == 0x04){
+        bms_hv_state->value = "TS OFF";
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
+      }else if(data[0] == 0x08){
+        bms_hv_state->value = "TS OFF ERROR";
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
       }else if(data[0] == 0x05){
         bms_hv->current = ((data[1] << 8) + data[2])/10.0f;
         bms_hv->power   =  (data[3] << 8) + data[4];
@@ -226,6 +248,14 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         bms_hv->min_temperature = ((data[5] << 8) + (data[6])) / 100.0f;
         bms_hv->timestamp       =   timestamp;
         modifiedDevices.push_back(bms_hv);
+      }else if(data[0] == 0x09){
+        bms_hv_state->value = BMS_WARNINGS[data[1]] + " -> " + to_string(data[2]);
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
+      }else if(data[0] == 0x08){
+        bms_hv_state->value = BMS_ERRORS[data[1]] + " -> " + to_string(data[2]);
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
       }
     break;
     case 0xFF:
@@ -287,6 +317,66 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         modifiedDevices.push_back(inverter_right);
       }
     break;
+    case 0xA0:
+      if(data[0] == 0x03){
+        steering_wheel_state->value = "REQUEST TS ON";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }else if(data[0] == 0x04){
+        steering_wheel_state->value = "REQUEST TO IDLE";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }else if(data[0] == 0x05){
+        steering_wheel_state->value = "REQUEST TO RUN";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }else if(data[0] == 0x06){
+        steering_wheel_state->value = "REQUEST TO SETUP";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }else if(data[0] == 0x08){
+        steering_wheel_state->value = "REQUEST INVERTER LEFT ON";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }else if(data[0] == 0x09){
+        steering_wheel_state->value = "REQUEST INVERTER RIGHT ON";
+        steering_wheel_state->timestamp = timestamp;
+        modifiedDevices.push_back(steering_wheel_state);
+      }
+    break;
+    case 0x55:
+      if(data[0] == 0x01){
+        ecu_state->value = "STATE: " + ECU_STATES[data[4]] + " Map: " + to_string(data[3]);
+        ecu_state->timestamp = timestamp;
+        modifiedDevices.push_back(ecu_state);
+      }else if(data[0] == 0x0B && data[1] == 0x04){
+        ecu_state->value = "REQUEST TS OFF";
+        ecu_state->timestamp = timestamp;
+        modifiedDevices.push_back(ecu_state);
+      }else if(data[0] == 0x0B && data[1] == 0x08){
+        ecu_state->value = "REQUEST TS OFF ERRORS";
+        ecu_state->timestamp = timestamp;
+        modifiedDevices.push_back(ecu_state);
+      }else if(data[0] == 0x0A){
+        ecu_state->value = "REQUEST TS ON";
+        ecu_state->timestamp = timestamp;
+        modifiedDevices.push_back(ecu_state);
+      }
+    break;
+    case 0x201:
+      if(data[0] == 0x90){
+        ecu->power_request_left = (data[2] << 8) + data[1];
+        ecu->timestamp = timestamp;
+        modifiedDevices.push_back(ecu);
+      }
+    break;
+    case 0x202:
+      if(data[0] == 0x90){
+        ecu->power_request_right = (data[2] << 8) + data[1];
+        ecu->timestamp = timestamp;
+        modifiedDevices.push_back(ecu);
+      }
+    break;
     default:
     break;
   }
@@ -308,6 +398,10 @@ void Chimera::serialize(){
 
   this->pedal->serialize(chimera_proto->add_pedal());
   this->steer->serialize(chimera_proto->add_steer());
+
+  this->ecu_state->serialize(chimera_proto->add_ecu_state());
+  this->bms_hv_state->serialize(chimera_proto->add_bms_hv_state());
+  this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
 
   this->ecu->serialize(chimera_proto->add_ecu());
 }
@@ -334,7 +428,13 @@ void Chimera::serialize_device(Device* device){
     this->pedal->serialize(chimera_proto->add_pedal());
   }else if(device == steer){
     this->steer->serialize(chimera_proto->add_steer());
+  }else if(device == ecu_state){
+    this->ecu_state->serialize(chimera_proto->add_ecu_state());
+  }else if(device == bms_hv_state){
+    this->bms_hv_state->serialize(chimera_proto->add_bms_hv_state());
+  }else if(device == steering_wheel_state){
+    this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
   }else if(device == ecu){
-    this->ecu->serialize(chimera_proto->add_ecu());
+    this->steering_wheel_state->serialize(chimera_proto->add_ecu_state());
   }
 }
