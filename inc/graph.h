@@ -39,8 +39,8 @@ public:
   Graph(string name = ""): UIElement(name), auto_resize(true)
   {
     std::srand(time(nullptr));
-    text_size = 0.35;
-    font = FONT_HERSHEY_DUPLEX;
+    text_size = 0.45;
+    font = FONT_HERSHEY_SIMPLEX;
   }
 
   void PushData(vector<double>& x, vector<vector<double>>& ys);

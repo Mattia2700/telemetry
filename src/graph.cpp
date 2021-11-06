@@ -131,6 +131,24 @@ void Graph::DrawAxes(Mat* img)
       1,
       LINE_8
     );
+
+    int val_y = position.y;
+    for(int i = 0; i < ys.size(); i++)
+    {
+      double val = ys[i][ys[i].size()-1];
+      s.str("");
+      s << std::fixed << val;
+      Size size = cv::getTextSize(s.str(), font, text_size, 1, 0);
+      cv::putText(*img,
+        s.str(),
+        cv::Point(position.x + position.w, val_y + size.height),
+        font,
+        text_size,
+        colors[i],
+        1,
+        LINE_AA);
+      val_y += size.height*2;
+    }
   }
 
   /*

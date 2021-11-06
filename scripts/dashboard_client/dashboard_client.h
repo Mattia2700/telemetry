@@ -9,9 +9,11 @@
 #include "Pages/Page5.h"
 #include "Pages/Page6.h"
 #include "Pages/Page7.h"
+#include "Pages/Page8.h"
 
 #include "websocket.h"
 #include <ostream>
+#include <iomanip>
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"

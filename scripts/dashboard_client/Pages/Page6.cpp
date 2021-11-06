@@ -77,7 +77,7 @@ void Page6::SetGraphData(ChimeraData* chim)
   {
     auto gyro = chim->data->gyro(i);
     x[i] = gyro.timestamp();
-
+    
     ys[0][i] = gyro.z();
   }
   gyro_graph->PushData(x, ys);

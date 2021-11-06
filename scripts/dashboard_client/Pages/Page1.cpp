@@ -16,7 +16,7 @@ Page1::Page1(string name, int w, int h): Page(name, w, h)
   pedal_graph->SetPosition(pedal_box);
   speed_graph->SetPosition(speed_box);
 
-  pedal_graph->SetLabels({"throttle1"});
+  pedal_graph->SetLabels({"throttle", "brake front"});
   speed_graph->SetLabels({"rads_left", "rads_right"});
 
   ui_elements.push_back(pedal_graph);
@@ -54,6 +54,7 @@ void Page1::SetGraphData(ChimeraData* chim)
   vector<vector<double>> ys;
 
   ys.push_back(vector<double>(pedal_size,0)); // throttle1
+  ys.push_back(vector<double>(pedal_size,0)); // bake front
 
   for(int i = 0; i < pedal_size; i++)
   {
@@ -61,6 +62,7 @@ void Page1::SetGraphData(ChimeraData* chim)
     x[i] = pedal.timestamp();
 
     ys[0][i] = pedal.throttle1();
+    ys[1][i] = pedal.brake_front();
   }
   // throttle max is 100
   pedal_graph->SetScale(0, 100);
@@ -77,7 +79,7 @@ void Page1::SetGraphData(ChimeraData* chim)
 
   x.resize(max_size);
   ys[0].resize(speed_left_size); // speed left
-  ys.push_back(vector<double>(speed_right_size,0)); // throttle1
+  ys[1].resize(speed_left_size); // speed right
 
   for(int i = 0; i < max_size; i++)
   {

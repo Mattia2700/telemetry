@@ -19,10 +19,10 @@
 using namespace std;
 using namespace cv;
 
-class Page7 : public Page
+class Page8 : public Page
 {
 public:
-  Page7(string name, int w, int h);
+  Page8(string name, int w, int h);
 
   virtual void Draw();
 private:
