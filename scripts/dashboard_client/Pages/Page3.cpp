@@ -16,17 +16,20 @@ Page3::Page3(string name, int w, int h): Page(name, w, h)
   bms_hv_graph->SetPosition(bms_hv_box);
   bms_lv_graph->SetPosition(bms_lv_box);
 
-  bms_hv_graph->SetLabels({"hv_temp", "hv_volt", "hv_current"});
+  bms_hv_graph->SetLabels({
+    "temp", "max temp", "min temp",
+    "volt", "max volt", "min volt",
+    "current", "power"});
   bms_lv_graph->SetLabels({"lv_temp", "lv_volt"});
 
   ui_elements.push_back(bms_hv_graph);
   ui_elements.push_back(bms_lv_graph);
 };
 
-void Page3::Draw()
+int Page3::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +45,7 @@ void Page3::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page3::SetGraphData(ChimeraData* chim)
@@ -53,8 +57,13 @@ void Page3::SetGraphData(ChimeraData* chim)
   vector<vector<double>> ys;
 
   ys.push_back(vector<double>(bms_hv_size, 0)); // hv_temp
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_max_temp
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_min_temp
   ys.push_back(vector<double>(bms_hv_size, 0)); // hv_volt
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_max_volt
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_min_volt
   ys.push_back(vector<double>(bms_hv_size, 0)); // hv_current
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_power
 
   for(int i = 0; i < bms_hv_size; i++)
   {
@@ -62,8 +71,13 @@ void Page3::SetGraphData(ChimeraData* chim)
     x[i] = bms_hv.timestamp();
 
     ys[0][i] = bms_hv.temperature();
-    ys[1][i] = bms_hv.voltage();
-    ys[2][i] = bms_hv.current();
+    ys[1][i] = bms_hv.max_temperature();
+    ys[2][i] = bms_hv.min_temperature();
+    ys[3][i] = bms_hv.voltage();
+    ys[4][i] = bms_hv.max_voltage();
+    ys[5][i] = bms_hv.min_voltage();
+    ys[6][i] = bms_hv.current();
+    ys[7][i] = bms_hv.power();
   }
   bms_hv_graph->PushData(x, ys);
   bms_hv_graph->SetMaxLenght(200);

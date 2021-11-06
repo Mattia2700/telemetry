@@ -46,7 +46,7 @@ void Graph::Draw(Mat* img)
     if(max < 1)
       max = 1;
     else
-      max += position.h / 20;
+      max *= 1.1;
 
     dy = -1*float(position.h) / (max * 2);
   }
@@ -93,7 +93,7 @@ void Graph::DrawAxes(Mat* img)
     if(max < 1)
       max = 1;
     else
-      max += position.h / 20;
+      max *= 1.1;
   }
   else
   {
@@ -135,6 +135,8 @@ void Graph::DrawAxes(Mat* img)
     int val_y = position.y;
     for(int i = 0; i < ys.size(); i++)
     {
+      if(i < show_line.size() && show_line[i] == false)
+        continue;
       double val = ys[i][ys[i].size()-1];
       s.str("");
       s << std::fixed << val;
@@ -205,7 +207,7 @@ void Graph::DrawAxes(Mat* img)
       cv::Point(position.x+x, position.y - 8),
       font,
       text_size*1.1,
-      colors[i],
+      show_line[i] ? colors[i] : Scalar(200,200,200,255),
       i==label_hover_idx?2:1,
       LINE_AA);
     x += size.width+5;

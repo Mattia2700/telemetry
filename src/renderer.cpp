@@ -11,8 +11,6 @@ W(w), H(h)
 
   page_idx = 0;
   frame_rate = 30;
-
-  render_thread = new thread(&Renderer::Render, this);
 }
 void Renderer::SetBackground(int R, int G, int B){
   background.setTo(cv::Scalar(R,G,B,0));
@@ -34,6 +32,8 @@ void Renderer::Pause()
 }
 void Renderer::Start()
 {
+  if(render_thread == nullptr)
+    render_thread = new thread(&Renderer::Render, this);
   pause.store(0);
 }
 void Renderer::ToggleStartStop()
@@ -112,6 +112,7 @@ void Renderer::Render()
 
   Mat* page_img = nullptr;
   uint64_t t1, t2;
+  int draw_success = 0;
   while(true)
   {
     if(pages.size() == 0 || pause == 1)
@@ -126,10 +127,19 @@ void Renderer::Render()
 
 
     current_page = pages[page_idx];
-
-    current_page->Draw();
+    try
+    {
+      draw_success = current_page->Draw();
+    }
+    catch(exception e)
+    {
+      cout << "Error on drawing frame\n" << e.what() << endl;
+      continue;
+    }
     page_img = current_page->GetImage();
-    DrawFooter(page_img);
+
+    if(draw_success)
+      DrawFooter(page_img);
 
     for(int i = 0; i < background.rows; i++)
     {
@@ -164,7 +174,7 @@ void Renderer::Render()
 void Renderer::DrawFooter(Mat* img)
 {
   int page_indicator_w = W / pages.size();
-  int page_indicator_h = H / 100;
+  int page_indicator_h = H / 50;
   for(int i = 0; i < pages.size(); i++)
   {
     cv::rectangle(*img,
@@ -173,6 +183,23 @@ void Renderer::DrawFooter(Mat* img)
 
       Scalar(255, 255, 255, 255),
       page_idx == i ? -1 : 1
+    );
+
+
+    Size size = cv::getTextSize(pages[i]->name, FONT_HERSHEY_SIMPLEX, 0.4, 1, 0);
+
+    int x = (i+0.5)*page_indicator_w - size.width/2;
+    int y = page_indicator_h - size.height/2;
+    Scalar color = page_idx == i ? cv::Scalar(50, 40, 32, 255) : cv::Scalar(255,255,255,255);
+
+    cv::putText(*img,
+      pages[i]->name,
+      cv::Point(x, y),
+      FONT_HERSHEY_SIMPLEX,
+      0.4,
+      color,
+      1,
+      LINE_AA
     );
   }
 }

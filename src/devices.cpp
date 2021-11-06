@@ -246,10 +246,17 @@ string Bms::get_header(string separator)
 {
   string ret = "";
   ret += "timestamp" + separator;
-  ret += "temperature" + separator;
+
+  ret += "avg temperature" + separator;
   ret += "max temperature" + separator;
-  ret += "voltage" + separator;
+  ret += "min temperature" + separator;
+
   ret += "current" + separator;
+
+  ret += "voltage" + separator;
+  ret += "max voltage" + separator;
+  ret += "min voltage" + separator;
+
   ret += "power";
   return ret;
 }
@@ -259,8 +266,14 @@ string Bms::get_string(string separator)
   ret += to_string(timestamp) + separator;
   ret += to_string(temperature) + separator;
   ret += to_string(max_temperature) + separator;
-  ret += to_string(voltage) + separator;
+  ret += to_string(min_temperature) + separator;
+
   ret += to_string(current) + separator;
+
+  ret += to_string(voltage) + separator;
+  ret += to_string(max_voltage) + separator;
+  ret += to_string(min_voltage) + separator;
+
   ret += to_string(power);
   return ret;
 }
@@ -270,18 +283,32 @@ Document Bms::json()
   d.SetObject();
   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   d.AddMember("timestamp", timestamp, alloc);
-  d.AddMember("temperature", temperature, alloc);
-  d.AddMember("max_temperature", temperature, alloc);
-  d.AddMember("voltage", voltage, alloc);
+
+  d.AddMember("avg_temperature", temperature, alloc);
+  d.AddMember("max_temperature", max_temperature, alloc);
+  d.AddMember("min_temperature", min_temperature, alloc);
+
   d.AddMember("current", current, alloc);
+
+  d.AddMember("voltage", voltage, alloc);
+  d.AddMember("max_voltage", max_voltage, alloc);
+  d.AddMember("min_voltage", min_voltage, alloc);
+
   d.AddMember("power", power, alloc);
   return d;
 }
 void Bms::serialize(devices::Bms* bms){
   bms->set_timestamp(timestamp);
+
   bms->set_temperature(temperature);
-  bms->set_max_temperature(max_temperature);
+  bms->set_max_temperature(min_temperature);
+  bms->set_min_temperature(max_temperature);
+
   bms->set_current(current);
+
   bms->set_voltage(voltage);
+  bms->set_max_voltage(max_voltage);
+  bms->set_min_voltage(min_voltage);
+
   bms->set_power(power);
 }

@@ -24,10 +24,10 @@ Page8::Page8(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(frequency_text_box);
 };
 
-void Page8::Draw()
+int Page8::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -35,7 +35,8 @@ void Page8::Draw()
 
   ChimeraData* chim = (ChimeraData*)current_data;
 
-  SetTextData(chim);
+  if(!SetTextData(chim))
+    return 0;
 
   value_text_box->Draw(background);
   frequency_text_box->Draw(background);
@@ -43,12 +44,13 @@ void Page8::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
-void Page8::SetTextData(ChimeraData* chim)
+int Page8::SetTextData(ChimeraData* chim)
 {
   // if(steer_size == 0)
-  //   return;
+  //   return 0;
   int size;
   double val;
   stringstream ss_val;
@@ -68,7 +70,7 @@ void Page8::SetTextData(ChimeraData* chim)
   {
     size = chim->data->inverter_left_size();
     if(size < 2)
-      return;
+      return 0;
     auto inverter = chim->data->inverter_left(size - 1);
 
     ss_val.str(" ");
@@ -95,7 +97,7 @@ void Page8::SetTextData(ChimeraData* chim)
   {
     size = chim->data->inverter_right_size();
     if(size < 2)
-      return;
+      return 0;
     auto inverter = chim->data->inverter_right(size - 1);
 
     ss_val.str(" ");
@@ -116,57 +118,56 @@ void Page8::SetTextData(ChimeraData* chim)
     frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
     frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
   }
-  /*
-  value_text_box->AppendLine({TITLE, "BSM HV", title_color});
-  frequency_text_box->AppendLine({TITLE, "BSM HV", title_color});
-  {
-    size = chim->data->bms_hv_size();
-    cout << size << endl;
-    if(size <= 1)
-      return;
-    cout << "done" << endl;
-    auto bms = chim->data->bms_hv(size - 1);
 
-    ss_val.str(" ");
-    ss_val << "temperature -> " << fixed << bms.temperature();
-    value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
-    ss_val.str(" ");
-    ss_val << "voltage     -> " << fixed << bms.voltage();
-    value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
-    ss_val.str(" ");
-    ss_val << "current     -> " << fixed << bms.current();
-    value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  // value_text_box->AppendLine({TITLE, "BSM HV", title_color});
+  // frequency_text_box->AppendLine({TITLE, "BSM HV", title_color});
+  // {
+  //   size = chim->data->bms_hv_size();
+  //   cout << size << endl;
+  //   if(size < 2)
+  //     return 0;
+  //   auto bms = chim->data->bms_hv(size - 1);
+  //
+  //   ss_val.str(" ");
+  //   ss_val << "temperature -> " << fixed << bms.temperature();
+  //   value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  //   ss_val.str(" ");
+  //   ss_val << "voltage     -> " << fixed << bms.voltage();
+  //   value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  //   ss_val.str(" ");
+  //   ss_val << "current     -> " << fixed << bms.current();
+  //   value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  //
+  //   auto bms_ = chim->data->bms_hv(0);
+  //   val = 1.0/((bms.timestamp() - bms_.timestamp())/size);
+  //   ss_freq.str(" ");
+  //   ss_freq << "Frequency [Hz] -> " << fixed << val;
+  //   frequency_text_box->AppendLine({PARAGRAPH, ss_freq.str(), text_color});
+  //   frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
+  //   frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
+  // }
 
-    auto bms_ = chim->data->bms_hv(0);
-    val = 1.0/((bms.timestamp() - bms_.timestamp())/size);
-    ss_freq.str(" ");
-    ss_freq << "Frequency [Hz] -> " << fixed << val;
-    frequency_text_box->AppendLine({PARAGRAPH, ss_freq.str(), text_color});
-    frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
-    frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
-  }
-
-  value_text_box->AppendLine({TITLE, "BMS LV", title_color});
-  frequency_text_box->AppendLine({TITLE, "BMS LV", title_color});
-  {
-    size = chim->data->bms_lv_size();
-    if(size < 2)
-      return;
-    auto bms = chim->data->bms_lv(size - 1);
-
-    ss_val.str(" ");
-    ss_val << "temperature -> " << fixed << bms.temperature();
-    value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
-    ss_val.str(" ");
-    ss_val << "voltage     -> " << fixed << bms.voltage();
-    value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
-
-    auto bms_ = chim->data->bms_lv(0);
-    val = 1.0/((bms.timestamp() - bms_.timestamp())/size);
-    ss_freq.str(" ");
-    ss_freq << "Frequency [Hz] -> " << fixed << val;
-    frequency_text_box->AppendLine({PARAGRAPH, ss_freq.str(), text_color});
-    frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
-  }
-  */
+  // value_text_box->AppendLine({TITLE, "BMS LV", title_color});
+  // frequency_text_box->AppendLine({TITLE, "BMS LV", title_color});
+  // {
+  //   size = chim->data->bms_lv_size();
+  //   if(size < 2)
+  //     return 0;
+  //   auto bms = chim->data->bms_lv(size - 1);
+  //
+  //   ss_val.str(" ");
+  //   ss_val << "temperature -> " << fixed << bms.temperature();
+  //   value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  //   ss_val.str(" ");
+  //   ss_val << "voltage     -> " << fixed << bms.voltage();
+  //   value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
+  //
+  //   auto bms_ = chim->data->bms_lv(0);
+  //   val = 1.0/((bms.timestamp() - bms_.timestamp())/size);
+  //   ss_freq.str(" ");
+  //   ss_freq << "Frequency [Hz] -> " << fixed << val;
+  //   frequency_text_box->AppendLine({PARAGRAPH, ss_freq.str(), text_color});
+  //   frequency_text_box->AppendLine({PARAGRAPH, " ", text_color});
+  // }
+  return 1;
 }

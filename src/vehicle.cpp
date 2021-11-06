@@ -119,9 +119,9 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
       if(gyro->z > 32768)
         gyro->z -= 65536;
 
-      gyro->x /= 100;
-      gyro->y /= 100;
-      gyro->z /= 100;
+      gyro->x /= 100.0f;
+      gyro->y /= 100.0f;
+      gyro->z /= 100.0f;
 
       gyro->timestamp = timestamp;
 
@@ -140,9 +140,9 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
       if(accel->z > 32768)
         accel->z -= 65536;
 
-      accel->x /= 100;
-      accel->y /= 100;
-      accel->z /= 100;
+      accel->x /= 100.0f;
+      accel->y /= 100.0f;
+      accel->z /= 100.0f;
 
       accel->timestamp = timestamp;
 
@@ -163,8 +163,8 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         pedal->brake_front = (data[2] << 8) + data[4];
         pedal->brake_rear  = (data[5] << 8) + data[7];
 
-        pedal->brake_front /= 500;
-        pedal->brake_rear /= 500;
+        pedal->brake_front /= 500.0f;
+        pedal->brake_rear /= 500.0f;
 
         modifiedDevices.push_back(pedal);
       }
@@ -173,7 +173,7 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
       if(data[0] == 0x02){
         steer->angle = (data[1] << 8) + data[2];
 
-        steer->angle /= 100;
+        steer->angle /= 100.0f;
 
         steer->timestamp = timestamp;
 
@@ -184,8 +184,8 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
       encoder_left->rads =  (data[0] << 16) + (data[1] << 8) + data[2];
       encoder_right->rads = (data[3] << 16) + (data[4] << 8) + data[5];
 
-      encoder_left->rads /= 10000;
-      encoder_right->rads /= 10000;
+      encoder_left->rads /= 10000.0f;
+      encoder_right->rads /= 10000.0f;
       if(data[6] == 1)
         encoder_left->rads *= -1;
       if(data[7] == 1)
@@ -210,17 +210,21 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
       break;
     case 0xAA:
       if(data[0] == 0x01){
-        bms_hv->voltage = ((data[1] << 16) + (data[2] << 8))/10000;
-        bms_hv->timestamp = timestamp;
+        bms_hv->voltage     = ((data[1] << 16) + (data[2] << 8) + data[3])/10000.0f;
+        bms_hv->max_voltage = ((data[4] << 8)  +  data[5]) / 10000.0f;
+        bms_hv->min_voltage = ((data[6] << 8)  +  data[7]) / 10000.0f;
+        bms_hv->timestamp   =   timestamp;
         modifiedDevices.push_back(bms_hv);
       }else if(data[0] == 0x05){
-        bms_hv->current = ((data[1] << 16) + (data[2]))/10;
-        bms_hv->power = data[3] << 8 + data[4];
+        bms_hv->current = ((data[1] << 8) + data[2])/10.0f;
+        bms_hv->power   =  (data[3] << 8) + data[4];
         bms_hv->timestamp = timestamp;
         modifiedDevices.push_back(bms_hv);
-      }else if(data[0] == 0xA0){
-        bms_hv->temperature = ((data[1] << 8) + (data[2]))/10;
-        bms_hv->timestamp = timestamp;
+      }else if(data[0] == 0x0A){
+        bms_hv->temperature     = ((data[1] << 8) + (data[2])) / 100.0f;
+        bms_hv->max_temperature = ((data[3] << 8) + (data[4])) / 100.0f;
+        bms_hv->min_temperature = ((data[5] << 8) + (data[6])) / 100.0f;
+        bms_hv->timestamp       =   timestamp;
         modifiedDevices.push_back(bms_hv);
       }
     break;

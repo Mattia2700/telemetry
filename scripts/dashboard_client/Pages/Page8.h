@@ -24,10 +24,10 @@ class Page8 : public Page
 public:
   Page8(string name, int w, int h);
 
-  virtual void Draw();
+  virtual int Draw();
 private:
 
-  void SetTextData(ChimeraData*);
+  int SetTextData(ChimeraData*);
 
   TextBox* value_text_box;
   TextBox* frequency_text_box;

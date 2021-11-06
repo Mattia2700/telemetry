@@ -23,10 +23,10 @@ Page1::Page1(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(speed_graph);
 };
 
-void Page1::Draw()
+int Page1::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +42,7 @@ void Page1::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page1::SetGraphData(ChimeraData* chim)

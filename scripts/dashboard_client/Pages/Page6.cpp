@@ -2,7 +2,7 @@
 
 Page6::Page6(string name, int w, int h): Page(name, w, h)
 {
-  steer_graph = new Graph("Angle");
+  steer_graph = new Graph("Steer");
   gyro_graph  = new Graph("Gyro");
 
   int margin = H/10;
@@ -23,10 +23,10 @@ Page6::Page6(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(gyro_graph);
 };
 
-void Page6::Draw()
+int Page6::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +42,7 @@ void Page6::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page6::SetGraphData(ChimeraData* chim)
@@ -77,7 +78,7 @@ void Page6::SetGraphData(ChimeraData* chim)
   {
     auto gyro = chim->data->gyro(i);
     x[i] = gyro.timestamp();
-    
+
     ys[0][i] = gyro.z();
   }
   gyro_graph->PushData(x, ys);

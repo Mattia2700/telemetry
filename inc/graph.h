@@ -19,9 +19,9 @@ using namespace cv;
 #include "renderer.h"
 
 static vector<Scalar> colors{
-  Scalar(25 , 225, 255, 255),
-  Scalar(48 , 130, 245, 255),
-  Scalar(240, 240, 70 , 255),
+  Scalar(25 , 255, 255, 255),
+  Scalar(58 , 140, 255, 255),
+  Scalar(250, 250, 80 , 255),
   Scalar(230, 50 , 240, 255),
   Scalar(195, 255, 170, 255),
   Scalar(255, 190, 220,255),

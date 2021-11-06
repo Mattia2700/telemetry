@@ -23,10 +23,10 @@ Page2::Page2(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(gyro_graph);
 };
 
-void Page2::Draw()
+int Page2::Draw()
 {
   if(current_data == nullptr || !Page::new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +42,7 @@ void Page2::Draw()
   mtx.unlock();
   frame_count++;
   Page::new_data = false;
+  return 1;
 }
 
 void Page2::SetAccelGyroData(ChimeraData* chim)

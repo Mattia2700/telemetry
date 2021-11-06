@@ -42,9 +42,12 @@ message Bms {
   double timestamp = 1;
   optional float temperature = 2;
   optional float max_temperature = 3;
-  optional float current = 4;
-  optional float voltage = 5;
-  optional float power = 6;
+  optional float min_temperature = 4;
+  optional float current = 5;
+  optional float voltage = 6;
+  optional float max_voltage = 7;
+  optional float min_voltage = 8;
+  optional float power = 9;
 };
 
 message Ecu {

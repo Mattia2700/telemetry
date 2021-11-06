@@ -23,10 +23,10 @@ Page5::Page5(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(brake_graph);
 };
 
-void Page5::Draw()
+int Page5::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +42,7 @@ void Page5::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page5::SetGraphData(ChimeraData* chim)

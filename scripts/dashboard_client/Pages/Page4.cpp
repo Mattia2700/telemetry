@@ -23,10 +23,10 @@ Page4::Page4(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(inv_r_graph);
 };
 
-void Page4::Draw()
+int Page4::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
   mtx.lock();
 
@@ -42,6 +42,7 @@ void Page4::Draw()
   mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page4::SetGraphData(ChimeraData* chim)

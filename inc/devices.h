@@ -199,8 +199,14 @@ public:
 
   float temperature;
   float max_temperature;
+  float min_temperature;
+
   float current;
+
   float voltage;
+  float max_voltage;
+  float min_voltage;
+  
   float power;
 };
 

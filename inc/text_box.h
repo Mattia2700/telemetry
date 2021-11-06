@@ -62,7 +62,12 @@ public:
 
   void Draw(Mat* img);
 
-  void CommandMode(char key){};
+  void CommandMode(char key){
+    if(key==27)
+    {
+      command_mode = false;
+    }
+  };
 
 protected:
   Box position;

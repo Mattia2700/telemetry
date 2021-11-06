@@ -166,10 +166,9 @@ public:
   };
   void SetData(Data* data)
   {
-    mtx.lock();
+    unique_lock<mutex> lck(mtx);
     current_data = data;
     new_data = true;
-    mtx.unlock();
   };
   void SetBackground(int R, int G, int B)
   {
@@ -178,7 +177,7 @@ public:
   };
 
 
-  virtual void Draw() = 0;
+  virtual int Draw() = 0;
   virtual void CommandMode(char c);
 
   static int instance_count;

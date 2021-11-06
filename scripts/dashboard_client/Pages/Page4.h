@@ -24,7 +24,7 @@ class Page4 : public Page
 public:
   Page4(string name, int w, int h);
 
-  virtual void Draw();
+  virtual int Draw();
 private:
 
   void SetGraphData(ChimeraData*);

@@ -25,7 +25,7 @@ class Page2 : public Page
 public:
   Page2(string name, int w, int h);
 
-  virtual void Draw();
+  virtual int Draw();
 private:
 
   void SetAccelGyroData(ChimeraData*);

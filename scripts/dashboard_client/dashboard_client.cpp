@@ -42,40 +42,41 @@ int main(int argc, char* argv[]) {
 
 
     renderer->SetBackground(50, 40, 32);
-    Page1 page1("Page1", W, H);
+    Page1 page1("Throttle-Speed", W, H);
     page1.SetData(chimera_data);
     renderer->AddPage(&page1);
 
-    Page2 page2("Page2", W, H);
+    Page2 page2("Accel-Gyro", W, H);
     page2.SetData(chimera_data);
     renderer->AddPage(&page2);
 
-    Page3 page3("Page3", W, H);
+    Page3 page3("BMS", W, H);
     page3.SetData(chimera_data);
     renderer->AddPage(&page3);
 
-    Page4 page4("Page4", W, H);
+    Page4 page4("Inverter", W, H);
     page4.SetData(chimera_data);
     renderer->AddPage(&page4);
 
-    Page5 page5("Page5", W, H);
+    Page5 page5("Throttle-Brake", W, H);
     page5.SetData(chimera_data);
     renderer->AddPage(&page5);
 
-    Page6 page6("Page6", W, H);
+    Page6 page6("Steer-Gyro", W, H);
     page6.SetData(chimera_data);
     renderer->AddPage(&page6);
 
-    Page7 page7("Page7", W, H);
+    Page7 page7("Sensors", W, H);
     page7.SetData(chimera_data);
     renderer->AddPage(&page7);
 
-    Page8 page8("Page8", W, H);
+    Page8 page8("Inverters", W, H);
     page8.SetData(chimera_data);
     renderer->AddPage(&page8);
 
     renderer->SetOnKeyPress(on_key_press);
 
+    renderer->Start();
 
 
 

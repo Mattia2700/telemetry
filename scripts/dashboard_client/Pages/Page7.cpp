@@ -24,12 +24,12 @@ Page7::Page7(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(frequency_text_box);
 };
 
-void Page7::Draw()
+int Page7::Draw()
 {
   if(current_data == nullptr || !new_data)
-    return;
+    return 0;
 
-  mtx.lock();
+  unique_lock<mutex> lck(mtx);
 
   background->setTo(background_color);
 
@@ -40,9 +40,9 @@ void Page7::Draw()
   value_text_box->Draw(background);
   frequency_text_box->Draw(background);
 
-  mtx.unlock();
   frame_count++;
   new_data = false;
+  return 1;
 }
 
 void Page7::SetTextData(ChimeraData* chim)
@@ -101,7 +101,7 @@ void Page7::SetTextData(ChimeraData* chim)
     ss_val << "rads       -> " << fixed << encoder.rads();
     value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
     ss_val.str(" ");
-    ss_val << "km         -> " << fixed << encoder.km();
+    ss_val << "meters     -> " << fixed << encoder.km();
     value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
     ss_val.str(" ");
     ss_val << "rotations  -> " << fixed << encoder.rotations();
@@ -128,7 +128,7 @@ void Page7::SetTextData(ChimeraData* chim)
     ss_val << "rads       -> " << fixed << encoder.rads();
     value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
     ss_val.str(" ");
-    ss_val << "km         -> " << fixed << encoder.km();
+    ss_val << "meters     -> " << fixed << encoder.km();
     value_text_box->AppendLine({PARAGRAPH, ss_val.str(), text_color});
     ss_val.str(" ");
     ss_val << "rotations  -> " << fixed << encoder.rotations();
