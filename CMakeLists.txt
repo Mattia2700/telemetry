@@ -130,6 +130,9 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
       scripts/dashboard_client/Pages/Page1.cpp
       scripts/dashboard_client/Pages/Page2.cpp
       scripts/dashboard_client/Pages/Page3.cpp
+      scripts/dashboard_client/Pages/Page4.cpp
+      scripts/dashboard_client/Pages/Page5.cpp
+      scripts/dashboard_client/Pages/Page6.cpp
     )
     target_link_libraries(dashboard_client
       ${Protobuf_LIBRARIES}

@@ -45,9 +45,11 @@ struct Box
 class Graph : public UIElement
 {
 public:
-  Graph(string name = ""): UIElement(name), auto_resize(false)
+  Graph(string name = ""): UIElement(name), auto_resize(true)
   {
     std::srand(time(nullptr));
+    text_size = 0.35;
+    font = FONT_HERSHEY_SIMPLEX;
   }
 
   void PushData(vector<double>& x, vector<vector<double>>& ys);
@@ -66,6 +68,8 @@ private:
   void CheckLength(vector<double>* to_check);
   void DrawAxes(Mat* img);
   Scalar GenerateColor();
+
+  double FindMaximum();
 
   virtual void CommandMode(char);
 
@@ -89,4 +93,7 @@ private:
   vector<Scalar> line_colors;
   vector<bool> show_line;
   int label_hover_idx=-1;
+
+  float text_size;
+  HersheyFonts font;
 };

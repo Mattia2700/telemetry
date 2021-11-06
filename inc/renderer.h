@@ -13,6 +13,7 @@
 #include <opencv2/videoio.hpp>
 
 #include "devices.pb.h"
+#include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
 
@@ -61,6 +62,8 @@ public:
 
   devices::Chimera* data = nullptr;
 };
+
+
 
 
 class Renderer

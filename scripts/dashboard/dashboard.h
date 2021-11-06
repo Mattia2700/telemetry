@@ -37,6 +37,7 @@ using namespace boost::filesystem;
 
 Chimera chimera;
 
+// string uri = "ws://localhost:8080";
 string uri = "ws://localhost:8080";
 
 string serialized_string;

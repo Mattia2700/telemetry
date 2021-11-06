@@ -52,26 +52,19 @@ int main(){
     if(duration_cast<duration<double, milli>>(steady_clock::now() - start_time).count() > TIMEOUT){
       start_time = steady_clock::now();
       chimera.serialized_to_string(&serialized_string);
+
       if(serialized_string.size() == 0)
         continue;
+
       sb.Clear();
       w.Reset(sb);
       d.SetObject();
       d.AddMember("type", Value().SetString("update_data"), alloc);
-      d.AddMember("data", Value().SetString(StringRef(serialized_string.c_str())), alloc);
+      d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
       d.Accept(w);
+
       c.set_data(sb.GetString());
       chimera.clear_serialized();
-
-      devices::Chimera* chimera_proto = new devices::Chimera();
-      Value::MemberIterator itr = d.FindMember("data");
-      string n = itr->name.GetString();
-      Value& v = itr->value;
-      chimera_proto->ParseFromString(v.GetString());
-      string out;
-      TextFormat::PrintToString(*chimera_proto, &out);
-      cout << out << endl;
-      delete chimera_proto;
     }
   }
   return  0;

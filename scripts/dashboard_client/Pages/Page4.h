@@ -19,10 +19,10 @@
 using namespace std;
 using namespace cv;
 
-class Page3 : public Page
+class Page4 : public Page
 {
 public:
-  Page3(string name, int w, int h);
+  Page4(string name, int w, int h);
 
   virtual void Draw();
 private:
@@ -31,8 +31,8 @@ private:
 
   int graph_line_size = 1;
 
-  Graph* bms_hv_graph;
-  Graph* bms_lv_graph;
+  Graph* inv_l_graph;
+  Graph* inv_r_graph;
 
   uint64_t frame_count=0;
 };

@@ -34,12 +34,30 @@ void Graph::Draw(Mat* img)
   }
 
   float dx = 0.0;
-  float dy = float(position.h) / (scaleY * 2)*-1;
+  float dy = 0.0;
 
   float cx = position.x;
   float cy = position.y + position.h/2;
 
+  double max;
+  if(auto_resize)
+  {
+    max = FindMaximum();
+    if(max < 1)
+      max = 1;
+    else
+      max += position.h / 20;
 
+
+
+    dy = -1*float(position.h) / (max * 2);
+  }
+  else
+  {
+    dy = -1*float(position.h) / (scaleY * 2);
+  }
+
+  dx = float(position.w) / x.size();
   for(int i = 0; i < ys.size(); i++)
   {
     if(i < show_line.size() && show_line[i] == false)
@@ -47,8 +65,6 @@ void Graph::Draw(Mat* img)
 
     if(colors.size() <= i)
       colors.push_back(GenerateColor());
-
-    dx = float(position.w) / ys[i].size();
 
     for(int j = 1; j < ys[i].size(); j++)
     {
@@ -69,21 +85,37 @@ void Graph::DrawAxes(Mat* img)
   if(scale > 15)
     scale = 10;
 
-  float text_size = 0.35;
-  auto font = FONT_HERSHEY_SIMPLEX;
-
   float dx = float(position.w) / x.size();
-  float dy = float(position.h) / (scale * 2)*-1;
+  float dy = 0.0;
 
+  double max;
+  if(auto_resize)
+  {
+    max = FindMaximum();
+    if(max < 1)
+      max = 1;
+    else
+      max += position.h / 20;
+  }
+  else
+  {
+    max = scaleY;
+  }
+
+  int number_of_lines = 10;
   float cx = position.x;
   float cy = position.y + position.h/2;
+  dy = -1 * position.h / (number_of_lines*2);
 
+  /*
+    ---- Y ----
+  */
   stringstream s;
   s.precision(2);
-  for(int i = -scale; i <= scale; i++)
+  for(int i = -number_of_lines; i <= number_of_lines; i++)
   {
     s.str("");
-    s << std::fixed << (scaleY/scale * i);
+    s << std::fixed << (max/number_of_lines * i);
     Size size = cv::getTextSize(s.str(), font, text_size, 1, 0);
     cv::putText(*img,
       s.str(),
@@ -103,13 +135,17 @@ void Graph::DrawAxes(Mat* img)
     );
   }
 
+  /*
+    ---- X ----
+  */
   int x_sections = 10;
   int jump = (x.size()-1) / x_sections;
   dx = float(position.w) / x_sections;
+  offset_x = x[0];
   for(int i = 0; i < x_sections; i++)
   {
     s.str("");
-    s << std::fixed << (x[i] - offset_x);
+    s << std::fixed << (x[i * jump] - offset_x);
     Size size = cv::getTextSize(s.str(), font, text_size, 1, 0);
     cv::putText(*img,
       s.str(),
@@ -129,26 +165,30 @@ void Graph::DrawAxes(Mat* img)
     );
   }
 
-  text_size = 0.7;
-  Size title_size = cv::getTextSize(name, font, text_size, 2, 0);
+  /*
+    ---- Name ----
+  */
+  Size title_size = cv::getTextSize(name, font, text_size*1.7, 2, 0);
   cv::putText(*img,
     name,
     cv::Point(position.x, position.y - 8),
     font,
-    text_size,
+    text_size*1.7,
     cv::Scalar(255,255,255, 255),
     1,
     LINE_AA);
+  /*
+    ---- Labels ----
+  */
   int x = title_size.width;
-  text_size = 0.45;
   for(int i = 0; i < labels.size(); i++)
   {
-    Size size = cv::getTextSize(labels[i], font, text_size, 1, 0);
+    Size size = cv::getTextSize(labels[i], font, text_size*1.1, 1, 0);
     cv::putText(*img,
       labels[i],
       cv::Point(position.x+x, position.y - 8),
       font,
-      text_size,
+      text_size*1.1,
       colors[i],
       i==label_hover_idx?2:1,
       LINE_AA);
@@ -232,4 +272,24 @@ void Graph::CommandMode(char c)
       command_mode = false;
     break;
   }
+}
+
+double Graph::FindMaximum()
+{
+  double max = 0, min_, max_;
+  for(int i = 0; i < ys.size(); i++)
+  {
+    if(!show_line[i])
+      continue;
+
+    min_ = fabs(*min_element(ys[i].begin(), ys[i].end()));
+    max_ = fabs(*max_element(ys[i].begin(), ys[i].end()));
+
+    if(min_ > max_)
+      max_ = min_;
+
+    if(max < max_)
+      max = max_;
+  }
+  return max;
 }

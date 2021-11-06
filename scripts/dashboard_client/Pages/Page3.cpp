@@ -2,25 +2,25 @@
 
 Page3::Page3(string name, int w, int h): Page(name, w, h)
 {
-  bms_graph = new Graph("BMS");
-  inv_graph  = new Graph("Inveter");
+  bms_hv_graph = new Graph("BMS HV");
+  bms_lv_graph  = new Graph("BMS LV");
 
   int margin = H/10;
   int graph_height = H/2 - margin*3/2;
 
-  Box bms_box{margin, margin,
+  Box bms_hv_box{margin, margin,
                 W - 2 * margin, graph_height};
-  Box inv_box{margin, graph_height + 2 * margin,
+  Box bms_lv_box{margin, graph_height + 2 * margin,
                 W - 2 * margin, graph_height};
 
-  bms_graph->SetPosition(bms_box);
-  inv_graph->SetPosition(inv_box);
+  bms_hv_graph->SetPosition(bms_hv_box);
+  bms_lv_graph->SetPosition(bms_lv_box);
 
-  bms_graph->SetLabels({"lv_temp", "hv_temp", "lv_volt", "hv_volt", "hv_current"});
+  bms_hv_graph->SetLabels({"hv_temp", "hv_volt", "hv_current"});
+  bms_lv_graph->SetLabels({"lv_temp", "lv_volt"});
 
-  inv_graph->SetLabels({"right_temp", "left_temp", "right_motor_temp", "left_motor_temp"});
-  ui_elements.push_back(bms_graph);
-  ui_elements.push_back(inv_graph);
+  ui_elements.push_back(bms_hv_graph);
+  ui_elements.push_back(bms_lv_graph);
 };
 
 void Page3::Draw()
@@ -36,8 +36,8 @@ void Page3::Draw()
 
   SetGraphData(chim);
 
-  bms_graph->Draw(background);
-  inv_graph->Draw(background);
+  bms_hv_graph->Draw(background);
+  bms_lv_graph->Draw(background);
 
   mtx.unlock();
   frame_count++;
@@ -46,103 +46,41 @@ void Page3::Draw()
 void Page3::SetGraphData(ChimeraData* chim)
 {
 
-  int bms_lv_size = chim->data->bms_lv_size();
   int bms_hv_size = chim->data->bms_hv_size();
-  int max_size = bms_lv_size > bms_hv_size ? bms_lv_size : bms_hv_size;
-  if(max_size == 0)
-    return;
 
+  vector<double> x(bms_hv_size, 0);
+  vector<vector<double>> ys;
+
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_temp
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_volt
+  ys.push_back(vector<double>(bms_hv_size, 0)); // hv_current
+
+  for(int i = 0; i < bms_hv_size; i++)
   {
-    vector<double> x(max_size, 0);
-    vector<vector<double>> ys;
+    auto bms_hv = chim->data->bms_hv(i);
+    x[i] = bms_hv.timestamp();
 
-    ys.push_back(vector<double>(bms_lv_size, 0)); // lv_temp
-    ys.push_back(vector<double>(bms_hv_size, 0)); // hv_temp
-    ys.push_back(vector<double>(bms_lv_size, 0)); // lv_volt
-    ys.push_back(vector<double>(bms_hv_size, 0)); // hv_volt
-    ys.push_back(vector<double>(bms_hv_size, 0)); // hv_current
-
-
-    for(int i = 0; i < max_size; i++)
-    {
-      if(i < chim->data->bms_lv_size())
-      {
-        auto bms_lv = chim->data->bms_lv(i);
-        ys[0][i] = bms_lv.temperature();
-        ys[2][i] = bms_lv.voltage();
-
-        if(max_size == bms_lv_size)
-          x[i] = bms_lv.timestamp();
-      }
-      if(i < chim->data->bms_hv_size())
-      {
-        auto bms_hv = chim->data->bms_hv(i);
-        ys[1][i] = bms_hv.temperature();
-        ys[3][i] = bms_hv.voltage();
-        ys[4][i] = bms_hv.current();
-
-        if(max_size == bms_hv_size)
-          x[i] = bms_hv.timestamp();
-      }
-    }
-    // throttle max is 100
-    bms_graph->SetScale(0, 50);
-    bms_graph->PushData(x, ys);
-    bms_graph->SetMaxLenght(200);
-    if(frame_count <= 2){
-      if(chim->data->bms_hv_size() > 0)
-        bms_graph->SetOffsetX(chim->data->bms_hv(0).timestamp());
-      else if(chim->data->bms_lv_size() > 0)
-        bms_graph->SetOffsetX(chim->data->bms_lv(0).timestamp());
-    }
+    ys[0][i] = bms_hv.temperature();
+    ys[1][i] = bms_hv.voltage();
+    ys[2][i] = bms_hv.current();
   }
+  bms_hv_graph->PushData(x, ys);
+  bms_hv_graph->SetMaxLenght(200);
 
+  int bms_lv_size = chim->data->bms_lv_size();
+  x.resize(bms_lv_size);
+  ys.resize(2);
+  ys[0].resize(bms_lv_size); // lv_temp
+  ys[1].resize(bms_lv_size); // lv_volt
 
-  int inverter_left_size = chim->data->inverter_left_size();
-  int inverter_right_size = chim->data->inverter_right_size();
-  max_size = inverter_left_size > inverter_right_size ? inverter_left_size : inverter_right_size;
-  if(max_size == 0)
-    return;
-
+  for(int i = 0; i < bms_lv_size; i++)
   {
-    vector<double> x(max_size, 0);
-    vector<vector<double>> ys;
-    ys.push_back(vector<double>(inverter_left_size, 0)); // inv_l_temp
-    ys.push_back(vector<double>(inverter_right_size, 0)); // inv_r_temp
-    ys.push_back(vector<double>(inverter_left_size, 0)); // inv_l_motor_temp
-    ys.push_back(vector<double>(inverter_right_size, 0)); // inv_r_motor_temp
+    auto bms_lv = chim->data->bms_lv(i);
+    x[i] = bms_lv.timestamp();
 
-
-    for(int i = 0; i < max_size; i++)
-    {
-      if(i < chim->data->inverter_left_size())
-      {
-        auto inverter_left = chim->data->inverter_left(i);
-        ys[0][i] = inverter_left.temperature();
-        ys[2][i] = inverter_left.motor_temp();
-
-        if(max_size == inverter_left_size)
-          x[i] = inverter_left.timestamp();
-      }
-      if(i < chim->data->inverter_right_size())
-      {
-        auto inverter_right = chim->data->inverter_right(i);
-        ys[1][i] = inverter_right.temperature();
-        ys[3][i] = inverter_right.motor_temp();
-
-        if(max_size == inverter_right_size)
-          x[i] = inverter_right.timestamp();
-      }
-    }
-    // throttle max is 100
-    inv_graph->SetScale(0, 50);
-    inv_graph->PushData(x, ys);
-    inv_graph->SetMaxLenght(200);
-    if(frame_count <= 2){
-      if(chim->data->inverter_right_size() > 0)
-        inv_graph->SetOffsetX(chim->data->inverter_right(0).timestamp());
-      else if(chim->data->inverter_left_size() > 0)
-        inv_graph->SetOffsetX(chim->data->inverter_left(0).timestamp());
-    }
+    ys[0][i] = bms_lv.temperature();
+    ys[1][i] = bms_lv.voltage();
   }
+  bms_lv_graph->PushData(x, ys);
+  bms_lv_graph->SetMaxLenght(100);
 }

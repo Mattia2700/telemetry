@@ -54,6 +54,18 @@ int main(int argc, char* argv[]) {
     page3->SetData(chimera_data);
     renderer->AddPage(page3);
 
+    page4 = new Page4("Page4", W, H);
+    page4->SetData(chimera_data);
+    renderer->AddPage(page4);
+
+    page5 = new Page5("Page5", W, H);
+    page5->SetData(chimera_data);
+    renderer->AddPage(page5);
+
+    page6 = new Page6("Page6", W, H);
+    page6->SetData(chimera_data);
+    renderer->AddPage(page6);
+
     renderer->SetOnKeyPress(on_key_press);
 
 
@@ -74,6 +86,8 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
   StringBuffer sb;
   Writer<StringBuffer> w(sb);
   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+  chimera_proto->Clear();
 
   d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
   if(d["type"] == "update_data"){
