@@ -25,7 +25,7 @@ Page2::Page2(string name, int w, int h): Page(name, w, h)
 
 void Page2::Draw()
 {
-  if(current_data == nullptr)
+  if(current_data == nullptr || !Page::new_data)
     return;
 
   mtx.lock();
@@ -41,6 +41,7 @@ void Page2::Draw()
 
   mtx.unlock();
   frame_count++;
+  Page::new_data = false;
 }
 
 void Page2::SetAccelGyroData(ChimeraData* chim)
@@ -65,23 +66,15 @@ void Page2::SetAccelGyroData(ChimeraData* chim)
     ys[1][i] = accel.y();
     ys[2][i] = accel.z();
   }
-  accel_graph->SetScale(0, chim->data->accel(0).scale());
   accel_graph->PushData(x, ys);
-  if(frame_count == 2)
-    accel_graph->SetOffsetX(chim->data->accel(0).timestamp());
 
 
   int gyro_size = chim->data->gyro_size();
   if(gyro_size == 0)
     return;
 
-  try{
-    x.resize(gyro_size);
-  }catch(exception e)
-  {
-    cout << e.what() << endl;
-    return;
-  }
+
+  x.resize(gyro_size);
   ys[0].resize(gyro_size);
   ys[1].resize(gyro_size);
   ys[2].resize(gyro_size);
@@ -95,8 +88,5 @@ void Page2::SetAccelGyroData(ChimeraData* chim)
     ys[1][i] = gyro.y();
     ys[2][i] = gyro.z();
   }
-  gyro_graph->SetScale(0, chim->data->gyro(0).scale());
   gyro_graph->PushData(x, ys);
-  if(frame_count == 2)
-    gyro_graph->SetOffsetX(chim->data->gyro(0).timestamp());
 }

@@ -28,6 +28,14 @@ using namespace std::chrono;
 using namespace google::protobuf;
 using namespace google::protobuf::util;
 
+struct Box
+{
+  int x;
+  int y;
+  int w;
+  int h;
+};
+
 class Data{};
 class Page;
 
@@ -141,7 +149,7 @@ private:
 class Page : public UIElement
 {
 public:
-  Page(string name, int w, int h):UIElement(name),W(w),H(h)
+  Page(string name, int w, int h):UIElement(name),W(w),H(h), new_data(false)
   {
     background_color = cv::Scalar(0, 0, 0, 0);
     background = new Mat(h, w, CV_8UC4, background_color);
@@ -160,6 +168,7 @@ public:
   {
     mtx.lock();
     current_data = data;
+    new_data = true;
     mtx.unlock();
   };
   void SetBackground(int R, int G, int B)
@@ -176,6 +185,7 @@ public:
 protected:
   Mat* background;
   Data* current_data = nullptr;
+  bool new_data;
 
   Scalar background_color;
 

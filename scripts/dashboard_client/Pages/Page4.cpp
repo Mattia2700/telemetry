@@ -25,7 +25,7 @@ Page4::Page4(string name, int w, int h): Page(name, w, h)
 
 void Page4::Draw()
 {
-  if(current_data == nullptr)
+  if(current_data == nullptr || !new_data)
     return;
 
   mtx.lock();
@@ -41,6 +41,7 @@ void Page4::Draw()
 
   mtx.unlock();
   frame_count++;
+  new_data = false;
 }
 
 void Page4::SetGraphData(ChimeraData* chim)

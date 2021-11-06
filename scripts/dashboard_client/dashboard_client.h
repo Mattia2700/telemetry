@@ -8,6 +8,7 @@
 #include "Pages/Page4.h"
 #include "Pages/Page5.h"
 #include "Pages/Page6.h"
+#include "Pages/Page7.h"
 
 #include "websocket.h"
 #include <ostream>
@@ -25,18 +26,11 @@ using namespace google::protobuf::util;
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
+Renderer* renderer;
 ChimeraData* chimera_data;
 devices::Chimera* chimera_proto;
 
-Page1* page1;
-Page2* page2;
-Page3* page3;
-Page4* page4;
-Page5* page5;
-Page6* page6;
-Renderer* renderer;
-
-int W = 800, H = 800;
+int W = 1280, H = 900;
 // std::string uri = "ws://192.168.195.3:8080";
 std::string uri = "ws://127.0.0.1:8080";
 

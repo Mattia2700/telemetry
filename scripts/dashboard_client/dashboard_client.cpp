@@ -42,29 +42,33 @@ int main(int argc, char* argv[]) {
 
 
     renderer->SetBackground(50, 40, 32);
-    page1 = new Page1("Page1", W, H);
-    page1->SetData(chimera_data);
-    renderer->AddPage(page1);
+    Page1 page1("Page1", W, H);
+    page1.SetData(chimera_data);
+    renderer->AddPage(&page1);
 
-    page2 = new Page2("Page2", W, H);
-    page2->SetData(chimera_data);
-    renderer->AddPage(page2);
+    Page2 page2("Page2", W, H);
+    page2.SetData(chimera_data);
+    renderer->AddPage(&page2);
 
-    page3 = new Page3("Page3", W, H);
-    page3->SetData(chimera_data);
-    renderer->AddPage(page3);
+    Page3 page3("Page3", W, H);
+    page3.SetData(chimera_data);
+    renderer->AddPage(&page3);
 
-    page4 = new Page4("Page4", W, H);
-    page4->SetData(chimera_data);
-    renderer->AddPage(page4);
+    Page4 page4("Page4", W, H);
+    page4.SetData(chimera_data);
+    renderer->AddPage(&page4);
 
-    page5 = new Page5("Page5", W, H);
-    page5->SetData(chimera_data);
-    renderer->AddPage(page5);
+    Page5 page5("Page5", W, H);
+    page5.SetData(chimera_data);
+    renderer->AddPage(&page5);
 
-    page6 = new Page6("Page6", W, H);
-    page6->SetData(chimera_data);
-    renderer->AddPage(page6);
+    Page6 page6("Page6", W, H);
+    page6.SetData(chimera_data);
+    renderer->AddPage(&page6);
+
+    Page7 page7("Page7", W, H);
+    page7.SetData(chimera_data);
+    renderer->AddPage(&page7);
 
     renderer->SetOnKeyPress(on_key_press);
 

@@ -14,25 +14,22 @@
 #include "devices.pb.h"
 
 #include "renderer.h"
-#include "graph.h"
+#include "text_box.h"
 
 using namespace std;
 using namespace cv;
 
-class Page6 : public Page
+class Page7 : public Page
 {
 public:
-  Page6(string name, int w, int h);
+  Page7(string name, int w, int h);
 
   virtual void Draw();
 private:
 
-  void SetGraphData(ChimeraData*);
+  void SetTextData(ChimeraData*);
 
-  int graph_line_size = 1;
-
-  Graph* steer_graph;
-  Graph* gyro_graph;
+  TextBox* text_box;
 
   uint64_t frame_count=0;
 };

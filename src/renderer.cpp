@@ -89,7 +89,9 @@ void Renderer::MoveToIndex(int idx)
 
 Page* Renderer::GetPage(int idx)
 {
-  if(idx < 0 || idx > pages.size()-1)
+  if(idx < 0)
+    return pages[page_idx];
+  else if(idx > pages.size()-1)
     return pages.back();
   else
     return pages[idx];

@@ -125,14 +125,18 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
   if(OpenCV_FOUND)
     add_executable(dashboard_client
       scripts/dashboard_client/dashboard_client.cpp
+
       src/renderer.cpp
+      src/text_box.cpp
       src/graph.cpp
+
       scripts/dashboard_client/Pages/Page1.cpp
       scripts/dashboard_client/Pages/Page2.cpp
       scripts/dashboard_client/Pages/Page3.cpp
       scripts/dashboard_client/Pages/Page4.cpp
       scripts/dashboard_client/Pages/Page5.cpp
       scripts/dashboard_client/Pages/Page6.cpp
+      scripts/dashboard_client/Pages/Page7.cpp
     )
     target_link_libraries(dashboard_client
       ${Protobuf_LIBRARIES}

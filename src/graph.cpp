@@ -48,8 +48,6 @@ void Graph::Draw(Mat* img)
     else
       max += position.h / 20;
 
-
-
     dy = -1*float(position.h) / (max * 2);
   }
   else

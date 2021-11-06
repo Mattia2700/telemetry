@@ -3,29 +3,29 @@
 Page6::Page6(string name, int w, int h): Page(name, w, h)
 {
   steer_graph = new Graph("Angle");
-  //brake_graph  = new Graph("Brake");
+  gyro_graph  = new Graph("Gyro");
 
   int margin = H/10;
   int graph_height = H/2 - margin*3/2;
 
   Box throttle_box{margin, margin,
                 W - 2 * margin, graph_height};
-  //Box brake_box{margin, graph_height + 2 * margin,
-  //              W - 2 * margin, graph_height};
+  Box gyro_box{margin, graph_height + 2 * margin,
+               W - 2 * margin, graph_height};
 
   steer_graph->SetPosition(throttle_box);
-  //brake_graph->SetPosition(brake_box);
+  gyro_graph->SetPosition(gyro_box);
 
   steer_graph->SetLabels({"angle"});
-  //brake_graph->SetLabels({"brake_front", "brake_rear"});
+  gyro_graph->SetLabels({"z"});
 
   ui_elements.push_back(steer_graph);
-  //ui_elements.push_back(brake_graph);
+  ui_elements.push_back(gyro_graph);
 };
 
 void Page6::Draw()
 {
-  if(current_data == nullptr)
+  if(current_data == nullptr || !new_data)
     return;
 
   mtx.lock();
@@ -37,10 +37,11 @@ void Page6::Draw()
   SetGraphData(chim);
 
   steer_graph->Draw(background);
-  //brake_graph->Draw(background);
+  gyro_graph->Draw(background);
 
   mtx.unlock();
   frame_count++;
+  new_data = false;
 }
 
 void Page6::SetGraphData(ChimeraData* chim)
@@ -62,4 +63,22 @@ void Page6::SetGraphData(ChimeraData* chim)
     ys[0][i] = steer.angle();
   }
   steer_graph->PushData(x, ys);
+
+
+  int gyro_size = chim->data->gyro_size();
+  if(gyro_size == 0)
+    return;
+
+
+  x.resize(gyro_size);
+  ys[0].resize(gyro_size);
+
+  for(int i = 0; i < gyro_size; i++)
+  {
+    auto gyro = chim->data->gyro(i);
+    x[i] = gyro.timestamp();
+
+    ys[0][i] = gyro.z();
+  }
+  gyro_graph->PushData(x, ys);
 }

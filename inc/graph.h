@@ -11,7 +11,6 @@
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <opencv2/videoio.hpp>
 
 using namespace std;
 using namespace cv;
@@ -33,14 +32,6 @@ static vector<Scalar> colors{
   Scalar(0  , 128, 128, 255),
 };
 
-struct Box
-{
-  int x;
-  int y;
-  int w;
-  int h;
-};
-
 
 class Graph : public UIElement
 {
@@ -49,7 +40,7 @@ public:
   {
     std::srand(time(nullptr));
     text_size = 0.35;
-    font = FONT_HERSHEY_SIMPLEX;
+    font = FONT_HERSHEY_DUPLEX;
   }
 
   void PushData(vector<double>& x, vector<vector<double>>& ys);
