@@ -69,6 +69,7 @@ public:
     // The open handler will signal that we are ready to start sending telemetry
     void on_open(websocketpp::connection_hdl) {
         scoped_lock guard(m_lock);
+        cout << "\n\n\n" << flush;
         m_open = true;
     }
 

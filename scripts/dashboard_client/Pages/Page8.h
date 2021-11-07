@@ -31,6 +31,13 @@ private:
 
   TextBox* value_text_box;
   TextBox* frequency_text_box;
+  TextBox* ecu_state_text_box;
+  TextBox* bms_state_text_box;
+  TextBox* steer_state_text_box;
 
   uint64_t frame_count=0;
+
+  string last_ecu_state = "";
+  string last_bms_state = "";
+  string last_steer_state = "";
 };

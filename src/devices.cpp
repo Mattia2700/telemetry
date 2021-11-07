@@ -347,6 +347,6 @@ Document Ecu::json()
 }
 void Ecu::serialize(devices::Ecu* ecu){
   ecu->set_timestamp(timestamp);
-  ecu->set_power_request(power_request_left);
-  ecu->set_power_request(power_request_right);
+  ecu->set_power_request_left(power_request_left);
+  ecu->set_power_request_right(power_request_right);
 }

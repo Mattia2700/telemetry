@@ -74,6 +74,19 @@ int main(){
         chimera.clear_serialized();
       }
     }
+    chimera.serialized_to_string(&serialized_string);
+
+    if(serialized_string.size() == 0)
+      continue;
+    sb.Clear();
+    w.Reset(sb);
+    d.SetObject();
+    d.AddMember("type", Value().SetString("update_data"), alloc);
+    d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
+    d.Accept(w);
+
+    c.set_data(sb.GetString());
+    chimera.clear_serialized();
   }
 
   return  0;

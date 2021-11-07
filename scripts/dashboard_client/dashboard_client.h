@@ -39,3 +39,5 @@ std::string uri = "ws://127.0.0.1:8080";
 void on_key_press(char);
 
 void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+
+string HumanReadable(uintmax_t size);

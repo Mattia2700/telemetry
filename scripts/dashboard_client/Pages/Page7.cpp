@@ -7,14 +7,14 @@ Page7::Page7(string name, int w, int h): Page(name, w, h)
   Box pos1{
     margin,
     margin,
-    W/2 - margin,
-    H - margin
+    W/2 - 2*margin,
+    H - 2*margin
   };
   Box pos2{
     W/2 + margin,
     margin,
-    W/2 - margin,
-    H - margin
+    W/2 - 2*margin,
+    H - 2*margin
   };
 
   value_text_box = new TextBox("Sensor Values", pos1);

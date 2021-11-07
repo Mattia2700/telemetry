@@ -57,6 +57,7 @@ public:
 
   void SetLines(const vector<Text>& text_);
   void AppendLine(const Text& line_);
+  void SetMaxLines(int max_lines=-1);
 
   void Clear();
 
@@ -78,4 +79,8 @@ private:
   void WrapLine(Text& line);
   cv::Size GetCharSize(TextType type);
   cv::Size GetTextSize(const Text& line);
+
+  void CheckLinesSize();
+
+  int max_lines = -1;
 };

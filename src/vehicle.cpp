@@ -233,8 +233,12 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         bms_hv_state->value = "TS OFF";
         bms_hv_state->timestamp = timestamp;
         modifiedDevices.push_back(bms_hv_state);
+      }else if(data[0] == 0x09){
+        bms_hv_state->value = BMS_WARNINGS[data[1]] + " -> " + to_string(data[2]);
+        bms_hv_state->timestamp = timestamp;
+        modifiedDevices.push_back(bms_hv_state);
       }else if(data[0] == 0x08){
-        bms_hv_state->value = "TS OFF ERROR";
+        bms_hv_state->value = BMS_ERRORS[data[1]] + " -> " + to_string(data[2]);
         bms_hv_state->timestamp = timestamp;
         modifiedDevices.push_back(bms_hv_state);
       }else if(data[0] == 0x05){
@@ -248,14 +252,6 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
         bms_hv->min_temperature = ((data[5] << 8) + (data[6])) / 100.0f;
         bms_hv->timestamp       =   timestamp;
         modifiedDevices.push_back(bms_hv);
-      }else if(data[0] == 0x09){
-        bms_hv_state->value = BMS_WARNINGS[data[1]] + " -> " + to_string(data[2]);
-        bms_hv_state->timestamp = timestamp;
-        modifiedDevices.push_back(bms_hv_state);
-      }else if(data[0] == 0x08){
-        bms_hv_state->value = BMS_ERRORS[data[1]] + " -> " + to_string(data[2]);
-        bms_hv_state->timestamp = timestamp;
-        modifiedDevices.push_back(bms_hv_state);
       }
     break;
     case 0xFF:
@@ -435,6 +431,6 @@ void Chimera::serialize_device(Device* device){
   }else if(device == steering_wheel_state){
     this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
   }else if(device == ecu){
-    this->steering_wheel_state->serialize(chimera_proto->add_ecu_state());
+    this->ecu->serialize(chimera_proto->add_ecu());
   }
 }

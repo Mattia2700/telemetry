@@ -4,11 +4,13 @@
 void TextBox::SetLines(const vector<Text>& text_)
 {
   text.insert(text.end(), text_.begin(), text_.end());
+  CheckLinesSize();
 }
 
 void TextBox::AppendLine(const Text& line)
 {
   text.push_back(line);
+  CheckLinesSize();
 }
 
 void TextBox::Draw(Mat* img)
@@ -17,6 +19,27 @@ void TextBox::Draw(Mat* img)
   float y = position.y;
   float max_x = x + position.w;
   float max_y = y + position.h;
+
+  cv::rectangle(*img,
+    Point(x, y),
+    Point(max_x, max_y),
+    Scalar(255, 255, 255, 255),
+    1
+  );
+
+  y += GetCharSize(TITLE).height*1.5;
+  int name_x = x + position.w/2 - GetTextSize(Text{TITLE, name}).width / 2;
+  cv::putText(*img,
+    name,
+    cv::Point(name_x, y),
+    BASE_FONT_TYPE,
+    FONT_SIZES[TITLE],
+    Scalar(250, 250, 80 , 255),
+    1,
+    LINE_AA);
+
+  x += GetCharSize(TITLE).width*1.5;
+  y += GetCharSize(TITLE).height*1.5;
 
   for(int i = 0; i < text.size(); i++)
   {
@@ -27,7 +50,7 @@ void TextBox::Draw(Mat* img)
 
     cv::putText(*img,
       line.content,
-      cv::Point(position.x, y),
+      cv::Point(x, y),
       BASE_FONT_TYPE,
       FONT_SIZES[line.type],
       line.color,
@@ -95,4 +118,15 @@ cv::Size TextBox::GetTextSize(const Text& line)
 void TextBox::Clear()
 {
   text.clear();
+}
+
+void TextBox::SetMaxLines(int max_lines_)
+{
+  max_lines = max_lines_;
+}
+
+void TextBox::CheckLinesSize()
+{
+  if(text.size() > max_lines && max_lines > 0)
+    text.erase(text.begin(), text.begin() + (text.size() - max_lines));
 }

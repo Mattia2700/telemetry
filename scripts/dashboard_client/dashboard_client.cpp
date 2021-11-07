@@ -122,9 +122,16 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
       double timestamp_received = chimera_proto->encoder_right(size-1).timestamp();
       double timestamp = duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
 
-      cout << "\rEstimated latency: " << std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
+      cout << "\rPacket Size: " << HumanReadable(msg->get_payload().size()) << " Estimated latency: " << std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
     }
-
-
   }
+}
+
+
+string HumanReadable(uintmax_t size){
+  auto mantissa = size;
+  int i{};
+  for (; mantissa >= 1024.; mantissa /= 1024., ++i) { }
+  mantissa = std::ceil(mantissa * 10.) / 10.;
+  return to_string(mantissa) + "BKMGTPE"[i];
 }
