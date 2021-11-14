@@ -255,3 +255,115 @@ void Page::CommandMode(char c)
     break;
   }
 }
+
+
+// void ChimeraData::PushData(devices::Chimera* chim)
+// {
+//   for(int i = 0; i < chim->accel_size(); i++)
+//   {
+//     auto device = chim->accel(i);
+//     sensor_values["accel"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["accel"]["x"].push_back(device.x());
+//     sensor_values["accel"]["y"].push_back(device.y());
+//     sensor_values["accel"]["z"].push_back(device.z());
+//   }
+//   for(int i = 0; i < chim->gyro_size(); i++)
+//   {
+//     auto device = chim->gyro(i);
+//     sensor_values["gyro"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["gyro"]["x"].push_back(device.x());
+//     sensor_values["gyro"]["y"].push_back(device.y());
+//     sensor_values["gyro"]["z"].push_back(device.z());
+//   }
+//   for(int i = 0; i < chim->encoder_left_size(); i++)
+//   {
+//     auto device = chim->encoder_left(i);
+//     sensor_values["encoder_left"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["encoder_left"]["rads"].push_back(device.rads());
+//     sensor_values["encoder_left"]["km"].push_back(device.km());
+//     sensor_values["encoder_left"]["rotations"].push_back(device.rotations());
+//   }
+//   for(int i = 0; i < chim->encoder_right_size(); i++)
+//   {
+//     auto device = chim->encoder_right(i);
+//     sensor_values["encoder_right"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["encoder_right"]["rads"].push_back(device.rads());
+//     sensor_values["encoder_right"]["km"].push_back(device.km());
+//     sensor_values["encoder_right"]["rotations"].push_back(device.rotations());
+//   }
+//   for(int i = 0; i < chim->bms_lv_size(); i++)
+//   {
+//     auto device = chim->bms_lv(i);
+//     sensor_values["bms_lv"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["bms_lv"]["temperature"].push_back(device.temperature());
+//     sensor_values["bms_lv"]["voltage"].push_back(device.voltage());
+//   }
+//   for(int i = 0; i < chim->bms_hv_size(); i++)
+//   {
+//     auto device = chim->bms_hv(i);
+//     sensor_values["bms_hv"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["bms_hv"]["temperature"].push_back(device.temperature());
+//     sensor_values["bms_hv"]["max_temperature"].push_back(device.temperature());
+//     sensor_values["bms_hv"]["min_temperature"].push_back(device.temperature());
+//     sensor_values["bms_hv"]["current"].push_back(device.voltage());
+//     sensor_values["bms_hv"]["voltage"].push_back(device.voltage());
+//     sensor_values["bms_hv"]["max_voltage"].push_back(device.voltage());
+//     sensor_values["bms_hv"]["min_voltage"].push_back(device.voltage());
+//     sensor_values["bms_hv"]["power"].push_back(device.voltage());
+//   }
+//   for(int i = 0; i < chim->inverter_left_size(); i++)
+//   {
+//     auto device = chim->inverter_left(i);
+//     sensor_values["inverter_left"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["inverter_left"]["temperature"].push_back(device.temperature());
+//     sensor_values["inverter_left"]["motor_temp"].push_back(device.motor_temp());
+//     sensor_values["inverter_left"]["torque"].push_back(device.torque());
+//     sensor_values["inverter_left"]["speed"].push_back(device.speed());
+//   }
+//   for(int i = 0; i < chim->inverter_right_size(); i++)
+//   {
+//     auto device = chim->inverter_right(i);
+//     sensor_values["inverter_right"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["inverter_right"]["temperature"].push_back(device.temperature());
+//     sensor_values["inverter_right"]["motor_temp"].push_back(device.motor_temp());
+//     sensor_values["inverter_right"]["torque"].push_back(device.torque());
+//     sensor_values["inverter_right"]["speed"].push_back(device.speed());
+//   }
+//   for(int i = 0; i < chim->pedal_size(); i++)
+//   {
+//     auto device = chim->pedal(i);
+//     sensor_values["pedal"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["pedal"]["throttle1"].push_back(device.throttle1());
+//     sensor_values["pedal"]["throttle2"].push_back(device.throttle2());
+//     sensor_values["pedal"]["brake_front"].push_back(device.brake_front());
+//     sensor_values["pedal"]["brake_rear"].push_back(device.brake_rear());
+//   }
+//   for(int i = 0; i < chim->steer_size(); i++)
+//   {
+//     auto device = chim->steer(i);
+//     sensor_values["steer"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["steer"]["angle"].push_back(device.angle());
+//   }
+//   for(int i = 0; i < chim->ecu_state_size(); i++)
+//   {
+//     auto device = chim->ecu_state(i);
+//     state_values["ecu_state"].push_back({device.timestamp(), device.value()});
+//   }
+//   for(int i = 0; i < chim->bms_hv_state_size(); i++)
+//   {
+//     auto device = chim->bms_hv_state(i);
+//     state_values["bms_hv_state"].push_back({device.timestamp(), device.value()});
+//   }
+//   for(int i = 0; i < chim->steering_wheel_state_size(); i++)
+//   {
+//     auto device = chim->steering_wheel_state(i);
+//     state_values["steering_wheel_state"].push_back({device.timestamp(), device.value()});
+//   }
+//   for(int i = 0; i < chim->ecu_size(); i++)
+//   {
+//     auto device = chim->ecu(i);
+//     sensor_values["ecu"]["timestamp"].push_back(device.timestamp());
+//     sensor_values["ecu"]["power_request_left"].push_back(device.power_request_left());
+//     sensor_values["ecu"]["power_request_right"].push_back(device.power_request_right());
+//   }
+// }

@@ -73,8 +73,8 @@ vector<string> get_all_files(string path, string extension){
 vector<string> get_candump_from_files(vector<string> files){
   vector<string> new_vec;
   for(int i = 0; i < files.size(); i++){
-    size_t pos = files.at(i).find("_GPS.log");
-    if(pos == string::npos){
+    size_t pos = files[i].find("dump.log");
+    if(pos != string::npos){
       new_vec.push_back(files.at(i));
     }
   }

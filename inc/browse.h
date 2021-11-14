@@ -1,5 +1,4 @@
-#ifndef BROWSE_H
-#define BROWSE_H
+#pragma once
 
 #include <sys/ioctl.h>
 #include <vector>
@@ -7,6 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
+#include <cmath>
+
 
 #include <boost/filesystem.hpp>
 
@@ -34,32 +35,36 @@ enum Style{
   BOLD=1,
 };
 
+
 class Browse {
 public:
   Browse();
-  vector<string> start();
+  vector<string> Start();
 
-  void set_start_path(string path);
-  void set_max_selections(int num=-1);
-  void set_extension(string extension);
-  void set_selection_type(SelectionType type);
+  void SetStartPath(string path);
+  void SetMaxSelections(int num=-1);
+  void SetExtension(string extension);
+  void SetSelectionType(SelectionType type);
 
 private:
-  void get_winsize();
-  void move(int, int);
-  void clear_screen();
-  void print(int, int, string);
+  void GetWinsize();
+  void Move(int, int);
+  void ClearScreen();
+  void Print(int, int, string);
+  void PrintHeader();
 
-  void select();
-  bool is_selected(string path);
-  int get_selected_index(string path);
+  void Select();
+  bool IsSelected(string path);
+  int GetSelectedIndex(string path);
 
-  void update_dirs();
-  void remove_hidden();
+  void UpdateDirs();
+  void RemoveHidden();
 
-  void print_file(string fname, int column=0);
-  void print_dirs(int column=0);
-  string get_colored(string text, int color, int style=0);
+  void PrintFile(string fname, int column=0);
+  void PrintDirs(int column=0);
+  string GetColored(string text, int color, int style=0);
+
+  string HumanReadable(uintmax_t size);
 
   vector<directory_entry> all_dirs;
 
@@ -78,12 +83,10 @@ private:
 
   string hint="";
   string extension="*";
-  int max_selections=-1;
+  int max_selections=1;
   SelectionType selection_type;
 
   string stat_fname = ".browse_cpp";
   string start_path;
   string path;
 };
-
-#endif //BROWSE_H

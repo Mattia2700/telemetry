@@ -20,6 +20,7 @@
 #include <boost/filesystem.hpp>
 
 #include <mutex>
+#include <atomic>
 #include <thread>
 
 #include "rapidjson/document.h"

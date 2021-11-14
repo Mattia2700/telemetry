@@ -47,6 +47,13 @@ int Page1::Draw()
 
 void Page1::SetGraphData(ChimeraData* chim)
 {
+  // vector<vector<double>> ys = {
+  //   chim->sensor_values["pedal"]["throttle1"],
+  //   chim->sensor_values["pedal"]["brake_front"]
+  // };
+  // pedal_graph->PushData(chim->sensor_values["pedal"]["timestamp"], ys);
+
+
   int pedal_size = chim->data->pedal_size();
   if(pedal_size == 0)
     return;
@@ -65,11 +72,7 @@ void Page1::SetGraphData(ChimeraData* chim)
     ys[0][i] = pedal.throttle1();
     ys[1][i] = pedal.brake_front();
   }
-  // throttle max is 100
-  pedal_graph->SetScale(0, 100);
   pedal_graph->PushData(x, ys);
-  if(frame_count <= 2)
-    pedal_graph->SetOffsetX(chim->data->pedal(0).timestamp());
 
 
   int speed_left_size = chim->data->encoder_left_size();
@@ -97,8 +100,5 @@ void Page1::SetGraphData(ChimeraData* chim)
     }
 
   }
-  speed_graph->SetScale(0, 100);
   speed_graph->PushData(x, ys);
-  if(frame_count <= 2)
-    speed_graph->SetOffsetX(chim->data->encoder_left(0).timestamp());
 }

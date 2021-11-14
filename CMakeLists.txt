@@ -16,10 +16,6 @@ if(Boost_FOUND)
   message(STATUS "Boost FOUND")
 endif()
 
-############
-## PYTHON ##
-############
-find_package(PythonLibs 2.7)
 
 ###########
 ## PROTO ##
@@ -104,8 +100,8 @@ target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJE
 add_executable(csv scripts/csv/csv.cpp)
 target_link_libraries(csv ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(checker scripts/checker/checker.cpp)
-target_link_libraries(checker ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
+add_executable(log_trimmer scripts/log_trimmer/log_trimmer.cpp)
+target_link_libraries(log_trimmer ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 
 add_executable(share scripts/port/share.cpp src/serial.cpp)
@@ -118,9 +114,6 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
 
   add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
   target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
-
-  add_executable(websocket scripts/websocket/websocket.cpp)
-  target_link_libraries(websocket ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
   if(OpenCV_FOUND)
     add_executable(dashboard_client
@@ -147,9 +140,4 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
       ${PROJECT_NAME}
     )
   endif()
-endif()
-
-if(PythonLibs_FOUND)
-  add_executable(graph scripts/graph/graph.cpp)
-  target_link_libraries(graph ${PROJECT_NAME} ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 endif()

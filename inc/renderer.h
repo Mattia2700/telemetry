@@ -6,6 +6,8 @@
 #include <string>
 #include <iostream>
 #include <chrono>
+#include <unordered_map>
+
 
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -36,6 +38,12 @@ struct Box
   int h;
 };
 
+struct Sate_t
+{
+  double timestamp;
+  string value;
+};
+
 class Data{};
 class Page;
 
@@ -61,14 +69,22 @@ private:
 class ChimeraData : public Data
 {
 public:
-  ChimeraData(devices::Chimera* chim): data(chim){}
+  ChimeraData(devices::Chimera* chim): data(chim){};
 
   void SetData(devices::Chimera* chim)
   {
     data = chim;
   };
 
+  // void PushData(devices::Chimera* chim);
+
   devices::Chimera* data = nullptr;
+
+  // unordered_map<string, unordered_map<string, vector<double>>> sensor_values;
+  // unordered_map<string, vector<Sate_t>> state_values;
+
+private:
+  // int max_count = 1000;
 };
 
 

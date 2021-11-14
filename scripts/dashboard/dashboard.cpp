@@ -15,10 +15,10 @@ int main(){
 
 
   Browse b;
-  b.set_max_selections(1);
-  b.set_extension(".log");
-  b.set_selection_type(SelectionType::sel_all);
-  auto selected_paths = b.start();
+  b.SetMaxSelections(1);
+  b.SetExtension(".log");
+  b.SetSelectionType(SelectionType::sel_all);
+  auto selected_paths = b.Start();
 
   if(selected_paths.size() <= 0){
     cout << "No file selected... exiting" << endl;

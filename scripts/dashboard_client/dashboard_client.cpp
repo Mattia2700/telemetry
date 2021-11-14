@@ -114,6 +114,7 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     }
 
     chimera_data->SetData(chimera_proto);
+    // chimera_data->PushData(chimera_proto);
     renderer->GetPage()->SetData(chimera_data);
 
     int size = chimera_proto->encoder_right_size();

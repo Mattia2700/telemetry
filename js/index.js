@@ -21,7 +21,7 @@ console.log("DONE");
 
 var unauthenticated = []
 var clients = [];
-var telemetry = null;
+var telemetry = [];
 
 MESSAGE_MALFORMED = JSON.stringify({ error: "message malformed" });
 
@@ -39,31 +39,28 @@ wss.on('connection', function connection(ws) {
     try {
       obj = JSON.parse(data);
     } catch (e) {
-      console.log("Message is not JSON obj");
+      console.log(MESSAGE_MALFORMED);
+      JSON.stringify({ error: MESSAGE_MALFORMED })
       ws.close();
       return;
     }
-    // Can be accepted only JSON object
 
+    // Can be accepted only JSON object
     if (obj.hasOwnProperty("identifier")) {
       // This os the key needed to recognize the type of connection
 
       var type = obj["identifier"];
       console.log(type);
       if (type == "telemetry") {
-        // can be only one telemetry so is there is already one close incoming connection
-        if (telemetry != null) {
-          ws.send(JSON.stringify({ error: "Another telemetry exists" }));
-          ws.close();
-          return;
-        }
-
         ws.on('message', telemetry_on_message);
         ws.on('close', () => {
-          ws.removeListener('message', telemetry_on_message);
-          telemetry = null;
+          ws.removeListener('message', telemetry_on_message)
+          const index = telemetry.indexOf(ws);
+          if (index > -1) {
+            telemetry.splice(index, 1);
+          }
         });
-        telemetry = ws;
+        telemetry.push(ws);
         // setup callbacks
 
       } else if (type == "client") {

@@ -33,8 +33,7 @@ ChimeraData* chimera_data;
 devices::Chimera* chimera_proto;
 
 int W = 1280, H = 900;
-// std::string uri = "ws://192.168.195.3:8080";
-std::string uri = "ws://127.0.0.1:8080";
+std::string uri = "ws://192.168.195.1:9090";
 
 void on_key_press(char);
 

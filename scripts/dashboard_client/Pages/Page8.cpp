@@ -38,9 +38,9 @@ Page8::Page8(string name, int w, int h): Page(name, w, h)
 
   value_text_box = new TextBox("Sensor Values", pos1);
   frequency_text_box = new TextBox("Sensor Frequency", pos2);
-  ecu_state_text_box = new TextBox("ECU state", pos3);
-  bms_state_text_box = new TextBox("BMS state", pos4);
-  steer_state_text_box = new TextBox("Steering Wheel state", pos5);
+  ecu_state_text_box = new TextBox("ECU State", pos3);
+  bms_state_text_box = new TextBox("BMS State", pos4);
+  steer_state_text_box = new TextBox("Steering Wheel State", pos5);
 
   ecu_state_text_box->SetMaxLines(8);
   bms_state_text_box->SetMaxLines(8);

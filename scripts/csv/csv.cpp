@@ -37,10 +37,10 @@ int main()
 
   // User select a folder
   Browse b;
-  b.set_max_selections(1);
-  b.set_extension(".log");
-  b.set_selection_type(SelectionType::sel_all);
-  auto selected_paths = b.start();
+  b.SetMaxSelections(1);
+  b.SetExtension("*");
+  b.SetSelectionType(SelectionType::sel_folder);
+  auto selected_paths = b.Start();
 
   if (selected_paths.size() <= 0)
   {
@@ -164,7 +164,7 @@ void parse_file(string fname)
     // For each device modified write the values in the csv file
     for (auto modified : modifiedDevices)
     {
-      *modified->files[0] << modified->get_string(";") + "\n";
+      *modified->files[0] << modified->get_string(",") + "\n";
     }
   }
   // Debug
