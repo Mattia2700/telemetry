@@ -24,13 +24,18 @@ string serial::read_line(char separator){
   return line;
 }
 
+char serial::get_char(){
+  char c;
+  read(fd, &c, sizeof(char));
+  return c;
+}
+
 void serial::close_port(){
   close(fd);
 }
 
 bool serial::file_exists(){
-  ifstream f(device.c_str());
-  return f.fail()|| f.good();
+  return std::filesystem::exists(device.c_str());
 }
 
 int serial::open_file(){

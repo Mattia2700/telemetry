@@ -7,7 +7,7 @@
 #include <errno.h>
 #include <termios.h>
 #include <unistd.h>
-#include <sys/stat.h>
+#include <filesystem>
 
 #include <string>
 #include <iostream>
@@ -26,6 +26,7 @@ public:
 
   bool file_exists();
 
+  char get_char();
   string read_line(char separator='\n');
 
 private:

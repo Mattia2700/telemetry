@@ -9,6 +9,7 @@
 #include <fstream>
 #include <string.h>
 #include <iostream>
+#include <exception>
 
 #include <cstdio>
 #include <ctime>
@@ -20,7 +21,9 @@
 #include <boost/filesystem.hpp>
 
 #include <mutex>
+#include <atomic>
 #include <thread>
+#include <condition_variable>
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -52,6 +55,7 @@ stats logger_stat;
 #include "utils.h"
 #include "serial.h"
 #include "vehicle.h"
+#include "gps_logger.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -60,15 +64,20 @@ using namespace boost::filesystem;
 const char *CAN_DEVICE = "vcan0";
 const char *GPS_DEVICE = "/home/gps2";
 int USE_GPS = 1;
+int FOUND_GPS = 0;
 
-mutex mtx;
-atomic<bool> killThread = true;
-serial s;
-thread *gps_thread;
+atomic<bool> running = false;
+
 
 string HOME_PATH;
 string FOLDER_PATH;
 
+struct run_config
+{
+  int circuit;
+  int pilot;
+  int race;
+};
 vector<string> CIRCUITS = vector<string>({
     "default",
     "Vadena",
@@ -97,13 +106,27 @@ uint32_t messages_count;
 int id;
 uint8_t *msg_data = new uint8_t[8];
 
+Can * can;
+sockaddr_can addr;
 // Filter and message structs
 can_filter rfilter;
 can_frame message;
 
+run_config config;
+
 vector<Device *> modifiedDevices;
 
-void log_gps(string fname, string header = "");
+void create_header(string& out);
+void create_folder_name(string& out);
+
+int open_log_folder();
+int open_can_socket();
+void wait_for_start();
+
+void send_status();
+
+
+void log_gps(string folder, string header = "");
 
 /**
 * Gets current timestamp in seconds
@@ -119,5 +142,10 @@ double get_timestamp();
 * return string
 */
 string get_hex(int num, int zeros);
+
+
+
+
+
 
 #endif

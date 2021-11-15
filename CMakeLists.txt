@@ -94,7 +94,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 add_executable(logger scripts/logger/logger.cpp)
 target_link_libraries(logger ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(telemetry scripts/telemetry/telemetry.cpp)
+add_executable(telemetry scripts/telemetry/telemetry.cpp scripts/telemetry/gps_logger.cpp)
 target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(csv scripts/csv/csv.cpp)
