@@ -44,7 +44,7 @@ Chimera chimera;
 
 const char* CAN_DEVICE = "vcan0";
 
-string uri = "ws://192.168.195.3:8080";
+string uri = "ws://192.168.195.1:8080";
 
 string serialized_string;
 

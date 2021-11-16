@@ -56,7 +56,7 @@ int main()
   }
 
   // serialport
-  string port = "/dev/ttyACM1";
+  string port = "/dev/ttyACM0";
   serial s(port);
 
   uint32_t count = 0;
