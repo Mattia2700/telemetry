@@ -10,9 +10,14 @@ GpsLogger::GpsLogger(string device)
   m_Thread = new thread(&GpsLogger::Run, this);
 }
 
-void GpsLogger::SetOutputFolder(string folder)
+void GpsLogger::SetOutputFolder(string& folder)
 {
   m_Folder = folder;
+}
+
+void GpsLogger::SetHeader(string& header)
+{
+  m_Header = header;
 }
 
 void GpsLogger::Start()
@@ -80,6 +85,9 @@ void GpsLogger::Run()
     std::ofstream gps(fname);
     string line;
 
+    if(m_Header != "")
+      gps << m_Header << endl;
+
     // Checking if state is changes
     // Can happen that is requested Stop and immediately a start
     // In that case m_Running changes two times and the while(m_Running) doesn't
@@ -92,6 +100,7 @@ void GpsLogger::Run()
     }
     m_StateChnged = false;
     gps.close();
+    m_Serial->close_port();
   }
 }
 

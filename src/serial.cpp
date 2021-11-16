@@ -19,7 +19,6 @@ string serial::read_line(char separator){
       if(ch == separator)
         break;
       line += ch;
-
   };
   return line;
 }

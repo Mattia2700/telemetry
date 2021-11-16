@@ -37,6 +37,7 @@ void writer(string fname)
 
     // Copy values from the shared string to the fifo file
     write(fd, shared_string.c_str(), shared_string.size());
+    cout << "wrote" << endl;
   }
   close(fd);
 }

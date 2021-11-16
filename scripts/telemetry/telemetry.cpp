@@ -53,9 +53,11 @@ int main()
     create_directory(folder);
 
     gps->SetOutputFolder(folder);
+    gps->SetHeader(header);
     gps->Start();
 
     dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
+    (*dump_file) << header << "\n";
 
     chimera.add_filenames(folder, ".csv");
     chimera.open_all_files();
@@ -277,9 +279,9 @@ void create_header(string& out)
   out += "*** Telemetry Log File\r\n";
   out += "*** " + human_date;
   out += "\r\n";
-  out += "*** Pilot: " + PILOTS[config.pilot] + "\r\n";
-  out += "*** Race: " + RACES[config.race] + "\r\n";
-  out += "*** Circuit: " + CIRCUITS[config.circuit];
+  out += "*** Pilot   .... " + PILOTS[config.pilot] + "\r\n";
+  out += "*** Race    .... " + RACES[config.race] + "\r\n";
+  out += "*** Circuit .... " + CIRCUITS[config.circuit];
   out += "\n\n\r";
 }
 

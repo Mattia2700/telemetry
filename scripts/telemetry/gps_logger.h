@@ -27,7 +27,8 @@ class GpsLogger
 public:
   GpsLogger(string device);
 
-  void SetOutputFolder(string folder);
+  void SetOutputFolder(string& folder);
+  void SetHeader(string& header);
 
   void Start();
   void Stop();
@@ -45,6 +46,7 @@ private:
 
   string m_Device;
   string m_Folder;
+  string m_Header;
 
   serial *m_Serial = nullptr;
   thread *m_Thread = nullptr;
