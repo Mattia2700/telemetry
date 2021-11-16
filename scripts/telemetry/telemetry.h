@@ -144,6 +144,8 @@ double get_timestamp();
 string get_hex(int num, int zeros);
 
 
+void load_config(run_config& config, string& path);
+void write_config(run_config& config, string& path);
 
 
 

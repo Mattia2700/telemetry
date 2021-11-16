@@ -1,7 +1,11 @@
 #include "telemetry.h"
 
-int main()
+int main(int argc, char** argv)
 {
+
+  string HOME_PATH = getenv("HOME");
+  string config_fname = HOME_PATH + "/telemetry_config.json";
+  load_config(config, config_fname);
 
   if(!open_log_folder())
     return 0;
@@ -28,6 +32,17 @@ int main()
     can->set_filters(rfilter);
 
     wait_for_start();
+    // if config are not setted bu can message, then load
+    // previous config
+    if(config.pilot == 0 && config.circuit == 0 && config.race == 0)
+    {
+      load_config(config, config_fname);
+    }
+    else
+    {
+      write_config(config, config_fname);
+    }
+
     date = time(0);
     human_date = string(ctime(&date));
     human_date[human_date.size()-1] = ' ';
@@ -314,4 +329,76 @@ void send_status()
     can->send(0x99, (char *)msg_data, 1);
     usleep(200000);
   }
+}
+
+void load_config(run_config& cfg, string& path)
+{
+  if(path_exists(path) == false)
+  {
+    cfg.circuit = 0;
+    cfg.pilot = 0;
+    cfg.race = 0;
+    write_config(cfg, path);
+  }
+  else
+  {
+    stringstream buffer;
+    std::ifstream cfg_file(path);
+    buffer << cfg_file.rdbuf();
+    cfg_file.close();
+    string str_buffer = buffer.str();
+
+    Document d;
+    StringBuffer sb;
+    Writer<StringBuffer> w(sb);
+    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+    d.Parse(str_buffer.c_str(), str_buffer.size());
+    const Value& tel_value = d["Telemetry"];
+    for(int i = 0; i < CIRCUITS.size(); i++)
+      if(CIRCUITS[i] == tel_value["Circuit"].GetString())
+        cfg.circuit = i;
+    for(int i = 0; i < PILOTS.size(); i++)
+      if(PILOTS[i] == tel_value["Pilot"].GetString())
+        cfg.pilot = i;
+    for(int i = 0; i < RACES.size(); i++)
+      if(RACES[i] == tel_value["Race"].GetString())
+        cfg.race = i;
+  }
+}
+
+void write_config(run_config& cfg, string& path)
+{
+  Document doc;
+  doc.SetObject();
+
+  // Add subobject
+  Value sub_obj;
+  sub_obj.SetObject();
+  {
+    sub_obj.AddMember("Circuit",Value().
+    SetString(CIRCUITS[cfg.circuit].c_str(),
+              CIRCUITS[cfg.circuit].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("Pilot",Value().
+    SetString(PILOTS[cfg.pilot].c_str(),
+              PILOTS[cfg.pilot].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("Race",Value().
+    SetString(RACES[cfg.race].c_str(),
+              RACES[cfg.race].size(),
+              alloc),
+              alloc);
+  }
+  doc.AddMember("Telemetry", sub_obj, alloc);
+
+  StringBuffer out_buffer;
+  PrettyWriter<StringBuffer> writer(out_buffer);
+
+  doc.Accept(writer);
+  std::ofstream cfg_file(path);
+  cfg_file << out_buffer.GetString();
+  cfg_file.close();
 }
