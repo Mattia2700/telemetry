@@ -18,6 +18,7 @@ Chimera::Chimera(){
   bms_hv_state = new State("State BMS HV");
   steering_wheel_state = new State("State Steering Wheel");
   ecu = new Ecu("ECU");
+  gps = new GPS("GPS");
 
 
   // Device list
@@ -35,6 +36,7 @@ Chimera::Chimera(){
   devices.push_back(bms_hv_state);
   devices.push_back(steering_wheel_state);
   devices.push_back(ecu);
+  devices.push_back(gps);
 
   // Protobuffer section
 
@@ -57,6 +59,7 @@ Chimera::Chimera(){
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::Ecu());
+  proto_messages.push_back(new devices::GPS());
 
   if(devices.size() != proto_messages.size()){
     throw logic_error("Chimera initialization incorrect, vectors of devices and messages not of the same size");
@@ -84,7 +87,7 @@ void Chimera::add_filenames(string base_path, string extension){
 void Chimera::open_all_files(){
   for(auto device : devices)
     for(auto filename : device->filenames)
-      device->files.push_back(new fstream(filename, fstream::out));
+      device->files.push_back(new std::fstream(filename, std::fstream::out));
 }
 
 void Chimera::close_all_files(){
@@ -109,10 +112,10 @@ void Chimera::close_files(int index){
 
 void Chimera::write_all_headers(int index){
   for(auto device : devices)
-    *device->files[index] << device->get_header(";") << "\n";
+    *device->files[index] << device->get_header(";") << "\n" << flush;
 }
 
-vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_t data[], const int &size){
+vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size){
   modifiedDevices.clear();
 
   switch (id) {
@@ -377,6 +380,85 @@ vector<Device *> Chimera::parse_message(double& timestamp, const int &id, uint8_
     break;
   }
   return modifiedDevices;
+}
+
+int Chimera::parse_gps(const double& timestamp, string& line)
+{
+  if(line[0] != '$')
+    return -1;
+
+  vector<string> s_line = split(line, ',');
+
+  if(s_line[0].size() != 6)
+    return -2;
+
+  // remove $GP or $GN
+  s_line[0].erase(0, 3);
+
+  if (s_line[0] == "GGA") {
+    if(s_line.size() != 15)
+      return -6;
+    // check if needed fileds are empty
+    int ret = empty_fields(s_line,vector<int>{1,2,4,6,7,9});
+    if(ret != -1)
+      return -3;
+
+    gps->timestamp = timestamp;
+    gps->msg_type = "GGA";
+
+    gps->time = s_line[1];
+    gps->latitude = stod(s_line[2]);
+    gps->longitude = stod(s_line[4]);
+    gps->fix = stoi(s_line[6]);
+    gps->satellites = stoi(s_line[7]);
+    gps->fix_state = FIX_STATE[gps->fix];
+    gps->altitude = stod(s_line[9]);
+    if(s_line[14] != "")
+      gps->age_of_correction = stod(s_line[14]);
+    // Set other data to 0
+    gps->course_over_ground_degrees = 0.0;
+    gps->course_over_ground_degrees_magnetic = 0.0;
+    gps->speed_kmh = 0.0;
+    gps->mode = "";
+
+    return 1;
+  }
+  else if (s_line[0] == "VTG")
+  {
+    if(s_line.size() != 10)
+      return -5;
+
+    gps->timestamp = timestamp;
+    gps->msg_type = "VTG";
+    // Set other data to 0
+    gps->time = "";
+    gps->latitude = 0.0;
+    gps->longitude = 0.0;
+    gps->fix = 0.0;
+    gps->satellites = 0.0;
+    gps->fix_state = "";
+    gps->altitude = 0.0;
+    gps->age_of_correction = 0.0;
+
+    if(s_line[1] != "")
+      gps->course_over_ground_degrees = stod(s_line[1]);
+    else
+      gps->course_over_ground_degrees = 0.0;
+    if(s_line[3] != "")
+      gps->course_over_ground_degrees_magnetic = stod(s_line[3]);
+    else
+      gps->course_over_ground_degrees_magnetic = 0.0;
+    if(s_line[5] != "")
+      gps->speed_kmh = stod(s_line[5]);
+    else
+      gps->speed_kmh = 0.0;
+
+    gps->mode = s_line[7];
+
+    return 1;
+  }
+
+  return 0;
 }
 
 void Chimera::serialize(){

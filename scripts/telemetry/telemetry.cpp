@@ -20,11 +20,13 @@ int main(int argc, char** argv)
   // sends status every 200 ms
   thread t(send_status);
 
-  Chimera chimera;
+  chimera = new Chimera();
   GpsLogger* gps = new GpsLogger(string(GPS_DEVICE));
+  gps->SetMode(MODE_FILE);
+  gps->SetCallback(&on_gps_line);
+
   while (true)
   {
-    messages_count = 0;
 
     // Set CAN filter to accept only 0xA0 id
     rfilter.can_id = 0xA0;
@@ -45,7 +47,7 @@ int main(int argc, char** argv)
 
     date = time(0);
     human_date = string(ctime(&date));
-    human_date[human_date.size()-1] = ' ';
+    human_date.erase(human_date.size()-1, 1);
     cout << human_date << " -> " << get_colored("Running", 3) << endl;
 
     running = true;
@@ -74,38 +76,39 @@ int main(int argc, char** argv)
     dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
     (*dump_file) << header << "\n";
 
-    chimera.add_filenames(folder, ".csv");
-    chimera.open_all_files();
-    chimera.write_all_headers(0);
+    chimera->add_filenames(folder, ".csv");
+    chimera->open_all_files();
+    chimera->write_all_headers(0);
 
     double timestamp = get_timestamp();
-    double log_start_t = timestamp;
-    double log_duration;
+    can_stat.duration = timestamp;
     while (true)
     {
       can->receive(&message);
-      messages_count++;
+      can_stat.msg_count++;
 
       timestamp = get_timestamp();
 
       log_can(timestamp, message, *dump_file);
 
-      modifiedDevices = chimera.parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+      modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
       for (auto modified : modifiedDevices)
       {
-        *modified->files[0] << modified->get_string(";") + "\n";
+        unique_lock<mutex> lck(mtx);
+        (*modified->files[0]) << modified->get_string(",") + "\n";
       }
 
       // Stop message
       if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
           message.data[0] == 0x66 && message.data[1] == 0x00)
       {
+        unique_lock<mutex> lck(mtx);
         date = time(0);
         human_date = string(ctime(&date));
         human_date[human_date.size()-1] = ' ';
         cout << human_date << " -> " << get_colored("Stopped", 1) << endl;
 
-        chimera.close_all_files();
+        chimera->close_all_files();
         dump_file->close();
         delete dump_file;
 
@@ -115,65 +118,33 @@ int main(int argc, char** argv)
         break;
       }
     }
-    log_duration = timestamp - log_start_t;
-    /*
-    {
-      // Fill the struct
-      logger_stat.date = human_date;
-      logger_stat.pilot = PILOTS[i1].c_str();
-      logger_stat.race = RACES[i2].c_str();
-      logger_stat.circuit = CIRCUITS[i3].c_str();
-      logger_stat.can_messages = messages_count;
-      logger_stat.can_frequency = int(messages_count / log_duration);
-      logger_stat.can_duration = log_duration;
+    can_stat.duration = get_timestamp() - can_stat.duration;
 
-      // Wait for GPS thread if was started
-      if(USE_GPS == 1)
-      	std::unique_lock<std::mutex> lck(mtx);
-
-      doc.SetObject();
-
-      // Add keys and string values
-      doc.AddMember("Date", Value().SetString(StringRef(human_date)), alloc);
-      doc.AddMember("Pilot", Value().SetString(StringRef(PILOTS[i1].c_str())), alloc);
-      doc.AddMember("Race", Value().SetString(StringRef(RACES[i2].c_str())), alloc);
-      doc.AddMember("Circuit", Value().SetString(StringRef(CIRCUITS[i3].c_str())), alloc);
-
-      // Add subobject
-      Value sub_obj;
-      sub_obj.SetObject();
-      {
-        Value val;
-        val.SetObject();
-        {
-          val.AddMember("Messages", messages_count, alloc);
-          val.AddMember("Average Frequency (Hz)", int(messages_count / log_duration), alloc);
-          val.AddMember("Duration (seconds)", log_duration, alloc);
-        }
-        sub_obj.AddMember("CAN", val, alloc);
-      }
-      doc.AddMember("Data", sub_obj, alloc);
-
-      if (logger_stat.gps_messages == 0)
-      {
-        Value val;
-        val.SetObject();
-        {
-          val.AddMember("Messages", logger_stat.gps_messages, alloc);
-          val.AddMember("Average Frequency (Hz)", logger_stat.gps_frequency, alloc);
-          val.AddMember("Duration (seconds)", logger_stat.gps_duration, alloc);
-        }
-        doc["Data"].AddMember("GPS", val, alloc);
-      }
-
-      doc.Accept(writer);
-      std::ofstream stat_f(folder + "/TelemetryInfo.json");
-      stat_f << json_ss.GetString();
-      stat_f.close();
-    }
-    */
+    save_stat(folder);
   }
   return 0;
+}
+
+void on_gps_line(string line)
+{
+  int ret = 0;
+  try{
+    ret = chimera->parse_gps(get_timestamp(), line);
+  }
+  catch(std::exception e)
+  {
+    cout << "Parse error " << e.what() << endl;
+    return;
+  }
+  if(ret == 1)
+  {
+    unique_lock<mutex> lck(mtx);
+    (*chimera->gps->files[0]) << chimera->gps->get_string(",") + "\n" << flush;
+  }
+  else
+  {
+    // cout << ret << " " << line << endl;
+  }
 }
 
 double get_timestamp()
@@ -327,7 +298,7 @@ void send_status()
   {
     msg_data[0] = running;
     can->send(0x99, (char *)msg_data, 1);
-    usleep(200000);
+    usleep(420000);
   }
 }
 
@@ -370,6 +341,7 @@ void load_config(run_config& cfg, string& path)
 void write_config(run_config& cfg, string& path)
 {
   Document doc;
+  rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
   doc.SetObject();
 
   // Add subobject
@@ -401,4 +373,36 @@ void write_config(run_config& cfg, string& path)
   std::ofstream cfg_file(path);
   cfg_file << out_buffer.GetString();
   cfg_file.close();
+}
+
+void save_stat(string folder)
+{
+  Document doc;
+  StringBuffer json_ss;
+  PrettyWriter<StringBuffer> writer(json_ss);
+  rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
+
+  doc.SetObject();
+  time_t date = time(0);
+  string human_date = string(ctime(&date));
+  human_date.erase(human_date.size()-1, 1);
+  // Add keys and string values
+  doc.AddMember("Date", Value().SetString(StringRef(human_date.c_str())), alloc);
+  doc.AddMember("Pilot", Value().SetString(StringRef(PILOTS[config.pilot].c_str())), alloc);
+  doc.AddMember("Race", Value().SetString(StringRef(RACES[config.race].c_str())), alloc);
+  doc.AddMember("Circuit", Value().SetString(StringRef(CIRCUITS[config.circuit].c_str())), alloc);
+
+  Value val;
+  val.SetObject();
+  {
+    val.AddMember("Messages", can_stat.msg_count, alloc);
+    val.AddMember("Average Frequency (Hz)", int(double(can_stat.msg_count) / can_stat.duration), alloc);
+    val.AddMember("Duration (seconds)", can_stat.duration, alloc);
+  }
+  doc.AddMember("CAN", val, alloc);
+
+  doc.Accept(writer);
+  std::ofstream stat_f(folder + "/CAN_Info.json");
+  stat_f << json_ss.GetString();
+  stat_f.close();
 }

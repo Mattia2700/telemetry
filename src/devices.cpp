@@ -350,3 +350,80 @@ void Ecu::serialize(devices::Ecu* ecu){
   ecu->set_power_request_left(power_request_left);
   ecu->set_power_request_right(power_request_right);
 }
+
+
+string GPS::get_header(string separator)
+{
+  string ret = "";
+  ret += "timestamp" + separator;
+  ret += "msg_type" + separator;
+  ret += "time" + separator;
+  ret += "latitude" + separator;
+  ret += "longitude" + separator;
+  ret += "altitude" + separator;
+  ret += "fix" + separator;
+  ret += "satellites" + separator;
+  ret += "fix_state" + separator;
+  ret += "age_of_correction" + separator;
+  ret += "course_over_ground_degrees" + separator;
+  ret += "course_over_ground_degrees_magnetic" + separator;
+  ret += "speed_kmh" + separator;
+  ret += "mode" + separator;
+  return ret;
+}
+string GPS::get_string(string separator)
+{
+  string ret = "";
+  ret += to_string(timestamp) + separator;
+  ret += msg_type + separator;
+  ret += time + separator;
+  ret += to_string(latitude) + separator;
+  ret += to_string(longitude) + separator;
+  ret += to_string(altitude) + separator;
+  ret += to_string(fix) + separator;
+  ret += to_string(satellites) + separator;
+  ret += fix_state + separator;
+  ret += to_string(age_of_correction) + separator;
+  ret += to_string(course_over_ground_degrees) + separator;
+  ret += to_string(course_over_ground_degrees_magnetic) + separator;
+  ret += to_string(speed_kmh) + separator;
+  ret += mode;
+  return ret;
+}
+Document GPS::json()
+{
+  Document d;
+  d.SetObject();
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+  d.AddMember("timestamp", timestamp, alloc);
+  d.AddMember("msg_type", Value().SetString(msg_type.c_str(), msg_type.size(), alloc), alloc);
+  d.AddMember("time", Value().SetString(time.c_str(), time.size(), alloc), alloc);
+  d.AddMember("latitude", latitude, alloc);
+  d.AddMember("longitude", longitude, alloc);
+  d.AddMember("altitude", altitude, alloc);
+  d.AddMember("fix", fix, alloc);
+  d.AddMember("satellites", satellites, alloc);
+  d.AddMember("fix_state", Value().SetString(fix_state.c_str(), fix_state.size(), alloc), alloc);
+  d.AddMember("fix_state", age_of_correction, alloc);
+  d.AddMember("course_over_ground_degrees", course_over_ground_degrees, alloc);
+  d.AddMember("course_over_ground_degrees_magnetic", course_over_ground_degrees_magnetic, alloc);
+  d.AddMember("speed_kmh", speed_kmh, alloc);
+  d.AddMember("mode", Value().SetString(mode.c_str(), mode.size(), alloc), alloc);
+  return d;
+}
+void GPS::serialize(devices::GPS* gps){
+  gps->set_timestamp(timestamp);
+  gps->set_msg_type(msg_type);
+  gps->set_time(time);
+  gps->set_latitude(latitude);
+  gps->set_longitude(longitude);
+  gps->set_altitude(altitude);
+  gps->set_fix(fix);
+  gps->set_satellites(satellites);
+  gps->set_fix_state(fix_state);
+  gps->set_age_of_correction(age_of_correction);
+  gps->set_course_over_ground_degrees(course_over_ground_degrees);
+  gps->set_course_over_ground_degrees_magnetic(course_over_ground_degrees_magnetic);
+  gps->set_speed_kmh(speed_kmh);
+  gps->set_mode(mode);
+}

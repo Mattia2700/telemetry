@@ -71,6 +71,15 @@ static string BMS_ERRORS[NUM_ERRORS] =
   "ERROR_CAN"
 };
 
+static string FIX_STATE[7] =
+{
+	"FIX NOT AVAILABLE OR INVALID",
+	"GPS SPS MODE, FIX VALID",
+	"DIFFERENTIAL GPS SPS MODE, FIX VALID",
+	"UNSUPPORTED","UNSUPPORTED","UNSUPPORTED",
+	"DEAD RECKONING MODE, FIX VALID"
+};
+
 class Device
 {
 public:
@@ -271,6 +280,37 @@ public:
 
   double power_request_left;
   double power_request_right;
+};
+
+class GPS : public Device
+{
+public:
+  GPS(string name = "default") : Device(name){};
+
+  virtual string get_header(string separator);
+  virtual string get_string(string separator);
+  virtual Document json();
+
+  void serialize(devices::GPS *);
+
+	// if GGA or VTG or ...
+	string msg_type;
+
+	// From GGA string
+	string time;
+	double latitude;
+	double longitude;
+	int fix;
+	int satellites;
+	string fix_state;
+	double altitude;
+	double age_of_correction;
+
+	// From VTG string
+	double course_over_ground_degrees;
+	double course_over_ground_degrees_magnetic;
+	double speed_kmh;
+	string mode;
 };
 
 #endif //DEVICES_H

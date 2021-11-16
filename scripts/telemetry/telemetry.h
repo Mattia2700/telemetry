@@ -28,28 +28,12 @@
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
 using namespace rapidjson;
-Document doc;
-StringBuffer json_ss;
-PrettyWriter<StringBuffer> writer(json_ss);
-rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
 
-struct stats
+struct CAN_Stat_t
 {
-    const char *date;
-    const char *pilot;
-    const char *race;
-    const char *circuit;
-
-    int can_messages;
-    float can_frequency;
-    float can_duration;
-
-    int gps_messages;
-    float gps_frequency;
-    float gps_duration;
+  double duration;
+  uint64_t msg_count;
 };
-
-stats logger_stat;
 
 #include "can.h"
 #include "utils.h"
@@ -65,7 +49,7 @@ const char *CAN_DEVICE = "vcan0";
 const char *GPS_DEVICE = "/home/gps2";
 
 bool running = false;
-
+mutex mtx;
 
 string HOME_PATH;
 string FOLDER_PATH;
@@ -99,19 +83,20 @@ vector<string> RACES = vector<string>({
     "Acceleration",
 });
 
-uint32_t messages_count;
 
 int id;
 uint8_t *msg_data = new uint8_t[8];
 
 std::fstream* dump_file;
 
+Chimera* chimera;
 Can * can;
 sockaddr_can addr;
 // Filter and message structs
 can_filter rfilter;
 can_frame message;
 
+CAN_Stat_t can_stat;
 run_config config;
 
 vector<Device *> modifiedDevices;
@@ -126,6 +111,9 @@ void wait_for_start();
 void send_status();
 
 void log_can(double& timestamp, can_frame& msg, std::fstream& out);
+void save_stat(string folder);
+
+void on_gps_line(string line);
 
 
 /**

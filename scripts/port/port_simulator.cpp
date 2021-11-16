@@ -13,10 +13,10 @@
 
 #include <cstdio>
 
+#include "utils.h"
 #include "serial.h"
 
 using namespace std;
-
 std::mutex mtx;
 std::condition_variable cv;
 
@@ -24,6 +24,23 @@ string shared_string;
 
 int N = 6;
 string BASENAME = "/home/gps";
+
+vector<string> split(string str, char separator){
+  vector<string> ret;
+  string bff = "";
+  for(int i = 0; i < str.size(); i ++){
+    if(str[i] == separator){
+      ret.push_back(bff);
+      bff = "";
+    }
+    else{
+      bff += str[i];
+    }
+  }
+  ret.push_back(bff);
+  return ret;
+}
+
 
 void writer(string fname)
 {
@@ -37,7 +54,6 @@ void writer(string fname)
 
     // Copy values from the shared string to the fifo file
     write(fd, shared_string.c_str(), shared_string.size());
-    cout << "wrote" << endl;
   }
   close(fd);
 }
@@ -56,7 +72,6 @@ int main()
     cout << "Removed " << counter << " previous ports" << endl;
   }
 
-
   // Start one thread for each fifo file (pipe)
   string filename = "";
   for (int i = 0; i < N; i++)
@@ -66,16 +81,23 @@ int main()
   }
 
   string line;
+  stringstream s;
+  std::ifstream file("/home/filippo/gps_logger.log");
+  s << file.rdbuf();
+  vector<string> lines = split(s.str(), '\n');
+
   while (1)
   {
-    usleep(10000000);
-    line = "hola\r\n";
+    for(const string& line : lines)
     {
-      std::lock_guard<std::mutex> lk(mtx);
-      shared_string = line;
+      {
+        std::lock_guard<std::mutex> lk(mtx);
+        shared_string = line + "\n";
+      }
+      // Notify threads of new data available
+      cv.notify_all();
+      usleep(1000);
     }
-    // Notify threads of new data available
-    cv.notify_all();
   }
   return 0;
 }

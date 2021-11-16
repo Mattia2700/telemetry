@@ -51,4 +51,13 @@ string get_colored(string text, int color, int style = 1);
 
 vector<string> split(string str, char separator);
 
+// returns -1 if all fields are filled
+// returns index of first empty field
+int empty_fields(const vector<string>& vec);
+
+// indeces to be checked
+// returns -1 if all fields are filled
+// returns index of first empty field
+int empty_fields(const vector<string>& vec, const vector<int>& indeces);
+
 #endif // UTILS_H

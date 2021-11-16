@@ -5,6 +5,7 @@
 #include <exception>
 #include <unordered_map>
 
+#include "utils.h"
 #include "devices.h"
 #include "devices.pb.h"
 #include <google/protobuf/text_format.h>
@@ -29,7 +30,9 @@ public:
   * @param size of the payload
   * return vector containing pointers to devices modified with this message
   */
-  vector<Device*> parse_message(double& timestamp, const int &id, uint8_t data[], const int &size);
+  vector<Device*> parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size);
+
+  int parse_gps(const double& timestamp, string& line);
 
   /**
   * Defines a filename to every device called DeviceName.extension
@@ -126,6 +129,8 @@ public:
   State* steering_wheel_state;
 
   Ecu* ecu;
+
+  GPS* gps;
 
   /**
   * Vector containing all the devices

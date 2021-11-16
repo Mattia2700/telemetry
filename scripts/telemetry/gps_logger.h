@@ -18,9 +18,21 @@
 #include "utils.h"
 #include "serial.h"
 
+#include "rapidjson/document.h"
+#include "rapidjson/prettywriter.h"
+using namespace rapidjson;
+
 using namespace std;
 using namespace std::chrono;
 
+#define MODE_PORT 0
+#define MODE_FILE 1
+
+struct GPS_Stat_t
+{
+  double delta_time;
+  uint64_t msg_count;
+};
 
 class GpsLogger
 {
@@ -29,6 +41,8 @@ public:
 
   void SetOutputFolder(string& folder);
   void SetHeader(string& header);
+  void SetCallback(void (*f)(string));
+  void SetMode(int mode = 0);
 
   void Start();
   void Stop();
@@ -42,12 +56,16 @@ private:
   void Run();
   int OpenDevice();
 
+  void SaveStat();
+
   double GetTimestamp();
 
   string m_Device;
   string m_Folder;
   string m_Header;
+  string m_NewFolder;
 
+  int m_Mode;
   serial *m_Serial = nullptr;
   thread *m_Thread = nullptr;
 
@@ -57,4 +75,8 @@ private:
   mutex mtx;
   condition_variable cv;
   bool m_StateChnged;
+
+  void (*m_OnNewLine)(string) = nullptr;
+
+  GPS_Stat_t stat;
 };

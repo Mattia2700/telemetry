@@ -123,3 +123,24 @@ vector<string> split(string str, char separator){
   ret.push_back(bff);
   return ret;
 }
+
+int empty_fields(const vector<string>& vec)
+{
+  for(int i = 0; i < vec.size(); i++)
+    if(vec[i] == "")
+      return i;
+  return -1;
+}
+
+int empty_fields(const vector<string>& vec, const vector<int>& indeces)
+{
+  for(int i : indeces)
+  {
+    if(i >= 0 && i < vec.size())
+    {
+      if(vec[i] == "")
+        return i;
+    }
+  }
+  return -1;
+}
