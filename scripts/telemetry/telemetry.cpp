@@ -55,6 +55,8 @@ int main()
     gps->SetOutputFolder(folder);
     gps->Start();
 
+    dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
+
     chimera.add_filenames(folder, ".csv");
     chimera.open_all_files();
     chimera.write_all_headers(0);
@@ -68,6 +70,8 @@ int main()
       messages_count++;
 
       timestamp = get_timestamp();
+
+      log_can(timestamp, message, *dump_file);
 
       modifiedDevices = chimera.parse_message(timestamp, message.can_id, message.data, message.can_dlc);
       for (auto modified : modifiedDevices)
@@ -85,6 +89,8 @@ int main()
         cout << human_date << " -> " << get_colored("Stopped", 1) << endl;
 
         chimera.close_all_files();
+        dump_file->close();
+        delete dump_file;
 
         gps->Stop();
 
@@ -165,41 +171,24 @@ string get_hex(int num, int zeros)
   return ss.str();
 }
 
-// void log_gps(string folder, string header)
-// {
-//   if(!open_gps())
-//     return;
-//
-//   string fname = folder + "/" + "gps_telemetry.log";
-//
-//   // Use this mutex only for wring in json stat
-//   std::unique_lock<std::mutex> lck(mtx);
-//   std::ofstream gps(fname);
-//
-//   if (header != "")
-//     gps << header << flush;
-//
-//   string line;
-//   int count = 0;
-//   auto t_start = high_resolution_clock::now();
-//   while (!killThread)
-//   {
-//     line = s->read_line('\n');
-//     line = "(" + to_string(get_timestamp()) + ")" + "\t" + line + "\n";
-//     gps << line;
-//     count++;
-//   }
-//
-//   gps.close();
-//   if(!running)
-//     s->close_port();
-//
-//   double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count() / 1000;
-//
-//   // logger_stat.gps_frequency = count;
-//   // logger_stat.gps_messages = int(count / dt);
-//   // logger_stat.gps_duration = dt;
-// }
+
+void log_can(double& timestamp, can_frame& msg, std::fstream& out)
+{
+  stringstream line;
+  line << "(" << to_string(timestamp) << ")\t" << CAN_DEVICE << "\t";
+
+  // Format message as ID#<payload>
+  // Hexadecimal representation
+  line << get_hex(int(msg.can_id), 3) << "#";
+  for (int i = 0; i < msg.can_dlc; i++)
+  {
+    line << get_hex(int(msg.data[i]), 2);
+  }
+
+  line << "\n";
+
+  out << line.str();
+}
 
 
 int open_log_folder()

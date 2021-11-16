@@ -54,4 +54,5 @@ private:
 
   mutex mtx;
   condition_variable cv;
+  bool m_StateChnged;
 };

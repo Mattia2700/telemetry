@@ -63,10 +63,8 @@ using namespace boost::filesystem;
 
 const char *CAN_DEVICE = "vcan0";
 const char *GPS_DEVICE = "/home/gps2";
-int USE_GPS = 1;
-int FOUND_GPS = 0;
 
-atomic<bool> running = false;
+bool running = false;
 
 
 string HOME_PATH;
@@ -106,6 +104,8 @@ uint32_t messages_count;
 int id;
 uint8_t *msg_data = new uint8_t[8];
 
+std::fstream* dump_file;
+
 Can * can;
 sockaddr_can addr;
 // Filter and message structs
@@ -125,8 +125,8 @@ void wait_for_start();
 
 void send_status();
 
+void log_can(double& timestamp, can_frame& msg, std::fstream& out);
 
-void log_gps(string folder, string header = "");
 
 /**
 * Gets current timestamp in seconds
