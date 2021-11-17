@@ -5,10 +5,17 @@ GpsLogger::GpsLogger(string device)
 {
   m_Device = device;
 
+  m_FName = "gps_telemetry.log";
   m_Mode = MODE_PORT;
+  m_LogginEnabled = false;
   m_Running = false;
-  m_StateChnged = false;
+  m_StateChanged = false;
   m_Thread = new thread(&GpsLogger::Run, this);
+}
+
+void GpsLogger::SetOutFName(const string& fname)
+{
+  m_FName = fname;
 }
 
 void GpsLogger::SetMode(int mode)
@@ -16,12 +23,12 @@ void GpsLogger::SetMode(int mode)
   m_Mode = mode;
 }
 
-void GpsLogger::SetOutputFolder(string& folder)
+void GpsLogger::SetOutputFolder(const string& folder)
 {
   m_NewFolder = folder;
 }
 
-void GpsLogger::SetHeader(string& header)
+void GpsLogger::SetHeader(const string& header)
 {
   m_Header = header;
 }
@@ -31,17 +38,33 @@ void GpsLogger::SetCallback(void (*f)(string))
   m_OnNewLine = f;
 }
 
+void GpsLogger::StartLogging()
+{
+  m_LogginEnabled = true;
+  m_Running = true;
+  m_StateChanged = true;
+  cv.notify_all();
+}
+
+void GpsLogger::StopLogging()
+{
+  m_LogginEnabled = false;
+  m_Running = false;
+  m_StateChanged = true;
+  cv.notify_all();
+}
+
 void GpsLogger::Start()
 {
   m_Running = true;
-  m_StateChnged = true;
+  m_StateChanged = true;
   cv.notify_all();
 }
 
 void GpsLogger::Stop()
 {
   m_Running = false;
-  m_StateChnged = true;
+  m_StateChanged = true;
   cv.notify_all();
 }
 
@@ -49,7 +72,7 @@ void GpsLogger::Kill()
 {
   m_Kill = true;
   m_Running = false;
-  m_StateChnged = true;
+  m_StateChanged = true;
   cv.notify_all();
 }
 
@@ -83,12 +106,83 @@ int GpsLogger::OpenDevice()
 
 void GpsLogger::Run()
 {
+  std::ofstream* gps;
+  string line;
+
   while(!m_Kill)
   {
     unique_lock<mutex> lck(mtx);
     while(!m_Running)
       cv.wait(lck);
-    m_StateChnged = false;
+    m_StateChanged = false;
+    if(m_Kill)
+      break;
+
+    m_Folder = m_NewFolder;
+
+
+    if(m_Running)
+    {
+      if(!OpenDevice()){
+        m_Running = false;
+        continue;
+      }
+    }
+
+
+    if(m_LogginEnabled)
+    {
+      string fname = m_Folder + "/" + m_FName;
+      gps = new std::ofstream(fname);
+
+      if(m_Header != "")
+        (*gps) << m_Header << endl;
+
+      stat.delta_time = GetTimestamp();
+      stat.msg_count = 0;
+    }
+
+    m_StateChanged = false;
+    while(m_Running)
+    {
+      line = m_Serial->read_line('\n');
+      if(m_OnNewLine != nullptr)
+        m_OnNewLine(line);
+
+
+      if(m_StateChanged)
+        break;
+      if(m_LogginEnabled)
+      {
+        line = "(" + to_string(GetTimestamp()) + ")" + "\t" + line + "\n";
+        (*gps) << line << flush;
+        stat.msg_count ++;
+      }
+    }
+
+    if(!m_LogginEnabled)
+    {
+      stat.delta_time = GetTimestamp() - stat.delta_time;
+      m_StateChanged = false;
+      gps->close();
+      delete gps;
+      SaveStat();
+    }
+    if(!m_Running)
+    {
+      m_Serial->close_port();
+    }
+  }
+}
+/*
+void GpsLogger::Run()
+{
+  while(!m_Kill)
+  {
+    unique_lock<mutex> lck(mtx);
+    while(!m_Running)
+      cv.wait(lck);
+    m_StateChanged = false;
     m_Folder = m_NewFolder;
 
     if(m_Kill)
@@ -99,7 +193,7 @@ void GpsLogger::Run()
       continue;
     }
 
-    string fname = m_Folder + "/" + "gps_telemetry.log";
+    string fname = m_Folder + "/" + m_FName;
     std::ofstream gps(fname);
     string line;
 
@@ -112,7 +206,7 @@ void GpsLogger::Run()
     // Can happen that is requested Stop and immediately a start
     // In that case m_Running changes two times and the while(m_Running) doesn't
     // detects the double change.
-    while(m_Running && !m_StateChnged)
+    while(m_Running && !m_StateChanged)
     {
       line = m_Serial->read_line('\n');
       if(m_OnNewLine != nullptr)
@@ -123,13 +217,14 @@ void GpsLogger::Run()
     }
     stat.delta_time = GetTimestamp() - stat.delta_time;
 
-    m_StateChnged = false;
+    m_StateChanged = false;
     gps.close();
     m_Serial->close_port();
 
     SaveStat();
   }
 }
+*/
 
 
 double GpsLogger::GetTimestamp()

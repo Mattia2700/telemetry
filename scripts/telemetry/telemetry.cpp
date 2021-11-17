@@ -5,6 +5,8 @@ int main(int argc, char** argv)
 
   string HOME_PATH = getenv("HOME");
   string config_fname = HOME_PATH + "/telemetry_config.json";
+
+  config.url = "ws://192.168.195.1:8080";
   load_config(config, config_fname);
 
   if(!open_log_folder())
@@ -24,103 +26,154 @@ int main(int argc, char** argv)
   GpsLogger* gps = new GpsLogger(string(GPS_DEVICE));
   gps->SetMode(MODE_FILE);
   gps->SetCallback(&on_gps_line);
+  gps->Start();
+
+  GpsLogger* gps2 = new GpsLogger("/dev/ttyACM1");
+  gps2->SetOutFName("gps_backup.log");
+  gps2->SetMode(MODE_PORT);
+  gps2->Start();
+
+  Client c;
+  auto current_thread = c.run(config.url);
+  if(current_thread == nullptr){
+    cout << get_colored("Failed connecting to server: " + config.url, 1) << endl;
+  }
+  // Login as telemetry
+  c.set_data("{\"identifier\":\"telemetry\"}");
+
+  string header;
+  string subfolder;
+  string folder;
+  double timestamp;
+  double ws_send_timer = get_timestamp();
 
   while (true)
   {
 
-    // Set CAN filter to accept only 0xA0 id
-    rfilter.can_id = 0xA0;
-    rfilter.can_mask = 0b11111111111;
-    can->set_filters(rfilter);
+    timestamp = get_timestamp();
+    can->receive(&message);
+    can_stat.msg_count++;
 
-    wait_for_start();
-    // if config are not setted bu can message, then load
-    // previous config
-    if(config.pilot == 0 && config.circuit == 0 && config.race == 0)
+    if(start(message))
     {
-      load_config(config, config_fname);
-    }
-    else
-    {
-      write_config(config, config_fname);
+      run_state = 1;
+      state_changed = true;
     }
 
-    date = time(0);
-    human_date = string(ctime(&date));
-    human_date.erase(human_date.size()-1, 1);
-    cout << human_date << " -> " << get_colored("Running", 3) << endl;
-
-    running = true;
-
-    // To remove a filter set the mask to 0
-    // So every id will pass the mask
-    rfilter.can_id = 0x000;
-    rfilter.can_mask = 0b00000000000;
-    can->set_filters(rfilter);
-
-    // Insert header at top of the file
-    string header;
-    create_header(header);
-
-    string subfolder;
-    create_folder_name(subfolder);
-
-    // get absolute path of folder
-    string folder = FOLDER_PATH + "/" + subfolder;
-    create_directory(folder);
-
-    gps->SetOutputFolder(folder);
-    gps->SetHeader(header);
-    gps->Start();
-
-    dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
-    (*dump_file) << header << "\n";
-
-    chimera->add_filenames(folder, ".csv");
-    chimera->open_all_files();
-    chimera->write_all_headers(0);
-
-    double timestamp = get_timestamp();
-    can_stat.duration = timestamp;
-    while (true)
+    if(state_changed)
     {
-      can->receive(&message);
-      can_stat.msg_count++;
+      // if config are not setted bu can message, then load
+      // previous config
+      if(config.pilot == 0 && config.circuit == 0 && config.race == 0)
+      {
+        load_config(config, config_fname);
+      }
+      else
+      {
+        write_config(config, config_fname);
+      }
 
-      timestamp = get_timestamp();
+      date = time(0);
+      human_date = string(ctime(&date));
+      human_date.erase(human_date.size()-1, 1);
+      cout << human_date << " -> " << get_colored("Running", 3) << endl;
 
+      // Insert header at top of the file
+      create_header(header);
+
+      create_folder_name(subfolder);
+
+      // get absolute path of folder
+      folder = FOLDER_PATH + "/" + subfolder;
+      create_directory(folder);
+
+      gps->SetOutputFolder(folder);
+      gps->SetHeader(header);
+
+      gps2->SetOutputFolder(folder);
+      gps2->SetHeader(header);
+
+      dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
+      (*dump_file) << header << "\n";
+
+      chimera->add_filenames(folder, ".csv");
+      chimera->open_all_files();
+      chimera->write_all_headers(0);
+
+      can_stat.duration = timestamp;
+
+      state_changed = false;
+
+      gps->StartLogging();
+      gps2->StartLogging();
+    }
+
+    modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+
+    if(run_state == 1)
+    {
       log_can(timestamp, message, *dump_file);
 
-      modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
       for (auto modified : modifiedDevices)
       {
         unique_lock<mutex> lck(mtx);
         (*modified->files[0]) << modified->get_string(",") + "\n";
       }
-
-      // Stop message
-      if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-          message.data[0] == 0x66 && message.data[1] == 0x00)
-      {
-        unique_lock<mutex> lck(mtx);
-        date = time(0);
-        human_date = string(ctime(&date));
-        human_date[human_date.size()-1] = ' ';
-        cout << human_date << " -> " << get_colored("Stopped", 1) << endl;
-
-        chimera->close_all_files();
-        dump_file->close();
-        delete dump_file;
-
-        gps->Stop();
-
-        running = false;
-        break;
-      }
     }
-    can_stat.duration = get_timestamp() - can_stat.duration;
 
-    save_stat(folder);
+    // Stop message
+    if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+        message.data[0] == 0x66 && message.data[1] == 0x00)
+    {
+      unique_lock<mutex> lck(mtx);
+      date = time(0);
+      human_date = string(ctime(&date));
+      human_date[human_date.size()-1] = ' ';
+      cout << human_date << " -> " << get_colored("Stopped", 1) << endl;
+
+      chimera->close_all_files();
+      dump_file->close();
+      delete dump_file;
+
+
+      // Stop logging but continue reading port
+      gps->StopLogging();
+      gps2->StopLogging();
+      gps->Start();
+      gps2->Start();
+
+      run_state = false;
+      state_changed = true;
+
+      can_stat.duration = get_timestamp() - can_stat.duration;
+      save_stat(folder);
+    }
+
+    if(timestamp - ws_send_timer > TIMEOUT){
+      ws_send_timer = timestamp;
+      string serialized_string;
+      chimera->serialized_to_string(&serialized_string);
+
+      if(serialized_string.size() == 0)
+        continue;
+
+      Document d;
+      StringBuffer sb;
+      Writer<StringBuffer> w(sb);
+      rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+      sb.Clear();
+      w.Reset(sb);
+      d.SetObject();
+      d.AddMember("type", Value().SetString("update_data"), alloc);
+      d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
+      d.Accept(w);
+
+      c.set_data(sb.GetString());
+      chimera->clear_serialized();
+    }
+
+
   }
   return 0;
 }
@@ -138,8 +191,11 @@ void on_gps_line(string line)
   }
   if(ret == 1)
   {
-    unique_lock<mutex> lck(mtx);
-    (*chimera->gps->files[0]) << chimera->gps->get_string(",") + "\n" << flush;
+    if(run_state)
+    {
+      unique_lock<mutex> lck(mtx);
+      (*chimera->gps->files[0]) << chimera->gps->get_string(",") + "\n" << flush;
+    }
   }
   else
   {
@@ -221,38 +277,34 @@ int open_can_socket()
   return 1;
 }
 
-void wait_for_start()
+int start(const can_frame& message)
 {
-  while (true)
+  if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+      message.data[0] == 0x66 && message.data[1] == 0x01)
   {
-    can->receive(&message);
-    if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-        message.data[0] == 0x66 && message.data[1] == 0x01)
+    // If contains some payload use to setup pilots races and circuits
+    if (message.can_dlc >= 5)
     {
-      // If contains some payload use to setup pilots races and circuits
-      if (message.can_dlc >= 5)
-      {
-        config.pilot = message.data[2];
-        config.race = message.data[3];
-        config.circuit = message.data[4];
-      }
-      else
-      {
-        config.pilot = 0;
-        config.race = 0;
-        config.circuit = 0;
-      }
-      break;
+      config.pilot = message.data[2];
+      config.race = message.data[3];
+      config.circuit = message.data[4];
     }
-  }
-
-  // Check index range
-  if (config.pilot >= PILOTS.size())
+    else
+    {
+      config.pilot = 0;
+      config.race = 0;
+      config.circuit = 0;
+    }
+    return 1;
+    // Check index range
+    if (config.pilot >= PILOTS.size())
     config.pilot = 0;
-  if (config.race >= RACES.size())
+    if (config.race >= RACES.size())
     config.race = 0;
-  if (config.circuit >= CIRCUITS.size())
+    if (config.circuit >= CIRCUITS.size())
     config.circuit = 0;
+  }
+  return 0;
 }
 
 void create_header(string& out)
@@ -296,7 +348,7 @@ void send_status()
 {
   while(true)
   {
-    msg_data[0] = running;
+    msg_data[0] = run_state;
     can->send(0x99, (char *)msg_data, 1);
     usleep(420000);
   }
@@ -335,6 +387,7 @@ void load_config(run_config& cfg, string& path)
     for(int i = 0; i < RACES.size(); i++)
       if(RACES[i] == tel_value["Race"].GetString())
         cfg.race = i;
+    cfg.url = tel_value["URL"].GetString();
   }
 }
 
@@ -361,6 +414,11 @@ void write_config(run_config& cfg, string& path)
     sub_obj.AddMember("Race",Value().
     SetString(RACES[cfg.race].c_str(),
               RACES[cfg.race].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("URL",Value().
+    SetString(cfg.url.c_str(),
+              cfg.url.size(),
               alloc),
               alloc);
   }

@@ -39,11 +39,14 @@ class GpsLogger
 public:
   GpsLogger(string device);
 
-  void SetOutputFolder(string& folder);
-  void SetHeader(string& header);
+  void SetOutFName(const string& fname);
+  void SetOutputFolder(const string& folder);
+  void SetHeader(const string& header);
   void SetCallback(void (*f)(string));
   void SetMode(int mode = 0);
 
+  void StartLogging();
+  void StopLogging();
   void Start();
   void Stop();
   void Kill();
@@ -60,6 +63,7 @@ private:
 
   double GetTimestamp();
 
+  string m_FName;
   string m_Device;
   string m_Folder;
   string m_Header;
@@ -69,12 +73,13 @@ private:
   serial *m_Serial = nullptr;
   thread *m_Thread = nullptr;
 
+  bool m_LogginEnabled;
   bool m_Running;
   bool m_Kill;
 
   mutex mtx;
   condition_variable cv;
-  bool m_StateChnged;
+  bool m_StateChanged;
 
   void (*m_OnNewLine)(string) = nullptr;
 

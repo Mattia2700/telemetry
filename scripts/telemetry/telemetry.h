@@ -41,14 +41,19 @@ struct CAN_Stat_t
 #include "vehicle.h"
 #include "gps_logger.h"
 
+#include "websocket.h"
+#include "devices.pb.h"
+
 using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
 
+int TIMEOUT = 200;
 const char *CAN_DEVICE = "vcan0";
 const char *GPS_DEVICE = "/home/gps2";
 
-bool running = false;
+atomic<int> run_state;
+bool state_changed = false;
 mutex mtx;
 
 string HOME_PATH;
@@ -59,6 +64,7 @@ struct run_config
   int circuit;
   int pilot;
   int race;
+  string url;
 };
 vector<string> CIRCUITS = vector<string>({
     "default",
@@ -106,7 +112,8 @@ void create_folder_name(string& out);
 
 int open_log_folder();
 int open_can_socket();
-void wait_for_start();
+// returns 1 if start is requested
+int start(const can_frame& message);
 
 void send_status();
 
