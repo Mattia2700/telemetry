@@ -74,6 +74,13 @@ int main(int argc, char* argv[]) {
     page8.SetData(chimera_data);
     renderer->AddPage(&page8);
 
+    Page9 page9("GPS", W, H);
+    page9.SetData(chimera_data);
+    renderer->AddPage(&page9);
+
+
+
+
     renderer->SetOnKeyPress(on_key_press);
 
     renderer->Start();
@@ -117,14 +124,12 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     // chimera_data->PushData(chimera_proto);
     renderer->GetPage()->SetData(chimera_data);
 
-    int size = chimera_proto->encoder_right_size();
-    if(size > 0)
-    {
-      double timestamp_received = chimera_proto->encoder_right(size-1).timestamp();
-      double timestamp = duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
+    double timestamp_received = d["timestamp"].GetDouble();
+    double timestamp = duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
 
-      cout << "\rPacket Size: " << HumanReadable(msg->get_payload().size()) << " Estimated latency: " << std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
-    }
+
+    // cout << "\rPacket Size: " << HumanReadable(msg->get_payload().size()) << " Estimated latency: " <<
+    //  std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
   }
 }
 

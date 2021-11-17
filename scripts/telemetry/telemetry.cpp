@@ -16,11 +16,20 @@ int main(int argc, char** argv)
   if(!open_can_socket())
     return 0;
 
+  c = new Client();
+  auto current_thread = c->run(config.url);
+  if(current_thread == nullptr){
+    cout << get_colored("Failed connecting to server: " + config.url, 1) << endl;
+  }
+  // Login as telemetry
+  c->set_data("{\"identifier\":\"telemetry\"}");
+
   time_t date;
   string human_date;
 
   // sends status every 200 ms
   thread t(send_status);
+  thread ws_thread(send_ws_data);
 
   chimera = new Chimera();
   GpsLogger* gps = new GpsLogger(string(GPS_DEVICE));
@@ -29,17 +38,9 @@ int main(int argc, char** argv)
   gps->Start();
 
   GpsLogger* gps2 = new GpsLogger("/dev/ttyACM1");
-  gps2->SetOutFName("gps_backup.log");
+  gps2->SetOutFName("gps_backup");
   gps2->SetMode(MODE_PORT);
   gps2->Start();
-
-  Client c;
-  auto current_thread = c.run(config.url);
-  if(current_thread == nullptr){
-    cout << get_colored("Failed connecting to server: " + config.url, 1) << endl;
-  }
-  // Login as telemetry
-  c.set_data("{\"identifier\":\"telemetry\"}");
 
   string header;
   string subfolder;
@@ -54,13 +55,7 @@ int main(int argc, char** argv)
     can->receive(&message);
     can_stat.msg_count++;
 
-    if(start(message))
-    {
-      run_state = 1;
-      state_changed = true;
-    }
-
-    if(state_changed)
+    if(run_state == 0 && start(message))
     {
       // if config are not setted bu can message, then load
       // previous config
@@ -102,10 +97,11 @@ int main(int argc, char** argv)
 
       can_stat.duration = timestamp;
 
-      state_changed = false;
 
       gps->StartLogging();
       gps2->StartLogging();
+
+      run_state = 1;
     }
 
     modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
@@ -131,6 +127,10 @@ int main(int argc, char** argv)
         run_state != 0)
     {
       unique_lock<mutex> lck(mtx);
+
+      run_state = false;
+      state_changed = true;
+
       date = time(0);
       human_date = string(ctime(&date));
       human_date[human_date.size()-1] = ' ';
@@ -147,35 +147,9 @@ int main(int argc, char** argv)
       gps->Start();
       gps2->Start();
 
-      run_state = false;
-      state_changed = true;
-
       can_stat.duration = get_timestamp() - can_stat.duration;
       save_stat(folder);
     }
-
-    if(timestamp - ws_send_timer > TIMEOUT){
-      ws_send_timer = timestamp;
-      string serialized_string;
-      chimera->serialized_to_string(&serialized_string);
-
-      if(serialized_string.size() == 0)
-        continue;
-
-      Document d;
-      StringBuffer sb;
-      Writer<StringBuffer> w(sb);
-      rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-
-      d.SetObject();
-      d.AddMember("type", Value().SetString("update_data"), alloc);
-      d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
-      d.Accept(w);
-
-      c.set_data(sb.GetString());
-      chimera->clear_serialized();
-    }
-
 
   }
   return 0;
@@ -467,4 +441,33 @@ void save_stat(string folder)
   std::ofstream stat_f(folder + "/CAN_Info.json");
   stat_f << json_ss.GetString();
   stat_f.close();
+}
+
+void send_ws_data()
+{
+  usleep(10000000);
+  while(true)
+  {
+    usleep(1000000 * TIMEOUT);
+    unique_lock<mutex> lck(mtx);
+    string serialized_string;
+    chimera->serialized_to_string(&serialized_string);
+
+    if(serialized_string.size() == 0)
+      continue;
+
+    Document d;
+    StringBuffer sb;
+    Writer<StringBuffer> w(sb);
+    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+    d.SetObject();
+    d.AddMember("type", Value().SetString("update_data"), alloc);
+    d.AddMember("timestamp", get_timestamp(), alloc);
+    d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
+    d.Accept(w);
+
+    c->set_data(sb.GetString());
+    chimera->clear_serialized();
+  }
 }

@@ -96,6 +96,7 @@ uint8_t *msg_data = new uint8_t[8];
 
 std::fstream* dump_file;
 
+Client* c;
 Chimera* chimera;
 Can * can;
 sockaddr_can addr;
@@ -117,6 +118,7 @@ int open_can_socket();
 int start(const can_frame& message);
 
 void send_status();
+void send_ws_data();
 
 void log_can(double& timestamp, can_frame& msg, std::fstream& out);
 void save_stat(string folder);

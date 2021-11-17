@@ -102,4 +102,6 @@ message Chimera {
   repeated State steering_wheel_state = 13;
 
   repeated Ecu ecu = 14;
+
+  repeated GPS gps = 15;
 }

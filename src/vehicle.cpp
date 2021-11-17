@@ -407,8 +407,8 @@ int Chimera::parse_gps(const double& timestamp, string& line)
     gps->msg_type = "GGA";
 
     gps->time = s_line[1];
-    gps->latitude = stod(s_line[2]);
-    gps->longitude = stod(s_line[4]);
+    gps->latitude = stod(s_line[2])/100.0;
+    gps->longitude = stod(s_line[4])/100.0;
     gps->fix = stoi(s_line[6]);
     gps->satellites = stoi(s_line[7]);
     gps->fix_state = FIX_STATE[gps->fix];
@@ -514,5 +514,7 @@ void Chimera::serialize_device(Device* device){
     this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
   }else if(device == ecu){
     this->ecu->serialize(chimera_proto->add_ecu());
+  }else if(device == gps){
+    this->gps->serialize(chimera_proto->add_gps());
   }
 }

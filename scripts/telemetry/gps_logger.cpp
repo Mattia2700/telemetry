@@ -5,7 +5,7 @@ GpsLogger::GpsLogger(string device)
 {
   m_Device = device;
 
-  m_FName = "gps_telemetry.log";
+  m_FName = "gps_telemetry";
   m_Mode = MODE_PORT;
   m_LogginEnabled = false;
   m_Running = false;
@@ -132,7 +132,7 @@ void GpsLogger::Run()
 
     if(m_LogginEnabled)
     {
-      string fname = m_Folder + "/" + m_FName;
+      string fname = m_Folder + "/" + m_FName + ".log";
       gps = new std::ofstream(fname);
 
       if(m_Header != "")
@@ -257,7 +257,7 @@ void GpsLogger::SaveStat()
   doc.AddMember("GPS", val, alloc);
 
   doc.Accept(writer);
-  std::ofstream stat_f(m_Folder + "/GPS_Info.json");
+  std::ofstream stat_f(m_Folder + "/" + m_FName + ".json");
   stat_f << json_ss.GetString();
   stat_f.close();
 

@@ -10,6 +10,7 @@
 #include "Pages/Page6.h"
 #include "Pages/Page7.h"
 #include "Pages/Page8.h"
+#include "Pages/Page9.h"
 
 #include "websocket.h"
 #include <ostream>
@@ -33,7 +34,8 @@ ChimeraData* chimera_data;
 devices::Chimera* chimera_proto;
 
 int W = 1280, H = 900;
-std::string uri = "ws://192.168.195.1:9090";
+// std::string uri = "ws://192.168.195.1:9090";
+std::string uri = "ws://127.0.0.1:9090";
 
 void on_key_press(char);
 
