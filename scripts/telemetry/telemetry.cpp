@@ -6,7 +6,7 @@ int main(int argc, char** argv)
   string HOME_PATH = getenv("HOME");
   string config_fname = HOME_PATH + "/telemetry_config.json";
 
-  config.url = "ws://192.168.195.1:8080";
+  config.url = "ws://192.168.195.1:9090";
   load_config(config, config_fname);
 
   if(!open_log_folder())
@@ -114,16 +114,21 @@ int main(int argc, char** argv)
     {
       log_can(timestamp, message, *dump_file);
 
-      for (auto modified : modifiedDevices)
+    }
+    for (auto modified : modifiedDevices)
+    {
+      unique_lock<mutex> lck(mtx);
+      if(run_state == 1)
       {
-        unique_lock<mutex> lck(mtx);
         (*modified->files[0]) << modified->get_string(",") + "\n";
       }
+      chimera->serialize_device(modified);
     }
 
     // Stop message
     if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-        message.data[0] == 0x66 && message.data[1] == 0x00)
+        message.data[0] == 0x66 && message.data[1] == 0x00 &&
+        run_state != 0)
     {
       unique_lock<mutex> lck(mtx);
       date = time(0);
@@ -162,8 +167,6 @@ int main(int argc, char** argv)
       Writer<StringBuffer> w(sb);
       rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
 
-      sb.Clear();
-      w.Reset(sb);
       d.SetObject();
       d.AddMember("type", Value().SetString("update_data"), alloc);
       d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
@@ -191,9 +194,10 @@ void on_gps_line(string line)
   }
   if(ret == 1)
   {
+    unique_lock<mutex> lck(mtx);
+    chimera->serialize_device(chimera->gps);
     if(run_state)
     {
-      unique_lock<mutex> lck(mtx);
       (*chimera->gps->files[0]) << chimera->gps->get_string(",") + "\n" << flush;
     }
   }
