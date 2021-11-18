@@ -52,7 +52,7 @@ using namespace boost::filesystem;
 
 // timeout in seconds
 double TIMEOUT = 0.200;
-const char *CAN_DEVICE = "vcan0";
+const char *CAN_DEVICE = "can0";
 const char *GPS_DEVICE = "/home/gps2";
 
 atomic<int> run_state;

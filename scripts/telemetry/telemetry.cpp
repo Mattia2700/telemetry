@@ -245,7 +245,7 @@ int open_can_socket()
   if (sock < 0)
   {
     console->ErrorMessage("Failed binding socket: " + string(CAN_DEVICE));
-    CAN_DEVICE = "can0";
+    CAN_DEVICE = "vcan0";
     can = new Can(CAN_DEVICE, &addr);
     sock = can->open();
     if (sock < 0)
