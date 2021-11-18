@@ -44,6 +44,8 @@ struct CAN_Stat_t
 #include "websocket.h"
 #include "devices.pb.h"
 
+#include "console.h"
+
 using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
@@ -96,6 +98,7 @@ uint8_t *msg_data = new uint8_t[8];
 
 std::fstream* dump_file;
 
+Debug::Console* console;
 Client* c;
 Chimera* chimera;
 Can * can;

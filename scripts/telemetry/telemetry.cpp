@@ -2,9 +2,12 @@
 
 int main(int argc, char** argv)
 {
+  console = new Debug::Console();
 
   string HOME_PATH = getenv("HOME");
   string config_fname = HOME_PATH + "/telemetry_config.json";
+
+  console->SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
   config.url = "ws://192.168.195.1:9090";
   load_config(config, config_fname);
@@ -19,7 +22,7 @@ int main(int argc, char** argv)
   c = new Client();
   auto current_thread = c->run(config.url);
   if(current_thread == nullptr){
-    cout << get_colored("Failed connecting to server: " + config.url, 1) << endl;
+    console->ErrorMessage("Failed connecting to server: " + config.url);
   }
   // Login as telemetry
   c->set_data("{\"identifier\":\"telemetry\"}");
@@ -71,7 +74,7 @@ int main(int argc, char** argv)
       date = time(0);
       human_date = string(ctime(&date));
       human_date.erase(human_date.size()-1, 1);
-      cout << human_date << " -> " << get_colored("Running", 3) << endl;
+      console->DebugMessage("Running");
 
       // Insert header at top of the file
       create_header(header);
@@ -134,7 +137,7 @@ int main(int argc, char** argv)
       date = time(0);
       human_date = string(ctime(&date));
       human_date[human_date.size()-1] = ' ';
-      cout << human_date << " -> " << get_colored("Stopped", 1) << endl;
+      console->DebugMessage("Stopped");
 
       chimera->close_all_files();
       dump_file->close();
@@ -163,7 +166,7 @@ void on_gps_line(string line)
   }
   catch(std::exception e)
   {
-    cout << "Parse error " << e.what() << endl;
+    console->DebugMessage("GPS parse error");
     return;
   }
   if(ret == 1)
@@ -217,16 +220,15 @@ int open_log_folder()
 {
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/logs";
-  cout << get_colored("Output Folder " + HOME_PATH + FOLDER_PATH, 2) << endl;
+  console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
   if (!path_exists(HOME_PATH + FOLDER_PATH))
   {
-    cout << get_colored("Failed, changing folder... ", 1) << endl;
+    console->ErrorMessage("Failed, changing folder... ");
     FOLDER_PATH = "/Desktop/logs";
-    cout << get_colored("Output Folder " + HOME_PATH + FOLDER_PATH, 2) << endl;
+    console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
     if (!path_exists(HOME_PATH + FOLDER_PATH))
     {
-      cout << get_colored("Folder not found!", 1) << endl;
-      cout << FOLDER_PATH << endl;
+      console->ErrorMessage("Folder not found!" + FOLDER_PATH);
       return 0;
     }
   }
@@ -240,18 +242,17 @@ int open_can_socket()
 
   if (sock < 0)
   {
-    cout << get_colored("Failed binding socket: " + string(CAN_DEVICE), 1) << endl;
+    console->ErrorMessage("Failed binding socket: " + string(CAN_DEVICE));
     CAN_DEVICE = "can0";
     can = new Can(CAN_DEVICE, &addr);
     sock = can->open();
     if (sock < 0)
     {
-      cout << get_colored("Failed binding socket: " + string(CAN_DEVICE), 1) << endl;
-      cout << "Exiting" << endl;
+      console->ErrorMessage("Failed binding socket: " + string(CAN_DEVICE));
       return 0;
     }
   }
-  cout << get_colored("Opened Socket: " + string(CAN_DEVICE), 6) << endl;
+  console->DebugMessage("Opened Socket: " + string(CAN_DEVICE));
   return 1;
 }
 

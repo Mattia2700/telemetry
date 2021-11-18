@@ -69,6 +69,7 @@ add_library(
   src/serial.cpp
   src/devices.cpp
   src/vehicle.cpp
+  src/console.cpp
   Protobuffer/cpp/devices.pb.cc
   )
 
@@ -95,7 +96,7 @@ add_executable(logger scripts/logger/logger.cpp)
 target_link_libraries(logger ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(telemetry scripts/telemetry/telemetry.cpp scripts/telemetry/gps_logger.cpp)
-target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME} websocketpp::websocketpp)
 
 add_executable(csv scripts/csv/csv.cpp)
 target_link_libraries(csv ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
