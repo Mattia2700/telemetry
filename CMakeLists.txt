@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Telemetry)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -O4")
 
 ###########
 ## BOOST ##
@@ -133,6 +133,7 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
       scripts/dashboard_client/Pages/Page7.cpp
       scripts/dashboard_client/Pages/Page8.cpp
       scripts/dashboard_client/Pages/Page9.cpp
+      scripts/dashboard_client/Pages/Page10.cpp
     )
     target_link_libraries(dashboard_client
       ${Protobuf_LIBRARIES}

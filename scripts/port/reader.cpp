@@ -40,8 +40,6 @@ int main(int argc, char const* argv[])
 
         };
         cout << line << endl;
-        usleep(1000000);
-
     }
     close(fd0);
     return 0;

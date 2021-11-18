@@ -36,7 +36,12 @@ void writer(string fname)
     cv.wait(lk); // wait for notify by main thread
 
     // Copy values from the shared string to the fifo file
-    write(fd, shared_string.c_str(), shared_string.size());
+    if(write(fd, shared_string.c_str(), shared_string.size()) == -1)
+    {
+      close(fd);
+      mkfifo(fname.c_str(), 0666);
+      fd = open(fname.c_str(), O_WRONLY);
+    }
   }
   close(fd);
 }
@@ -56,7 +61,7 @@ int main()
   }
 
   // serialport
-  string port = "/dev/ttyACM0";
+  string port = "/dev/ttyACM1";
   serial s(port);
 
   uint32_t count = 0;

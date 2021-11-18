@@ -74,10 +74,13 @@ int main(int argc, char* argv[]) {
     page8.SetData(chimera_data);
     renderer->AddPage(&page8);
 
-    Page9 page9("GPS", W, H);
+    Page9 page9("GPS map", W, H);
     page9.SetData(chimera_data);
     renderer->AddPage(&page9);
 
+    Page10 page10("GPS data", W, H);
+    page10.SetData(chimera_data);
+    renderer->AddPage(&page10);
 
 
 
@@ -113,6 +116,9 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     SizeType len = v.GetStringLength();
     auto ch = v.GetString();
     string data = string(ch, len);
+
+    // cout << data << endl;
+
 
     if(chimera_proto->ParseFromString(data) == 0)
     {
