@@ -7,6 +7,7 @@ GpsLogger::GpsLogger(string device)
 
   m_FName = "gps_telemetry";
   m_Mode = MODE_PORT;
+  m_Kill = false;
   m_LogginEnabled = false;
   m_Running = false;
   m_StateChanged = false;

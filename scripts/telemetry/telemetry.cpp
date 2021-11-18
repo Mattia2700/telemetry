@@ -38,11 +38,13 @@ int main(int argc, char** argv)
   GpsLogger* gps = new GpsLogger(string(GPS_DEVICE));
   gps->SetMode(MODE_FILE);
   gps->SetCallback(&on_gps_line);
-  gps->Start();
 
   GpsLogger* gps2 = new GpsLogger("/dev/ttyACM1");
   gps2->SetOutFName("gps_backup");
   gps2->SetMode(MODE_PORT);
+
+  usleep(100000);
+  gps->Start();
   gps2->Start();
 
   string header;
