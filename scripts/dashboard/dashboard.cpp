@@ -67,6 +67,7 @@ int main(){
         w.Reset(sb);
         d.SetObject();
         d.AddMember("type", Value().SetString("update_data"), alloc);
+        d.AddMember("timestamp", get_timestamp(), alloc);
         d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
         d.Accept(w);
 
@@ -82,6 +83,7 @@ int main(){
     w.Reset(sb);
     d.SetObject();
     d.AddMember("type", Value().SetString("update_data"), alloc);
+    d.AddMember("timestamp", get_timestamp(), alloc);
     d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
     d.Accept(w);
 
@@ -90,4 +92,10 @@ int main(){
   }
 
   return  0;
+}
+
+
+double get_timestamp()
+{
+  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
 }

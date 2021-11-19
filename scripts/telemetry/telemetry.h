@@ -44,6 +44,8 @@ struct CAN_Stat_t
 #include "websocket.h"
 #include "devices.pb.h"
 
+#include "common_definitions.h"
+
 #include "console.h"
 
 using namespace std;
@@ -62,36 +64,6 @@ mutex mtx;
 string HOME_PATH;
 string FOLDER_PATH;
 
-struct run_config
-{
-  int circuit;
-  int pilot;
-  int race;
-  string url;
-};
-vector<string> CIRCUITS = vector<string>({
-    "default",
-    "Vadena",
-    "Varano",
-    "Povo",
-    "Skio",
-});
-vector<string> PILOTS = vector<string>({
-    "default",
-    "Ivan",
-    "Filippo",
-    "Mirco",
-    "Nicola",
-    "Davide",
-});
-vector<string> RACES = vector<string>({
-    "default",
-    "Autocross",
-    "Skidpad",
-    "Endurance",
-    "Acceleration",
-});
-
 
 int id;
 uint8_t *msg_data = new uint8_t[8];
@@ -108,7 +80,7 @@ can_filter rfilter;
 can_frame message;
 
 CAN_Stat_t can_stat;
-run_config config;
+static run_config config;
 
 vector<Device *> modifiedDevices;
 
@@ -148,6 +120,10 @@ string get_hex(int num, int zeros);
 void load_config(run_config& config, string& path);
 void write_config(run_config& config, string& path);
 
+
+
+
+void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
 
 
 

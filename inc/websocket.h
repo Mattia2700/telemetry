@@ -83,8 +83,8 @@ public:
           m_done = true;
         }
 
-        asio_thread->join();
-        telemetry_thread->join();
+        // asio_thread->join();
+        // telemetry_thread->join();
     }
 
     // The fail handler will signal that we should stop sending telemetry

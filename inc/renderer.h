@@ -87,7 +87,15 @@ private:
   // int max_count = 1000;
 };
 
+class Client;
+class TelemetryConfData : public Data
+{
+public:
+  TelemetryConfData(Client* client): m_Client(client){};
 
+  Client* m_Client;
+private:
+};
 
 
 class Renderer

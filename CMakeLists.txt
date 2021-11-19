@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.10)
 project(Telemetry)
 
 set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -O4")
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
 
 ###########
 ## BOOST ##
@@ -41,6 +41,7 @@ endif()
 find_package(OpenCV)
 if(OpenCV_FOUND)
   message(STATUS "OpenCV FOUND")
+  add_compile_definitions(WITH_OPENCV)
 endif()
 
 
@@ -123,6 +124,7 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
 
       src/renderer.cpp
       src/text_box.cpp
+      src/input_box.cpp
       src/graph.cpp
 
       scripts/dashboard_client/Pages/Page1.cpp
@@ -135,6 +137,7 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
       scripts/dashboard_client/Pages/Page8.cpp
       scripts/dashboard_client/Pages/Page9.cpp
       scripts/dashboard_client/Pages/Page10.cpp
+      scripts/dashboard_client/Pages/Page11.cpp
     )
     target_link_libraries(dashboard_client
       ${Protobuf_LIBRARIES}

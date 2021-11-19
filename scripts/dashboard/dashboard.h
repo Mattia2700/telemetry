@@ -38,7 +38,9 @@ using namespace boost::filesystem;
 Chimera chimera;
 
 // std::string uri = "ws://127.0.0.1:8080";
-std::string uri = "ws://192.168.195.1:9090";
+// std::string uri = "ws://192.168.195.1:9090";
+std::string uri = "http://eagle-telemetry-server.herokuapp.com";
+
 
 string serialized_string;
 
@@ -47,5 +49,7 @@ StringBuffer sb;
 Writer<StringBuffer> w(sb);
 rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
 
+
+double get_timestamp();
 
 #endif

@@ -29,7 +29,6 @@ int main(int argc, char* argv[]) {
     if(current_thread == nullptr)
       return -1;
 
-
     // Send to server """authentication""" so sign in as client
     Document d;
     StringBuffer sb;
@@ -39,6 +38,29 @@ int main(int argc, char* argv[]) {
     d.AddMember("identifier", Value().SetString("client"), alloc);
     d.Accept(writer);
     c.set_data(string(sb.GetString()));
+
+
+    // while(true)
+    // {
+    //   Document d;
+    //   StringBuffer sb;
+    //   Writer<StringBuffer> writer(sb);
+    //   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+    //   d.SetObject();
+    //   d.AddMember("type", Value().SetString("set_telemetry_config"), alloc);
+    //   Value val;
+    //   val.SetObject();
+    //   {
+    //     val.AddMember("pilot", 0, alloc);
+    //     val.AddMember("circuit", 0, alloc);
+    //     val.AddMember("race", 1, alloc);
+    //   }
+    //
+    //   d.AddMember("data", val, alloc);
+    //   d.Accept(writer);
+    //   c.set_data(string(sb.GetString()));
+    //   usleep(1000000);
+    // }
 
 
     renderer->SetBackground(50, 40, 32);
@@ -82,6 +104,11 @@ int main(int argc, char* argv[]) {
     page10.SetData(chimera_data);
     renderer->AddPage(&page10);
 
+    TelemetryConfData* telemetry_conf_data = new TelemetryConfData(&c);
+    Page11 page11("GPS data", W, H);
+    page11.SetData(telemetry_conf_data);
+    renderer->AddPage(&page11);
+
 
 
     renderer->SetOnKeyPress(on_key_press);
@@ -108,7 +135,11 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
 
   chimera_proto->Clear();
 
-  d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
+  ParseResult ok = d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
+  if(!ok)
+  {
+    return;
+  }
   if(d["type"] == "update_data"){
     Value::MemberIterator itr = d.FindMember("data");
     string n = itr->name.GetString();
@@ -116,9 +147,6 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     SizeType len = v.GetStringLength();
     auto ch = v.GetString();
     string data = string(ch, len);
-
-    // cout << data << endl;
-
 
     if(chimera_proto->ParseFromString(data) == 0)
     {
@@ -134,8 +162,8 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     double timestamp = duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
 
 
-    // cout << "\rPacket Size: " << HumanReadable(msg->get_payload().size()) << " Estimated latency: " <<
-    //  std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
+    cout << "\rPacket Size: " << HumanReadable(msg->get_payload().size()) << " Estimated latency: " <<
+     std::fixed << setprecision(3) << (timestamp - timestamp_received) << flush;
   }
 }
 

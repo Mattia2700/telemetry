@@ -9,7 +9,6 @@ int main(int argc, char** argv)
 
   console->SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
-  config.url = "ws://192.168.195.1:9090";
   load_config(config, config_fname);
 
   if(!open_log_folder())
@@ -20,6 +19,7 @@ int main(int argc, char** argv)
     return 0;
 
   c = new Client();
+  c->set_on_message(&on_message);
   auto current_thread = c->run(config.url);
   if(current_thread == nullptr){
     console->ErrorMessage("Failed connecting to server: " + config.url);
@@ -225,7 +225,7 @@ int open_log_folder()
   console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
   if (!path_exists(HOME_PATH + FOLDER_PATH))
   {
-    console->ErrorMessage("Failed, changing folder... ");
+    console->WarnMessage("Failed, changing folder... ");
     FOLDER_PATH = "/Desktop/logs";
     console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
     if (!path_exists(HOME_PATH + FOLDER_PATH))
@@ -244,13 +244,13 @@ int open_can_socket()
 
   if (sock < 0)
   {
-    console->ErrorMessage("Failed binding socket: " + string(CAN_DEVICE));
+    console->WarnMessage("Failed binding socket: " + string(CAN_DEVICE));
     CAN_DEVICE = "vcan0";
     can = new Can(CAN_DEVICE, &addr);
     sock = can->open();
     if (sock < 0)
     {
-      console->ErrorMessage("Failed binding socket: " + string(CAN_DEVICE));
+      console->ErrorMessage("FATAL Failed binding socket: " + string(CAN_DEVICE));
       return 0;
     }
   }
@@ -342,6 +342,7 @@ void load_config(run_config& cfg, string& path)
     cfg.circuit = 0;
     cfg.pilot = 0;
     cfg.race = 0;
+    config.url = "ws://192.168.195.1:9090";
     write_config(cfg, path);
   }
   else
@@ -457,7 +458,10 @@ void send_ws_data()
     chimera->serialized_to_string(&serialized_string);
 
     if(serialized_string.size() == 0)
+    {
+      cout << "No data to be sent" << endl;
       continue;
+    }
 
     Document d;
     StringBuffer sb;
@@ -472,5 +476,38 @@ void send_ws_data()
 
     c->set_data(sb.GetString());
     chimera->clear_serialized();
+  }
+}
+
+
+
+void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
+  Document d;
+  StringBuffer sb;
+  Writer<StringBuffer> w(sb);
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+  ParseResult ok = d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
+  if(!ok)
+  {
+    return;
+  }
+  if(d["type"] == "set_telemetry_config"){
+    if(d["data"].HasMember("pilot") &&
+      d["data"].HasMember("circuit") &&
+      d["data"].HasMember("race"))
+    {
+      config.pilot = d["data"]["pilot"].GetInt();
+      config.circuit = d["data"]["circuit"].GetInt();
+      config.race = d["data"]["race"].GetInt();
+
+      cout << "Writing config" << endl;
+      string path = HOME_PATH + "/telemetry_config.json";
+      write_config(config, path);
+      cout << "Done" << endl;
+    }
+    else{
+      cout << "Wrong members" << endl;
+    }
   }
 }
