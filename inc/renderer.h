@@ -8,7 +8,6 @@
 #include <chrono>
 #include <unordered_map>
 
-
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -85,16 +84,6 @@ public:
 
 private:
   // int max_count = 1000;
-};
-
-class Client;
-class TelemetryConfData : public Data
-{
-public:
-  TelemetryConfData(Client* client): m_Client(client){};
-
-  Client* m_Client;
-private:
 };
 
 

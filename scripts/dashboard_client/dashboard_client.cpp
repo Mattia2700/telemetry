@@ -17,15 +17,15 @@ void on_key_press(char& key)
 }
 
 int main(int argc, char* argv[]) {
-    Client c;
+    c = new Client();
     renderer = new Renderer(W, H);
 
     chimera_proto = new devices::Chimera();
     chimera_data = new ChimeraData(chimera_proto);
 
-    c.set_on_message(&on_message);
+    c->set_on_message(&on_message);
 
-    auto current_thread = c.run(uri);
+    auto current_thread = c->run(uri);
     if(current_thread == nullptr)
       return -1;
 
@@ -37,30 +37,7 @@ int main(int argc, char* argv[]) {
     d.SetObject();
     d.AddMember("identifier", Value().SetString("client"), alloc);
     d.Accept(writer);
-    c.set_data(string(sb.GetString()));
-
-
-    // while(true)
-    // {
-    //   Document d;
-    //   StringBuffer sb;
-    //   Writer<StringBuffer> writer(sb);
-    //   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-    //   d.SetObject();
-    //   d.AddMember("type", Value().SetString("set_telemetry_config"), alloc);
-    //   Value val;
-    //   val.SetObject();
-    //   {
-    //     val.AddMember("pilot", 0, alloc);
-    //     val.AddMember("circuit", 0, alloc);
-    //     val.AddMember("race", 1, alloc);
-    //   }
-    //
-    //   d.AddMember("data", val, alloc);
-    //   d.Accept(writer);
-    //   c.set_data(string(sb.GetString()));
-    //   usleep(1000000);
-    // }
+    c->set_data(string(sb.GetString()));
 
 
     renderer->SetBackground(50, 40, 32);
@@ -104,11 +81,10 @@ int main(int argc, char* argv[]) {
     page10.SetData(chimera_data);
     renderer->AddPage(&page10);
 
-    TelemetryConfData* telemetry_conf_data = new TelemetryConfData(&c);
-    Page11 page11("GPS data", W, H);
-    page11.SetData(telemetry_conf_data);
-    renderer->AddPage(&page11);
 
+    Page11 page11("GPS data", W, H);
+    page11.SetOnEnter(on_telemetry_conf_enter);
+    renderer->AddPage(&page11);
 
 
     renderer->SetOnKeyPress(on_key_press);
@@ -126,6 +102,10 @@ int main(int argc, char* argv[]) {
     current_thread->join();
 }
 
+void on_telemetry_conf_enter(string json)
+{
+  c->set_data(json);
+}
 
 void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
   Document d;

@@ -1,7 +1,5 @@
 #pragma once
 
-#include "common_definitions.h"
-
 #include "renderer.h"
 #include "Pages/Page1.h"
 #include "Pages/Page2.h"
@@ -32,6 +30,7 @@ using namespace google::protobuf::util;
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
+Client* c;
 Renderer* renderer;
 ChimeraData* chimera_data;
 devices::Chimera* chimera_proto;
@@ -46,3 +45,5 @@ void on_key_press(char);
 void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
 
 string HumanReadable(uintmax_t size);
+
+void on_telemetry_conf_enter(string json);

@@ -459,7 +459,6 @@ void send_ws_data()
 
     if(serialized_string.size() == 0)
     {
-      cout << "No data to be sent" << endl;
       continue;
     }
 
