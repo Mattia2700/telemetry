@@ -81,6 +81,8 @@ public:
         {
           scoped_lock guard(m_lock);
           m_done = true;
+
+          m_open = false;
         }
 
         // asio_thread->join();
@@ -94,11 +96,14 @@ public:
 
         scoped_lock guard(m_lock);
         m_done = true;
+        m_open = false;
     }
 
     void set_data(string data){
       unique_lock<mutex> guard(m_worker_mtx);
       m_to_send_data.push(data);
+      if(m_to_send_data.size() > 20)
+        m_to_send_data.pop();
       m_new_data.store(true);
       m_cv.notify_all();
     }

@@ -63,6 +63,8 @@ private:
 
   double GetTimestamp();
 
+  std::ofstream* m_GPS;
+
   string m_FName;
   string m_Device;
   string m_Folder;
@@ -78,6 +80,7 @@ private:
   bool m_Kill;
 
   mutex mtx;
+  mutex logger_mtx;
   condition_variable cv;
   bool m_StateChanged;
 

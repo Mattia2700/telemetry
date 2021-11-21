@@ -82,7 +82,7 @@ int main()
 
   string line;
   stringstream s;
-  std::ifstream file("/home/filippo/gps_logger.log");
+  std::ifstream file("/home/filippo/COM3_211118_141650_5Hz.ubx");
   s << file.rdbuf();
   vector<string> lines = split(s.str(), '\n');
 

@@ -106,9 +106,9 @@ add_executable(log_trimmer scripts/log_trimmer/log_trimmer.cpp)
 target_link_libraries(log_trimmer ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 
-add_executable(share scripts/port/share.cpp src/serial.cpp)
-add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp)
-add_executable(read scripts/port/reader.cpp src/serial.cpp)
+add_executable(share scripts/port/share.cpp src/serial.cpp )
+add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
+add_executable(read scripts/port/reader.cpp src/serial.cpp )
 
 
 if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)

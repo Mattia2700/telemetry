@@ -56,8 +56,8 @@ int main(int argc, char** argv)
   while (true)
   {
 
-    timestamp = get_timestamp();
     can->receive(&message);
+    timestamp = get_timestamp();
     can_stat.msg_count++;
 
     if(run_state == 0 && start(message))
@@ -129,11 +129,11 @@ int main(int argc, char** argv)
     // Stop message
     if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
         message.data[0] == 0x66 && message.data[1] == 0x00 &&
-        run_state != 0)
+        run_state.load() != 0)
     {
       unique_lock<mutex> lck(mtx);
 
-      run_state = false;
+      run_state.store(0);
       state_changed = true;
 
       date = time(0);
@@ -331,6 +331,21 @@ void send_status()
   {
     msg_data[0] = run_state;
     can->send(0x99, (char *)msg_data, 1);
+
+    Document d;
+    StringBuffer sb;
+    Writer<StringBuffer> w(sb);
+    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+    d.SetObject();
+    d.AddMember("type", Value().SetString("telemetry_status"), alloc);
+    d.AddMember("timestamp", get_timestamp(), alloc);
+    d.AddMember("data", run_state.load(), alloc);
+    d.Accept(w);
+
+    c->set_data(sb.GetString());
+
+
     usleep(420000);
   }
 }
@@ -453,6 +468,8 @@ void send_ws_data()
   while(true)
   {
     usleep(1000000 * TIMEOUT);
+
+
     unique_lock<mutex> lck(mtx);
     string serialized_string;
     chimera->serialized_to_string(&serialized_string);
