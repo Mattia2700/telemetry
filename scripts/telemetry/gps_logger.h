@@ -64,6 +64,7 @@ private:
   double GetTimestamp();
 
   std::ofstream* m_GPS;
+  std::ofstream* m_StatFile;
 
   string m_FName;
   string m_Device;

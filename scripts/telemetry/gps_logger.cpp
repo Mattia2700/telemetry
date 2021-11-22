@@ -48,8 +48,8 @@ void GpsLogger::StartLogging()
 {
   unique_lock<mutex> lck(logger_mtx);
 
-  string fname = m_Folder + "/" + m_FName + ".log";
-  m_GPS = new std::ofstream(fname);
+  m_GPS      = new std::ofstream(m_Folder + "/" + m_FName + ".log");
+  m_StatFile = new std::ofstream(m_Folder + "/" + m_FName + ".json");
 
   if(m_Header != "")
     (*m_GPS) << m_Header << endl;
@@ -72,6 +72,8 @@ void GpsLogger::StopLogging()
   m_GPS->close();
   delete m_GPS;
   SaveStat();
+  m_StatFile->close();
+  delete m_StatFile;
 
   m_LogginEnabled = false;
   m_Running = false;
@@ -143,9 +145,6 @@ void GpsLogger::Run()
     m_StateChanged = false;
     if(m_Kill)
       break;
-
-    m_Folder = m_NewFolder;
-
 
     if(m_Running)
     {
@@ -220,6 +219,10 @@ double GpsLogger::GetTimestamp()
 
 void GpsLogger::SaveStat()
 {
+  if(m_StatFile == nullptr){
+    cout << "GPS " << id << " no stat file" << endl;
+    return;
+  }
   Document doc;
   StringBuffer json_ss;
   PrettyWriter<StringBuffer> writer(json_ss);
@@ -242,8 +245,5 @@ void GpsLogger::SaveStat()
   doc.AddMember("GPS", val, alloc);
 
   doc.Accept(writer);
-  std::ofstream stat_f(m_Folder + "/" + m_FName + ".json");
-  stat_f << json_ss.GetString();
-  stat_f.close();
-
+  (*m_StatFile) << json_ss.GetString();
 }
