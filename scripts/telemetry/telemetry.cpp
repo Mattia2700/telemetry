@@ -364,7 +364,7 @@ void load_config(run_config& cfg, string& path)
     cfg.circuit = 0;
     cfg.pilot = 0;
     cfg.race = 0;
-    config.url = "ws://192.168.195.1:9090";
+    cfg.url = "ws://192.168.195.1:9090";
     write_config(cfg, path);
   }
   else

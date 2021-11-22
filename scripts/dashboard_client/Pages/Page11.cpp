@@ -7,6 +7,8 @@ Page11::Page11(string name, int w, int h): Page(name, w, h)
   int height = 80;
   int padding = 8;
 
+  m_Config_FName = string(getenv("HOME")) + "/telemetry_config.json";
+
   Box pos1{
     margin,
     margin,
@@ -42,9 +44,7 @@ Page11::Page11(string name, int w, int h): Page(name, w, h)
   ui_elements.push_back(circuit_ib);
   ui_elements.push_back(race_ib);
 
-  config.pilot = 0;
-  config.circuit = 0;
-  config.race = 0;
+  load_config(m_Config_FName);
 };
 
 int Page11::Draw()
@@ -97,6 +97,8 @@ void Page11::on_enter(UIElement* element, string value)
   d.AddMember("data", val, alloc);
   d.Accept(writer);
 
+  write_config(m_Config_FName);
+
   if(m_OnEnter)
   {
     m_OnEnter(string(sb.GetString()));
@@ -137,4 +139,86 @@ void Page11::on_input(UIElement* element, char c)
     config.race = RACES.size() - 1;
   else if(config.race >= RACES.size())
     config.race = 0;
+}
+
+
+void Page11::load_config(string& path)
+{
+  std::ifstream cfg_file(path);
+
+  if(cfg_file.fail())
+  {
+    config.circuit = 0;
+    config.pilot = 0;
+    config.race = 0;
+    config.url = "ws://192.168.195.1:9090";
+    write_config(path);
+  }
+  else
+  {
+    stringstream buffer;
+    buffer << cfg_file.rdbuf();
+    cfg_file.close();
+    string str_buffer = buffer.str();
+
+    Document d;
+    StringBuffer sb;
+    Writer<StringBuffer> w(sb);
+    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+    d.Parse(str_buffer.c_str(), str_buffer.size());
+    const Value& tel_value = d["Telemetry"];
+    for(int i = 0; i < CIRCUITS.size(); i++)
+      if(CIRCUITS[i] == tel_value["Circuit"].GetString())
+        config.circuit = i;
+    for(int i = 0; i < PILOTS.size(); i++)
+      if(PILOTS[i] == tel_value["Pilot"].GetString())
+        config.pilot = i;
+    for(int i = 0; i < RACES.size(); i++)
+      if(RACES[i] == tel_value["Race"].GetString())
+        config.race = i;
+    config.url = tel_value["URL"].GetString();
+  }
+}
+
+void Page11::write_config(string& path)
+{
+  Document doc;
+  rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
+  doc.SetObject();
+
+  // Add subobject
+  Value sub_obj;
+  sub_obj.SetObject();
+  {
+    sub_obj.AddMember("Circuit",Value().
+    SetString(CIRCUITS[config.circuit].c_str(),
+              CIRCUITS[config.circuit].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("Pilot",Value().
+    SetString(PILOTS[config.pilot].c_str(),
+              PILOTS[config.pilot].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("Race",Value().
+    SetString(RACES[config.race].c_str(),
+              RACES[config.race].size(),
+              alloc),
+              alloc);
+    sub_obj.AddMember("URL",Value().
+    SetString(config.url.c_str(),
+              config.url.size(),
+              alloc),
+              alloc);
+  }
+  doc.AddMember("Telemetry", sub_obj, alloc);
+
+  StringBuffer out_buffer;
+  PrettyWriter<StringBuffer> writer(out_buffer);
+
+  doc.Accept(writer);
+  std::ofstream cfg_file(path);
+  cfg_file << out_buffer.GetString();
+  cfg_file.close();
 }

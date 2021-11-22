@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <fstream>
 
 #include <opencv2/dnn/dnn.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -24,6 +25,7 @@ using namespace rapidjson;
 
 using namespace std;
 using namespace cv;
+
 
 class Page11 : public Page
 {
@@ -48,9 +50,15 @@ private:
   void on_enter(UIElement*, string);
   void on_input(UIElement*, char);
 
+  void load_config(string& path);
+  void write_config(string& path);
+
+
   InputBox* pilot_ib;
   InputBox* circuit_ib;
   InputBox* race_ib;
+
+  string m_Config_FName;
 
   run_config config;
 

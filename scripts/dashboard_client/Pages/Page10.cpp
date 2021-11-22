@@ -106,7 +106,6 @@ int Page10::SetTextData(ChimeraData* chim)
     {
       if(gps.msg_type() == "VTG")
       {
-        cout << gps.msg_type() << endl;
         found_vtg = true;
         vtg_text_box->Clear();
         vtg_text_box->AppendLine({TITLE, "VTG Data", title_color});
