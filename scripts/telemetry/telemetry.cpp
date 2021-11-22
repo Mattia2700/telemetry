@@ -35,16 +35,18 @@ int main(int argc, char** argv)
   thread ws_thread(send_ws_data);
 
   chimera = new Chimera();
-  GpsLogger* gps = new GpsLogger(string(GPS_DEVICE));
-  gps->SetMode(MODE_FILE);
-  gps->SetCallback(&on_gps_line);
+  GpsLogger* gps1 = new GpsLogger(string(GPS_DEVICE));
+  gps1->SetOutFName("gps_1");
+  gps1->SetMode(MODE_FILE);
+  gps1->SetCallback(&on_gps_line);
 
   GpsLogger* gps2 = new GpsLogger("/dev/ttyACM1");
-  gps2->SetOutFName("gps_backup");
+  gps2->SetOutFName("gps_2");
   gps2->SetMode(MODE_PORT);
+  gps2->SetCallback(&on_gps_line);
 
   usleep(100000);
-  gps->Start();
+  gps1->Start();
   gps2->Start();
 
   string header;
@@ -87,8 +89,8 @@ int main(int argc, char** argv)
       folder = FOLDER_PATH + "/" + subfolder;
       create_directory(folder);
 
-      gps->SetOutputFolder(folder);
-      gps->SetHeader(header);
+      gps1->SetOutputFolder(folder);
+      gps1->SetHeader(header);
 
       gps2->SetOutputFolder(folder);
       gps2->SetHeader(header);
@@ -103,7 +105,7 @@ int main(int argc, char** argv)
       can_stat.duration = timestamp;
 
 
-      gps->StartLogging();
+      gps1->StartLogging();
       gps2->StartLogging();
 
       run_state = 1;
@@ -146,9 +148,9 @@ int main(int argc, char** argv)
 
 
       // Stop logging but continue reading port
-      gps->StopLogging();
+      gps1->StopLogging();
       gps2->StopLogging();
-      gps->Start();
+      gps1->Start();
       gps2->Start();
 
       can_stat.duration = get_timestamp() - can_stat.duration;

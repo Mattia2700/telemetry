@@ -6,7 +6,7 @@ GpsLogger::GpsLogger(string device)
 {
   m_Device = device;
 
-  m_FName = "gps_telemetry";
+  m_FName = "gps";
   m_Mode = MODE_PORT;
   m_Kill = false;
   m_LogginEnabled = false;
@@ -31,7 +31,7 @@ void GpsLogger::SetMode(int mode)
 
 void GpsLogger::SetOutputFolder(const string& folder)
 {
-  m_NewFolder = folder;
+  m_Folder = folder;
 }
 
 void GpsLogger::SetHeader(const string& header)
