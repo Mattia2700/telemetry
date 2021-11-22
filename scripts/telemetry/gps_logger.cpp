@@ -1,5 +1,6 @@
 #include "gps_logger.h"
 
+int GpsLogger::instance_id = 0;
 
 GpsLogger::GpsLogger(string device)
 {
@@ -11,6 +12,10 @@ GpsLogger::GpsLogger(string device)
   m_LogginEnabled = false;
   m_Running = false;
   m_StateChanged = false;
+
+  id = instance_id;
+  GpsLogger::instance_id++;
+
   m_Thread = new thread(&GpsLogger::Run, this);
 }
 
@@ -34,7 +39,7 @@ void GpsLogger::SetHeader(const string& header)
   m_Header = header;
 }
 
-void GpsLogger::SetCallback(void (*f)(string))
+void GpsLogger::SetCallback(void (*f)(int, string))
 {
   m_OnNewLine = f;
 }
@@ -127,6 +132,7 @@ int GpsLogger::OpenDevice()
 void GpsLogger::Run()
 {
   string line;
+  int fail_count = 0;
 
   while(!m_Kill)
   {
@@ -152,9 +158,24 @@ void GpsLogger::Run()
     m_StateChanged = false;
     while(m_Running)
     {
-      line = m_Serial->read_line('\n');
+      try
+      {
+        line = m_Serial->read_line('\n');
+      }
+      catch(std::exception e)
+      {
+        cout << "GPS Error " << e.what() << endl;
+        fail_count ++;
+        if(fail_count >= 20)
+        {
+          cout << "Failed 20 times readline" << endl;
+          m_Running = false;
+          fail_count = 0;
+          break;
+        }
+      }
       if(m_OnNewLine != nullptr)
-        m_OnNewLine(line);
+        m_OnNewLine(id, line);
 
 
       if(m_StateChanged)
@@ -163,8 +184,23 @@ void GpsLogger::Run()
       if(m_LogginEnabled)
       {
         unique_lock<mutex> lck(logger_mtx);
-        line = "(" + to_string(GetTimestamp()) + ")" + "\t" + line + "\n";
-        (*m_GPS) << line << flush;
+        try
+        {
+          line = "(" + to_string(GetTimestamp()) + ")" + "\t" + line + "\n";
+          (*m_GPS) << line << flush;
+        }
+        catch(std::exception e)
+        {
+          cout << "GPS Error " << e.what() << endl;
+          fail_count ++;
+          if(fail_count >= 20)
+          {
+            cout << "Failed 20 times write to file" << endl;
+            m_Running = false;
+            fail_count = 0;
+            break;
+          }
+        }
         stat.msg_count ++;
       }
     }

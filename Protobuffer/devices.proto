@@ -103,5 +103,6 @@ message Chimera {
 
   repeated Ecu ecu = 14;
 
-  repeated GPS gps = 15;
+  repeated GPS gps1 = 15;
+  repeated GPS gps2 = 16;
 }

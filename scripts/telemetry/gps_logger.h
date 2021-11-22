@@ -42,7 +42,7 @@ public:
   void SetOutFName(const string& fname);
   void SetOutputFolder(const string& folder);
   void SetHeader(const string& header);
-  void SetCallback(void (*f)(string));
+  void SetCallback(void (*f)(int, string));
   void SetMode(int mode = 0);
 
   void StartLogging();
@@ -84,7 +84,10 @@ private:
   condition_variable cv;
   bool m_StateChanged;
 
-  void (*m_OnNewLine)(string) = nullptr;
+  void (*m_OnNewLine)(int, string) = nullptr;
 
   GPS_Stat_t stat;
+  int id;
+
+  static int instance_id;
 };

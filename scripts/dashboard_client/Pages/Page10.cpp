@@ -62,9 +62,9 @@ int Page10::SetTextData(ChimeraData* chim)
 
   bool found_gga = false;
   bool found_vtg = false;
-  for(int i = chim->data->gps_size()-1; i >= 0; i--)
+  for(int i = chim->data->gps1_size()-1; i >= 0; i--)
   {
-    auto gps = chim->data->gps(i);
+    auto gps = chim->data->gps1(i);
     if(!found_gga)
     {
       if(gps.msg_type() == "GGA")

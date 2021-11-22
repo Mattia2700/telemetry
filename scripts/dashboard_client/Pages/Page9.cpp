@@ -50,12 +50,12 @@ int Page9::Draw()
 
 int Page9::SetGPSData(ChimeraData* chim)
 {
-  int size = chim->data->gps_size();
+  int size = chim->data->gps1_size();
   if(size == 0)
     return 0;
 
-  latitude = chim->data->gps(size-1).latitude();
-  longitude = chim->data->gps(size-1).longitude();
+  latitude = chim->data->gps1(size-1).latitude();
+  longitude = chim->data->gps1(size-1).longitude();
 
   return 1;
 }

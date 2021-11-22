@@ -114,7 +114,6 @@ int main(int argc, char** argv)
     if(run_state == 1)
     {
       log_can(timestamp, message, *dump_file);
-
     }
     for (auto modified : modifiedDevices)
     {
@@ -160,11 +159,17 @@ int main(int argc, char** argv)
   return 0;
 }
 
-void on_gps_line(string line)
+void on_gps_line(int id, string line)
 {
+  GPS* gps;
+  if(id == 0)
+    gps = chimera->gps1;
+  else
+    gps = chimera->gps2;
+
   int ret = 0;
   try{
-    ret = chimera->parse_gps(get_timestamp(), line);
+    ret = chimera->parse_gps(gps, get_timestamp(), line);
   }
   catch(std::exception e)
   {
@@ -174,10 +179,10 @@ void on_gps_line(string line)
   if(ret == 1)
   {
     unique_lock<mutex> lck(mtx);
-    chimera->serialize_device(chimera->gps);
+    chimera->serialize_device(gps);
     if(run_state)
     {
-      (*chimera->gps->files[0]) << chimera->gps->get_string(",") + "\n" << flush;
+      (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
     }
   }
   else

@@ -98,7 +98,7 @@ void send_ws_data();
 void log_can(double& timestamp, can_frame& msg, std::fstream& out);
 void save_stat(string folder);
 
-void on_gps_line(string line);
+void on_gps_line(int id, string line);
 
 
 /**
