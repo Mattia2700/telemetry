@@ -54,7 +54,7 @@ int Page10::SetTextData(ChimeraData* chim)
   string state;
   stringstream ss_val;
   stringstream ss_freq;
-  ss_val.precision(3);
+  ss_val.precision(6);
   ss_freq.precision(0);
 
   Scalar title_color(0, 255, 255, 255);
