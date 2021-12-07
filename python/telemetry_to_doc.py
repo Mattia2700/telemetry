@@ -71,7 +71,7 @@ lognitude = []
 origin = None
 prev_coord = [0,0]
 
-threshold = 0.0000072
+threshold = 0.0000036
 angle_threshold = 0.52
 x, y = 0, 0
 current_speed = 0

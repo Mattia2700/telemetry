@@ -16,6 +16,10 @@ if(Boost_FOUND)
   message(STATUS "Boost FOUND")
 endif()
 
+find_package(libOpenGLCustom REQUIRED PATHS /usr/local/lib/cmake/libOpenGLCustom)
+if(libOpenGLCustom_FOUND)
+  message("----- libOpenGLCustom_FOUND")
+endif()
 
 ###########
 ## PROTO ##
@@ -80,6 +84,7 @@ endif()
 
 if(Protobuf_FOUND)
   target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
+  add_library(libProtoDevices SHARED Protobuffer/cpp/devices.pb.cc)
 endif()
 
 if(Boost_FOUND)
@@ -106,9 +111,14 @@ add_executable(log_trimmer scripts/log_trimmer/log_trimmer.cpp)
 target_link_libraries(log_trimmer ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
 
 
-add_executable(share scripts/port/share.cpp src/serial.cpp )
+find_package(glfw3 3.3 REQUIRED)
+find_package(OpenGL REQUIRED)
+find_package(GLEW REQUIRED)
+find_package(glm REQUIRED)
+
+add_executable(share scripts/port/share.cpp src/serial.cpp)
 add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
-add_executable(read scripts/port/reader.cpp src/serial.cpp )
+add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 
 if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
@@ -118,33 +128,7 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
   add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
   target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
-  if(OpenCV_FOUND)
-    add_executable(dashboard_client
-      scripts/dashboard_client/dashboard_client.cpp
-
-      src/renderer.cpp
-      src/text_box.cpp
-      src/input_box.cpp
-      src/graph.cpp
-
-      scripts/dashboard_client/Pages/Page1.cpp
-      scripts/dashboard_client/Pages/Page2.cpp
-      scripts/dashboard_client/Pages/Page3.cpp
-      scripts/dashboard_client/Pages/Page4.cpp
-      scripts/dashboard_client/Pages/Page5.cpp
-      scripts/dashboard_client/Pages/Page6.cpp
-      scripts/dashboard_client/Pages/Page7.cpp
-      scripts/dashboard_client/Pages/Page8.cpp
-      scripts/dashboard_client/Pages/Page9.cpp
-      scripts/dashboard_client/Pages/Page10.cpp
-      scripts/dashboard_client/Pages/Page11.cpp
-    )
-    target_link_libraries(dashboard_client
-      ${Protobuf_LIBRARIES}
-      ${Boost_LIBRARIES}
-      websocketpp::websocketpp
-      ${OpenCV_LIBS}
-      ${PROJECT_NAME}
-    )
+  if(libOpenGLCustom_FOUND)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/Dashboard)
   endif()
 endif()
