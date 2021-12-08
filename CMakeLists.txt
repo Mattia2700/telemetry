@@ -122,8 +122,8 @@ add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 
 if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
-  add_executable(dashboard scripts/dashboard/dashboard.cpp)
-  target_link_libraries(dashboard ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+  # add_executable(dashboard scripts/dashboard/dashboard.cpp)
+  # target_link_libraries(dashboard ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
   add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
   target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})

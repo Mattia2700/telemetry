@@ -40,51 +40,51 @@ int main(int argc, char* argv[]) {
     c->set_data(string(sb.GetString()));
 
 
-    renderer->SetBackground(50, 40, 32);
-    Page1 page1("Throttle-Speed", W, H);
-    page1.SetData(chimera_data);
-    renderer->AddPage(&page1);
+    // renderer->SetBackground(50, 40, 32);
+    // Page1 page1("Throttle-Speed", W, H);
+    // page1.SetData(chimera_data);
+    // renderer->AddPage(&page1);
 
-    Page2 page2("Accel-Gyro", W, H);
-    page2.SetData(chimera_data);
-    renderer->AddPage(&page2);
+    // Page2 page2("Accel-Gyro", W, H);
+    // page2.SetData(chimera_data);
+    // renderer->AddPage(&page2);
 
-    Page3 page3("BMS", W, H);
-    page3.SetData(chimera_data);
-    renderer->AddPage(&page3);
+    // Page3 page3("BMS", W, H);
+    // page3.SetData(chimera_data);
+    // renderer->AddPage(&page3);
 
-    Page4 page4("Inverter", W, H);
-    page4.SetData(chimera_data);
-    renderer->AddPage(&page4);
+    // Page4 page4("Inverter", W, H);
+    // page4.SetData(chimera_data);
+    // renderer->AddPage(&page4);
 
-    Page5 page5("Throttle-Brake", W, H);
-    page5.SetData(chimera_data);
-    renderer->AddPage(&page5);
+    // Page5 page5("Throttle-Brake", W, H);
+    // page5.SetData(chimera_data);
+    // renderer->AddPage(&page5);
 
-    Page6 page6("Steer-Gyro", W, H);
-    page6.SetData(chimera_data);
-    renderer->AddPage(&page6);
+    // Page6 page6("Steer-Gyro", W, H);
+    // page6.SetData(chimera_data);
+    // renderer->AddPage(&page6);
 
-    Page7 page7("Sensors", W, H);
-    page7.SetData(chimera_data);
-    renderer->AddPage(&page7);
+    // Page7 page7("Sensors", W, H);
+    // page7.SetData(chimera_data);
+    // renderer->AddPage(&page7);
 
-    Page8 page8("Inverters", W, H);
-    page8.SetData(chimera_data);
-    renderer->AddPage(&page8);
+    // Page8 page8("Inverters", W, H);
+    // page8.SetData(chimera_data);
+    // renderer->AddPage(&page8);
 
-    Page9 page9("GPS map", W, H);
-    page9.SetData(chimera_data);
-    renderer->AddPage(&page9);
+    // Page9 page9("GPS map", W, H);
+    // page9.SetData(chimera_data);
+    // renderer->AddPage(&page9);
 
-    Page10 page10("GPS data", W, H);
-    page10.SetData(chimera_data);
-    renderer->AddPage(&page10);
+    // Page10 page10("GPS data", W, H);
+    // page10.SetData(chimera_data);
+    // renderer->AddPage(&page10);
 
 
-    Page11 page11("GPS data", W, H);
-    page11.SetOnEnter(on_telemetry_conf_enter);
-    renderer->AddPage(&page11);
+    // Page11 page11("GPS data", W, H);
+    // page11.SetOnEnter(on_telemetry_conf_enter);
+    // renderer->AddPage(&page11);
 
 
     renderer->SetOnKeyPress(on_key_press);

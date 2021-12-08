@@ -9,22 +9,30 @@ add_library(
     ${PROJECT_NAME}
     SHARED
 
-    src/renderer.cpp
-    src/text_box.cpp
-    src/input_box.cpp
-    src/graph.cpp
-    
+    # src/PageManager.cpp
+    src/Graph.cpp
+    src/UIElement.cpp
+    src/Application.cpp
+
+    src/Page.cpp
     src/Pages/Page1.cpp
-    src/Pages/Page2.cpp
-    src/Pages/Page3.cpp
-    src/Pages/Page4.cpp
-    src/Pages/Page5.cpp
-    src/Pages/Page6.cpp
-    src/Pages/Page7.cpp
-    src/Pages/Page8.cpp
-    src/Pages/Page9.cpp
-    src/Pages/Page10.cpp
-    src/Pages/Page11.cpp
+
+    # src/renderer.cpp
+    # src/text_box.cpp
+    # src/input_box.cpp
+    # src/graph.cpp
+    
+    # src/Pages/Page1.cpp
+    # src/Pages/Page2.cpp
+    # src/Pages/Page3.cpp
+    # src/Pages/Page4.cpp
+    # src/Pages/Page5.cpp
+    # src/Pages/Page6.cpp
+    # src/Pages/Page7.cpp
+    # src/Pages/Page8.cpp
+    # src/Pages/Page9.cpp
+    # src/Pages/Page10.cpp
+    # src/Pages/Page11.cpp
 )
 
 target_link_libraries(${PROJECT_NAME}
@@ -46,7 +54,7 @@ target_link_libraries(${PROJECT_NAME}
     libProtoDevices
 )
 
-add_executable(dashboard_client
-  scripts/dashboard_client/dashboard_client.cpp
+add_executable(dashboard
+  scripts/dashboard/dashboard.cpp
 )
-target_link_libraries(dashboard_client ${PROJECT_NAME})
+target_link_libraries(dashboard ${PROJECT_NAME})

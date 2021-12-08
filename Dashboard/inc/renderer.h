@@ -46,25 +46,6 @@ struct Sate_t
 class Data{};
 class Page;
 
-class UIElement
-{
-public:
-  UIElement(string name): name(name)
-  {
-    id = ui_elements_instances;
-    ui_elements_instances ++;
-  };
-
-  int id;
-  string name;
-  bool command_mode = false;
-  bool hovered = false;
-
-  virtual void CommandMode(char key)=0;
-private:
-  static int ui_elements_instances;
-};
-
 class ChimeraData : public Data
 {
 public:
@@ -156,55 +137,4 @@ private:
   atomic<bool> kill;
 
   void (*on_key_press)(char&) = nullptr;
-};
-
-
-class Page : public UIElement
-{
-public:
-  Page(string name, int w, int h):UIElement(name),W(w),H(h), new_data(false)
-  {
-    background_color = cv::Scalar(0, 0, 0, 0);
-    background = new Mat(h, w, CV_8UC4, background_color);
-    instance_count ++;
-  };
-  ~Page()
-  {
-    instance_count --;
-  }
-
-  Mat* GetImage()
-  {
-    return background;
-  };
-  void SetData(Data* data)
-  {
-    unique_lock<mutex> lck(mtx);
-    current_data = data;
-    new_data = true;
-  };
-  void SetBackground(int R, int G, int B)
-  {
-    background_color = cv::Scalar(R,G,B, 0);
-    background->setTo(background_color);
-  };
-
-
-  virtual int Draw() = 0;
-  virtual void CommandMode(char c);
-
-  static int instance_count;
-protected:
-  Mat* background;
-  Data* current_data = nullptr;
-  bool new_data;
-
-  Scalar background_color;
-
-  int W, H;
-
-  mutex mtx;
-
-  vector<UIElement*> ui_elements;
-  int ui_element_hovered = -1;
 };
