@@ -75,6 +75,7 @@ add_library(
   src/devices.cpp
   src/vehicle.cpp
   src/console.cpp
+  src/proto_deserializer.cpp
   Protobuffer/cpp/devices.pb.cc
   )
 
@@ -84,7 +85,6 @@ endif()
 
 if(Protobuf_FOUND)
   target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
-  add_library(libProtoDevices SHARED Protobuffer/cpp/devices.pb.cc)
 endif()
 
 if(Boost_FOUND)
@@ -122,11 +122,17 @@ add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 
 if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
-  # add_executable(dashboard scripts/dashboard/dashboard.cpp)
-  # target_link_libraries(dashboard ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+  add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
+  target_link_libraries(dashboard_simulator ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
   add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
   target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+
+  add_library(libProtoDevices
+              SHARED
+              Protobuffer/cpp/devices.pb.cc
+              src/proto_deserializer.cpp
+              )
 
   if(libOpenGLCustom_FOUND)
     add_subdirectory(${PROJECT_SOURCE_DIR}/Dashboard)

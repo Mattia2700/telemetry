@@ -32,7 +32,7 @@ public:
   */
   vector<Device*> parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size);
 
-  int parse_gps(GPS* gps_device, const double& timestamp, string& line);
+  int parse_gps(Gps* gps_device, const double& timestamp, string& line);
 
   /**
   * Defines a filename to every device called DeviceName.extension
@@ -130,8 +130,8 @@ public:
 
   Ecu* ecu;
 
-  GPS* gps1;
-  GPS* gps2;
+  Gps* gps1;
+  Gps* gps2;
 
   /**
   * Vector containing all the devices

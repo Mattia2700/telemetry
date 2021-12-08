@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include "devices.pb.h"
 
 #include "Page.h"
@@ -21,11 +22,9 @@ public:
 
   virtual bool OnMouseMove(MouseMovedEvent& e);
 private:
-  vector<double> x;
-  vector<vector<double>> ys;
 
-  Graph* graph1;
-  Graph* graph2;
+  Graph* pedal_graph;
+  Graph* speed_graph;
   
   uint64_t frame_count=0;
 };

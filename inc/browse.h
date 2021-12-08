@@ -22,7 +22,7 @@ using namespace boost::filesystem;
 
 #define HEADER_HEIGHT 10
 #define PRINTABLE_HEIGHT 30
-#define COLUMN_MAX_WIDTH 35
+#define COLUMN_MAX_WIDTH 50
 
 enum SelectionType{
   sel_file,

@@ -1,29 +1,23 @@
-#ifndef DEVICES_H
-#define DEVICES_H
+#pragma once
 
-#include <ctime>
-#include <chrono>
-#include <stdio.h>
-#include <cstdlib>
-#include <iomanip>
-#include <fstream>
+#include <stdlib.h>
 #include <string.h>
-#include <iostream>
+#include <sstream>
 #include <vector>
+#include <fstream>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 using namespace rapidjson;
 
+
 #include "devices.pb.h"
 #include <google/protobuf/message.h>
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
-
-using namespace std;
-using namespace std::chrono;
 using namespace google::protobuf;
 using namespace google::protobuf::util;
+
 
 enum ECU_STATE_T
 {
@@ -80,237 +74,197 @@ static string FIX_STATE[7] =
 	"DEAD RECKONING MODE, FIX VALID"
 };
 
-class Device
-{
+class Device {
 public:
-  Device(string name = "default");
-  virtual ~Device();
+	Device(std::string name = "default");
 
-  int get_id() { return id; };
-  string get_name() { return name; };
+	int    get_id()  { return id; }
+	std::string get_name(){ return name; }
 
-  virtual string get_header(string separator) = 0;
-  virtual string get_string(string separator) = 0;
-  virtual Document json() = 0;
+	virtual std::string get_header(std::string separator) = 0;
+	virtual std::string get_string(std::string separator) = 0;
+	virtual Document    get_json  () = 0;
+	virtual std::string   get_readable() = 0;
 
-  virtual string json_string()
-  {
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    json().Accept(writer);
+	std::string json_string();
+	void serialized_to_string(Message* message, std::string *out);
+	void serialized_to_text(Message* message, std::string *out);
+	void serialized_to_json(Message* message, std::string *out);
+	static std::vector<std::string> get_field_names(const Descriptor* descriptor);
+	static string get_header(const std::vector<std::string>& fields, string separator);
+	static string get_header(const Descriptor* descriptor, std::string separator);
 
-    return buffer.GetString();
-  }
-
-  static vector<string> get_field_names(const Descriptor* descriptor);
-  static string get_header(const vector<string>& fields, string separator);
-  static string get_header(const Descriptor* descriptor, string separator);
-
-
-  /**
-  * From protobuf object to string serialized
-  *
-  * @param out serialized string in output
-  */
-  void serialized_to_string(Message* message, string *out){
-    message->SerializeToString(out);
-  }
-
-  /**
-  * Human readable string of the serialized object
-  *
-  * @param outout string
-  */
-  void serialized_to_text(Message* message, string *out){
-    TextFormat::PrintToString(*message, out);
-  }
-  /**
-  * JSON readable string of the serialized object
-  *
-  * @param outout string
-  */
-  void serialized_to_json(Message* message, string *out){
-    MessageToJsonString(*message, out);
-  }
-
-  double timestamp;
-
-  int count;
-  float helper_variable = 0;
-  vector<std::fstream *> files;
-  vector<string> filenames;
-  vector<string> mesages_list;
+	std::vector<std::string>   filenames;
+	std::vector<std::fstream*> files;
 
 private:
-  string name;
-
-  int id;
-  static int global_id;
+	int id;
+	std::string name;
+	static int instance_count;
 };
 
-class Imu : public Device
-{
+class Imu: public Device{
 public:
-  Imu(string name = "default") : Device(name){};
+	Imu(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Imu *);
+	void serialize(devices::Imu* device);
 
-  float x;
-  float y;
-  float z;
-  float scale;
+	double timestamp;
+	double x;
+	double y;
+	double z;
+	double scale;
 };
 
-class Encoder : public Device
-{
+class Encoder: public Device{
 public:
-  Encoder(string name = "default") : Device(name){};
+	Encoder(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Encoder *);
+	void serialize(devices::Encoder* device);
 
-  float rads;
-  float km;
-  float rotations;
+	double timestamp;
+	double rads;
+	double km;
+	double rotations;
 };
 
-class Steer : public Device
-{
+class Steer: public Device{
 public:
-  Steer(string name = "default") : Device(name){};
+	Steer(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Steer *);
+	void serialize(devices::Steer* device);
 
-  float angle;
+	double timestamp;
+	double angle;
 };
 
-class Pedals : public Device
-{
+class Pedals: public Device{
 public:
-  Pedals(string name = "default") : Device(name){};
+	Pedals(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Pedals *);
+	void serialize(devices::Pedals* device);
 
-  float throttle1;
-  float throttle2;
-  float brake_front;
-  float brake_rear;
+	double timestamp;
+	double throttle1;
+	double throttle2;
+	double brake_front;
+	double brake_rear;
 };
 
-class Inverter : public Device
-{
+class Inverter: public Device{
 public:
-  Inverter(string name = "default") : Device(name){};
+	Inverter(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Inverter *);
+	void serialize(devices::Inverter* device);
 
-  float temperature;
-  float motor_temp;
-  float torque;
-  float speed;
+	double timestamp;
+	double temperature;
+	double motor_temp;
+	double torque;
+	double speed;
 };
 
-class Bms : public Device
-{
+class Bms: public Device{
 public:
-  Bms(string name = "default") : Device(name){};
+	Bms(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Bms *);
+	void serialize(devices::Bms* device);
 
-  float temperature;
-  float max_temperature;
-  float min_temperature;
-
-  float current;
-
-  float voltage;
-  float max_voltage;
-  float min_voltage;
-
-  float power;
+	double timestamp;
+	double temperature;
+	double max_temperature;
+	double min_temperature;
+	double current;
+	double voltage;
+	double max_voltage;
+	double min_voltage;
+	double power;
 };
 
-class State : public Device
-{
+class Ecu: public Device{
 public:
-  State(string name = "default") : Device(name){};
+	Ecu(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::State *);
+	void serialize(devices::Ecu* device);
 
-  string value;
+	double timestamp;
+	double power_request_left;
+	double power_request_right;
 };
 
-class Ecu : public Device
-{
+class State: public Device{
 public:
-  Ecu(string name = "default") : Device(name){};
+	State(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::Ecu *);
+	void serialize(devices::State* device);
 
-  double power_request_left;
-  double power_request_right;
+	double timestamp;
+	std::string value;
 };
 
-class GPS : public Device
-{
+class Gps: public Device{
 public:
-  GPS(string name = "default") : Device(name){};
+	Gps(std::string name): Device(name){};
 
-  virtual string get_header(string separator);
-  virtual string get_string(string separator);
-  virtual Document json();
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
 
-  void serialize(devices::GPS *);
+	void serialize(devices::Gps* device);
 
-	// if GGA or VTG or ...
-	string msg_type;
-
-	// From GGA string
-	string time;
+	double timestamp;
+	std::string msg_type;
+	std::string time;
 	double latitude;
 	double longitude;
-	int fix;
-	int satellites;
-	string fix_state;
 	double altitude;
+	uint32_t fix;
+	uint32_t satellites;
+	std::string fix_state;
 	double age_of_correction;
-
-	// From VTG string
 	double course_over_ground_degrees;
 	double course_over_ground_degrees_magnetic;
 	double speed_kmh;
-	string mode;
+	std::string mode;
 };
-
-#endif //DEVICES_H

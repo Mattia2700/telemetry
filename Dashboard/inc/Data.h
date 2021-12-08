@@ -1,7 +1,6 @@
 #pragma once
 
-#include "devices.pb.h"
-
+#include "proto_deserializer.h"
 
 class Data{};
 class Page;
@@ -9,14 +8,9 @@ class Page;
 class ChimeraData : public Data
 {
 public:
-  ChimeraData(devices::Chimera* chim): data(chim){};
+  ChimeraData(ChimeraDeserializer* chim): data(chim){};
 
-  void SetData(devices::Chimera* chim)
-  {
-    data = chim;
-  };
-
-  devices::Chimera* data = nullptr;
-
-private:
+  ChimeraDeserializer* data = nullptr;
+  
+  bool newData;
 };

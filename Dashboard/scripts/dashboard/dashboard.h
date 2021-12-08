@@ -13,10 +13,12 @@
 // #include "Pages/Page9.h"
 // #include "Pages/Page10.h"
 // #include "Pages/Page11.h"
+#include "Data.h"
 
 #include "websocket.h"
 #include <ostream>
 #include <iomanip>
+#include <chrono>
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -25,11 +27,24 @@
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>
 
+
 using namespace std;
 using namespace rapidjson;
+using namespace std::chrono;
 using namespace google::protobuf;
 using namespace google::protobuf::util;
 
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 
+ChimeraData* chimera_data;
+devices::Chimera* chimera_proto;
+ChimeraDeserializer* chimera_deserializer;
+
+
+Client* ws_client;
+std::string uri = "http://eagle-telemetry-server.herokuapp.com";
+void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+
+
+string HumanReadable(uintmax_t size);

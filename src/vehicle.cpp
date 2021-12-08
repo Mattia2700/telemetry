@@ -18,8 +18,8 @@ Chimera::Chimera(){
   bms_hv_state = new State("State BMS HV");
   steering_wheel_state = new State("State Steering Wheel");
   ecu = new Ecu("ECU");
-  gps1 = new GPS("GPS1");
-  gps2 = new GPS("GPS2");
+  gps1 = new Gps("GPS1");
+  gps2 = new Gps("GPS2");
 
 
   // Device list
@@ -61,8 +61,8 @@ Chimera::Chimera(){
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::Ecu());
-  proto_messages.push_back(new devices::GPS());
-  proto_messages.push_back(new devices::GPS());
+  proto_messages.push_back(new devices::Gps());
+  proto_messages.push_back(new devices::Gps());
 
   if(devices.size() != proto_messages.size()){
     throw logic_error("Chimera initialization incorrect, vectors of devices and messages not of the same size");
@@ -94,7 +94,7 @@ void Chimera::open_all_files(){
 }
 
 void Chimera::close_all_files(){
-  for(auto device : devices){
+  for(Device* device : devices){
     for(auto file : device->files){
       file->close();
       delete file;
@@ -385,7 +385,7 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
   return modifiedDevices;
 }
 
-int Chimera::parse_gps(GPS* gps_, const double& timestamp, string& line)
+int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
 {
   if(line[0] != '$')
     return -1;
@@ -485,6 +485,9 @@ void Chimera::serialize(){
   this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
 
   this->ecu->serialize(chimera_proto->add_ecu());
+
+  this->gps1->serialize(chimera_proto->add_gps1());
+  this->gps2->serialize(chimera_proto->add_gps2());
 }
 
 

@@ -163,7 +163,7 @@ int main(int argc, char** argv)
 
 void on_gps_line(int id, string line)
 {
-  GPS* gps;
+  Gps* gps;
   if(id == 0)
     gps = chimera->gps1;
   else

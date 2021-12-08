@@ -234,7 +234,6 @@ void Graph::CheckLength(vector<double>* to_check)
   int oversize = to_check->size() - max_length;
   if(oversize <= 0)
     return;
-
   to_check->erase(to_check->begin(), to_check->begin()+oversize);
 }
 
@@ -290,15 +289,16 @@ bool Graph::OnMouseButtonPressed(MouseButtonPressedEvent& e)
   if(e.GetMouseButton() == Mouse::ButtonLeft)
   {
     auto x = Input::GetMouseX(Application::Get().GetGLWindow());
-    auto y = Input::GetMouseX(Application::Get().GetGLWindow());
-    x /= Application::Get().GetWindow()->W;
-    y /= Application::Get().GetWindow()->H;
+    auto y = Input::GetMouseY(Application::Get().GetGLWindow());
+    x = x / (Application::Get().GetWindow()->W/2);
+    x -= 1.0f;
+    y = y / (Application::Get().GetWindow()->H/2);
+    y -= 1.0f;
 
     if(x > position.x && x < position.x + position.w)
     {
       if(y > position.y && y < position.y + position.h)
       {
-        cout << name << " hit" << endl;
         return true;
       }
     }
