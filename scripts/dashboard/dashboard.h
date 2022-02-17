@@ -39,7 +39,8 @@ Chimera chimera;
 
 // std::string uri = "ws://127.0.0.1:8080";
 // std::string uri = "ws://192.168.195.1:9090";
-std::string uri = "http://eagle-telemetry-server.herokuapp.com";
+// std::string uri = "http://eagle-telemetry-server.herokuapp.com";
+std::string uri = "http://127.0.0.1:3000";
 
 
 string serialized_string;

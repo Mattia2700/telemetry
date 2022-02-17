@@ -37,10 +37,7 @@ bin/
 
 # VSCode
 .vscode/
-node_modules/
 
 Protobuffer/js
 Protobuffer/cpp
 Protobuffer/python
-
-js/config.json

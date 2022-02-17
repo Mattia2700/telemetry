@@ -53,6 +53,7 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}
   ${CMAKE_CURRENT_SOURCE_DIR}/inc
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
+  ${CMAKE_CURRENT_SOURCE_DIR}/json_models
   ${CMAKE_CURRENT_SOURCE_DIR}/Protobuffer/cpp
 
   ${CURL_INCLUDE_DIR}
@@ -68,6 +69,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 add_library(
   ${PROJECT_NAME}
   SHARED
+  # SRC
   src/can.cpp
   src/utils.cpp
   src/browse.cpp
@@ -75,8 +77,14 @@ add_library(
   src/devices.cpp
   src/vehicle.cpp
   src/console.cpp
+
+  # PROTO
   src/proto_deserializer.cpp
   Protobuffer/cpp/devices.pb.cc
+
+  # JSON
+  json_models/telemetry_config/json_loader.cpp
+  json_models/session_config/json_loader.cpp
   )
 
 if(websocketpp_FOUND)
@@ -133,8 +141,4 @@ if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
               Protobuffer/cpp/devices.pb.cc
               src/proto_deserializer.cpp
               )
-
-  if(libOpenGLCustom_FOUND)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/Dashboard)
-  endif()
 endif()

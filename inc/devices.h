@@ -97,6 +97,9 @@ public:
 	std::vector<std::string>   filenames;
 	std::vector<std::fstream*> files;
 
+	long int samples_count;
+	double prev_timestamp;
+
 private:
 	int id;
 	std::string name;

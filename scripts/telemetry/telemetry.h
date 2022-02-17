@@ -12,7 +12,6 @@
 #include <exception>
 
 #include <cstdio>
-#include <ctime>
 
 #include <fcntl.h>
 #include <sys/stat.h>
@@ -48,14 +47,24 @@ struct CAN_Stat_t
 
 #include "console.h"
 
+#include "json_loader.h"
+// #include "session_config/json_loader.h"
+
 using namespace std;
 using namespace std::chrono;
 using namespace boost::filesystem;
 
-// timeout in seconds
-double TIMEOUT = 0.200;
-const char *CAN_DEVICE = "can0";
-const char *GPS_DEVICE = "/home/gps2";
+
+telemetry_config tel_conf;
+session_config sesh_config;
+
+vector<GpsLogger*> gps_loggers;
+
+thread* status_thread = nullptr;
+thread* data_thread = nullptr;
+
+
+const char *CAN_DEVICE;
 
 atomic<int> run_state;
 bool state_changed = false;
@@ -67,6 +76,10 @@ string FOLDER_PATH;
 
 int id;
 uint8_t *msg_data = new uint8_t[8];
+
+time_t date;
+struct tm ltm;
+string human_date;
 
 std::fstream* dump_file;
 
@@ -80,7 +93,6 @@ can_filter rfilter;
 can_frame message;
 
 CAN_Stat_t can_stat;
-static run_config config;
 
 vector<Device *> modifiedDevices;
 
@@ -89,8 +101,6 @@ void create_folder_name(string& out);
 
 int open_log_folder();
 int open_can_socket();
-// returns 1 if start is requested
-int start(const can_frame& message);
 
 void send_status();
 void send_ws_data();
@@ -117,10 +127,8 @@ double get_timestamp();
 string get_hex(int num, int zeros);
 
 
-void load_config(run_config& config, string& path);
-void write_config(run_config& config, string& path);
 
-
+void load_all_config(std::string&);
 
 
 void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);

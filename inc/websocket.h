@@ -116,8 +116,9 @@ public:
           while (!m_new_data)
             m_cv.wait(lck);
 
-          //m_client.get_alog().write(websocketpp::log::alevel::app, m_to_send_data.front());
+          // m_client.get_alog().write(websocketpp::log::alevel::app, "Seding");
           m_client.send(m_hdl,m_to_send_data.front(),websocketpp::frame::opcode::binary,ec);
+          // std::cout << "Sent" << std::endl;
 
           m_to_send_data.pop();
 

@@ -5,49 +5,73 @@ int main(int argc, char** argv)
   console = new Debug::Console();
 
   string HOME_PATH = getenv("HOME");
-  string config_fname = HOME_PATH + "/telemetry_config.json";
+
+
+  load_all_config(HOME_PATH);
+
+  CAN_DEVICE = tel_conf.can_device.c_str();
 
   console->SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
-  load_config(config, config_fname);
-
+  // Opening Log folders
+  // /FOLDER_PATH/<date>/<session>
   if(!open_log_folder())
     return 0;
+
+  time(&date);
+  localtime_r(&date, &ltm);
+  std::ostringstream ss;
+  ss << std::put_time(&ltm, "%d_%m_%Y");
+
+  FOLDER_PATH += "/" + ss.str();
+  
   FOLDER_PATH = HOME_PATH + FOLDER_PATH;
+  if(!path_exists(FOLDER_PATH))
+    create_directory(FOLDER_PATH);
 
   if(!open_can_socket())
     return 0;
 
   c = new Client();
-  c->set_on_message(&on_message);
-  auto current_thread = c->run(config.url);
-  if(current_thread == nullptr){
-    console->ErrorMessage("Failed connecting to server: " + config.url);
+  if(tel_conf.ws_enabled)
+  {
+    c->set_on_message(&on_message);
+    auto current_thread = c->run(tel_conf.ws_server_url);
+    if(current_thread == nullptr){
+      console->ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
+    }
+    // Login as telemetry
+    c->set_data("{\"identifier\":\"telemetry\"}");
+
+    // sends status every 420 ms
+    data_thread = new thread(send_ws_data);
   }
-  // Login as telemetry
-  c->set_data("{\"identifier\":\"telemetry\"}");
+  status_thread = new thread(send_status);
 
-  time_t date;
-  string human_date;
-
-  // sends status every 200 ms
-  thread t(send_status);
-  thread ws_thread(send_ws_data);
 
   chimera = new Chimera();
-  GpsLogger* gps1 = new GpsLogger(string(GPS_DEVICE));
-  gps1->SetOutFName("gps_1");
-  gps1->SetMode(MODE_FILE);
-  gps1->SetCallback(&on_gps_line);
 
-  GpsLogger* gps2 = new GpsLogger("/dev/ttyACM1");
-  gps2->SetOutFName("gps_2");
-  gps2->SetMode(MODE_PORT);
-  gps2->SetCallback(&on_gps_line);
+  // Setup of all GPS devices
+  for(size_t i = 0; i < tel_conf.gps_devices.size(); i++)
+  {
+    string dev = tel_conf.gps_devices[i];
+    string mode = tel_conf.gps_mode[i];
+    bool enabled = tel_conf.gps_enabled[i];
+    
+    GpsLogger* gps1 = new GpsLogger(dev);
+    gps1->SetOutFName("gps_" + to_string(i+1));
+    if(mode == "file")
+      gps1->SetMode(MODE_FILE);
+    else
+      gps1->SetMode(MODE_PORT);
+    gps1->SetCallback(&on_gps_line);
+
+    gps_loggers.push_back(gps1);
+  }
 
   usleep(100000);
-  gps1->Start();
-  gps2->Start();
+  for(auto logger : gps_loggers)
+    logger->Start();
 
   string header;
   string subfolder;
@@ -62,38 +86,28 @@ int main(int argc, char** argv)
     timestamp = get_timestamp();
     can_stat.msg_count++;
 
-    if(run_state == 0 && start(message))
+    if(run_state == 0 && (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+      message.data[0] == 0x66 && message.data[1] == 0x01))
     {
-      // if config are not setted bu can message, then load
-      // previous config
-      if(config.pilot == 0 && config.circuit == 0 && config.race == 0)
-      {
-        load_config(config, config_fname);
-      }
-      else
-      {
-        write_config(config, config_fname);
-      }
-
-      date = time(0);
-      human_date = string(ctime(&date));
-      human_date.erase(human_date.size()-1, 1);
-      console->DebugMessage("Running");
-
+      console->DebugMessage("Received request to run");
       // Insert header at top of the file
       create_header(header);
-
+      
       create_folder_name(subfolder);
 
       // get absolute path of folder
-      folder = FOLDER_PATH + "/" + subfolder;
+      int i = 1;
+      do{
+        folder = FOLDER_PATH + "/" + subfolder + " " + to_string(i);
+        i++;
+      }while(path_exists(folder));
       create_directory(folder);
 
-      gps1->SetOutputFolder(folder);
-      gps1->SetHeader(header);
-
-      gps2->SetOutputFolder(folder);
-      gps2->SetHeader(header);
+      for(auto logger : gps_loggers)
+      {
+        logger->SetOutputFolder(folder);
+        logger->SetHeader(header);
+      }
 
       dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
       (*dump_file) << header << "\n";
@@ -104,71 +118,99 @@ int main(int argc, char** argv)
 
       can_stat.duration = timestamp;
 
-
-      gps1->StartLogging();
-      gps2->StartLogging();
+      for(auto logger : gps_loggers)
+        logger->StartLogging();
 
       run_state = 1;
+      console->DebugMessage("\tRunning");
     }
-
-    modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
 
     if(run_state == 1)
     {
       log_can(timestamp, message, *dump_file);
     }
-    for (auto modified : modifiedDevices)
+
+    // Parse the message only if is needed
+    // Parsed messages are for sending via websocket or to be logged in csv
+    if(tel_conf.generate_csv || tel_conf.ws_enabled)
     {
-      unique_lock<mutex> lck(mtx);
-      if(run_state == 1)
+      modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+
+      // For every device that has been modified by the parse operation
+      for (auto modified : modifiedDevices)
       {
-        (*modified->files[0]) << modified->get_string(",") + "\n";
+        unique_lock<mutex> lck(mtx);
+
+        if(run_state == 1 && tel_conf.generate_csv)
+        {
+          (*modified->files[0]) << modified->get_string(",") + "\n";
+        }
+
+        // Serialize with protobuf if websocket is enabled
+        if(tel_conf.ws_enabled)
+        {
+          if(tel_conf.ws_downsample == false)
+          {
+            if((1.0/tel_conf.ws_downsample_mps) < (timestamp - modified->prev_timestamp))
+            {
+              modified->prev_timestamp = timestamp;
+              chimera->serialize_device(modified);
+            }
+          }else
+          {
+            chimera->serialize_device(modified);
+          }
+        }
       }
-      chimera->serialize_device(modified);
     }
 
     // Stop message
-    if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-        message.data[0] == 0x66 && message.data[1] == 0x00 &&
-        run_state.load() != 0)
+    if (run_state == 1 && (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+        message.data[0] == 0x66 && message.data[1] == 0x00))
     {
       unique_lock<mutex> lck(mtx);
+      console->DebugMessage("Received request to stop");
 
+      // Stop
       run_state.store(0);
       state_changed = true;
 
-      date = time(0);
-      human_date = string(ctime(&date));
-      human_date[human_date.size()-1] = ' ';
-      console->DebugMessage("Stopped");
+      // duration of the log
+      can_stat.duration = get_timestamp() - can_stat.duration;
 
+      // Close all csv files and the dump file
       chimera->close_all_files();
       dump_file->close();
       delete dump_file;
 
-
       // Stop logging but continue reading port
-      gps1->StopLogging();
-      gps2->StopLogging();
-      gps1->Start();
-      gps2->Start();
+      for(auto logger : gps_loggers)
+      {
+        logger->StopLogging();
+        logger->Start();
+      }
 
-      can_stat.duration = get_timestamp() - can_stat.duration;
+      // Save stats of this log session
       save_stat(folder);
+      console->DebugMessage("\tStopped");
     }
 
   }
   return 0;
 }
 
+// Callback, fires every time a line from a GPS is received
 void on_gps_line(int id, string line)
 {
-  Gps* gps;
+  Gps* gps = nullptr;
+
+  // Selecting one of chimera GPS
   if(id == 0)
     gps = chimera->gps1;
-  else
+  else if(id == 1)
     gps = chimera->gps2;
 
+  // Parsing GPS data
   int ret = 0;
   try{
     ret = chimera->parse_gps(gps, get_timestamp(), line);
@@ -178,6 +220,9 @@ void on_gps_line(int id, string line)
     console->DebugMessage("GPS parse error");
     return;
   }
+
+  // If parsing was successfull
+  // save parsed data into gps file
   if(ret == 1)
   {
     unique_lock<mutex> lck(mtx);
@@ -224,12 +269,16 @@ void log_can(double& timestamp, can_frame& msg, std::fstream& out)
   out << line.str();
 }
 
-
+// Check if log folder exist
+// Two folders are checked in sequence:
+// "/<home>/logs"
+// "/<home>/Desktop/logs"
 int open_log_folder()
 {
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/logs";
   console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
+
   if (!path_exists(HOME_PATH + FOLDER_PATH))
   {
     console->WarnMessage("Failed, changing folder... ");
@@ -265,73 +314,33 @@ int open_can_socket()
   return 1;
 }
 
-int start(const can_frame& message)
-{
-  if (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-      message.data[0] == 0x66 && message.data[1] == 0x01)
-  {
-    // If contains some payload use to setup pilots races and circuits
-    if (message.can_dlc >= 5)
-    {
-      config.pilot = message.data[2];
-      config.race = message.data[3];
-      config.circuit = message.data[4];
-    }
-    else
-    {
-      config.pilot = 0;
-      config.race = 0;
-      config.circuit = 0;
-    }
-    return 1;
-    // Check index range
-    if (config.pilot >= PILOTS.size())
-    config.pilot = 0;
-    if (config.race >= RACES.size())
-    config.race = 0;
-    if (config.circuit >= CIRCUITS.size())
-    config.circuit = 0;
-  }
-  return 0;
-}
-
 void create_header(string& out)
 {
-  // Get human readable date
-  time_t date = time(0);
-  string human_date = string(ctime(&date));
   out = "\r\n\n";
   out += "*** EAGLE-TRT\r\n";
   out += "*** Telemetry Log File\r\n";
-  out += "*** " + human_date;
+  out += "*** Date: " + sesh_config.date + "\r\n";
+  out += "*** Time: " + sesh_config.time + "\r\n";
   out += "\r\n";
-  out += "*** Pilot   .... " + PILOTS[config.pilot] + "\r\n";
-  out += "*** Race    .... " + RACES[config.race] + "\r\n";
-  out += "*** Circuit .... " + CIRCUITS[config.circuit];
+  out += "*** Curcuit       .... " + sesh_config.circuit + "\r\n";
+  out += "*** Pilot         .... " + sesh_config.pilot + "\r\n";
+  out += "*** Test          .... " + sesh_config.test + "\r\n";
+  out += "*** Configuration .... " + sesh_config.configuration;
   out += "\n\n\r";
 }
 
 void create_folder_name(string& out)
-{
-  time_t date = time(0);
-  tm *ltm = localtime(&date);
-  // Create a unique folder
+{ 
+  // Create a folder with current configurations
   stringstream subfolder;
-  subfolder << to_string(1900 + ltm->tm_year);
-  subfolder << setw(2) << setfill('0') << to_string(1 + ltm->tm_mon);
-  subfolder << setw(2) << setfill('0') << to_string(ltm->tm_mday);
-  subfolder << "_";
-  subfolder << setw(2) << setfill('0') << to_string(ltm->tm_hour);
-  subfolder << setw(2) << setfill('0') << to_string(ltm->tm_min);
-  subfolder << setw(2) << setfill('0') << to_string(ltm->tm_sec);
-  subfolder << "_";
-  subfolder << PILOTS[config.pilot];
-  subfolder << "_";
-  subfolder << RACES[config.race];
+  subfolder << sesh_config.test;
+  subfolder << " [";
+  subfolder << sesh_config.configuration << "]";
 
   out = subfolder.str();
 }
 
+// Send status both via can and websocket
 void send_status()
 {
   while(true)
@@ -339,103 +348,56 @@ void send_status()
     msg_data[0] = run_state;
     can->send(0x99, (char *)msg_data, 1);
 
-    Document d;
-    StringBuffer sb;
-    Writer<StringBuffer> w(sb);
-    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+    if(tel_conf.ws_enabled)
+    {
+      Document d;
+      StringBuffer sb;
+      Writer<StringBuffer> w(sb);
+      rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
 
-    d.SetObject();
-    d.AddMember("type", Value().SetString("telemetry_status"), alloc);
-    d.AddMember("timestamp", get_timestamp(), alloc);
-    d.AddMember("data", run_state.load(), alloc);
-    d.Accept(w);
+      d.SetObject();
+      d.AddMember("type", Value().SetString("telemetry_status"), alloc);
+      d.AddMember("timestamp", get_timestamp(), alloc);
+      d.AddMember("data", run_state.load(), alloc);
+      d.Accept(w);
 
-    c->set_data(sb.GetString());
+      c->set_data(sb.GetString());
+    }
 
 
     usleep(420000);
   }
 }
 
-void load_config(run_config& cfg, string& path)
+// Load all configuration files
+// If the file doesn't exist create it
+void load_all_config(std::string& home_path)
 {
-  if(path_exists(path) == false)
+  string path = home_path + "/telemetry_config.json";
+  if(path_exists(path))
   {
-    cfg.circuit = 0;
-    cfg.pilot = 0;
-    cfg.race = 0;
-    cfg.url = "ws://192.168.195.1:9090";
-    write_config(cfg, path);
+    if(LoadJson(tel_conf, path))
+      console->DebugMessage("Loaded telemetry config");
+    else
+      console->ErrorMessage("Failed loading telemetry config");
+  }else{
+    console->DebugMessage("Created: " + path);
+    SaveJson(tel_conf, path);
   }
-  else
+
+  path = home_path + "/session_config.json";
+  if(path_exists(path))
   {
-    stringstream buffer;
-    std::ifstream cfg_file(path);
-    buffer << cfg_file.rdbuf();
-    cfg_file.close();
-    string str_buffer = buffer.str();
-
-    Document d;
-    StringBuffer sb;
-    Writer<StringBuffer> w(sb);
-    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-
-    d.Parse(str_buffer.c_str(), str_buffer.size());
-    const Value& tel_value = d["Telemetry"];
-    for(int i = 0; i < CIRCUITS.size(); i++)
-      if(CIRCUITS[i] == tel_value["Circuit"].GetString())
-        cfg.circuit = i;
-    for(int i = 0; i < PILOTS.size(); i++)
-      if(PILOTS[i] == tel_value["Pilot"].GetString())
-        cfg.pilot = i;
-    for(int i = 0; i < RACES.size(); i++)
-      if(RACES[i] == tel_value["Race"].GetString())
-        cfg.race = i;
-    cfg.url = tel_value["URL"].GetString();
+    if(LoadJson(sesh_config, path))
+      console->DebugMessage("Loaded session config");
+    else
+      console->ErrorMessage("Failed loading session config");
+  }else{
+    console->DebugMessage("Created: " + path);
+    SaveJson(sesh_config, path);
   }
 }
 
-void write_config(run_config& cfg, string& path)
-{
-  Document doc;
-  rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
-  doc.SetObject();
-
-  // Add subobject
-  Value sub_obj;
-  sub_obj.SetObject();
-  {
-    sub_obj.AddMember("Circuit",Value().
-    SetString(CIRCUITS[cfg.circuit].c_str(),
-              CIRCUITS[cfg.circuit].size(),
-              alloc),
-              alloc);
-    sub_obj.AddMember("Pilot",Value().
-    SetString(PILOTS[cfg.pilot].c_str(),
-              PILOTS[cfg.pilot].size(),
-              alloc),
-              alloc);
-    sub_obj.AddMember("Race",Value().
-    SetString(RACES[cfg.race].c_str(),
-              RACES[cfg.race].size(),
-              alloc),
-              alloc);
-    sub_obj.AddMember("URL",Value().
-    SetString(cfg.url.c_str(),
-              cfg.url.size(),
-              alloc),
-              alloc);
-  }
-  doc.AddMember("Telemetry", sub_obj, alloc);
-
-  StringBuffer out_buffer;
-  PrettyWriter<StringBuffer> writer(out_buffer);
-
-  doc.Accept(writer);
-  std::ofstream cfg_file(path);
-  cfg_file << out_buffer.GetString();
-  cfg_file.close();
-}
 
 void save_stat(string folder)
 {
@@ -450,9 +412,10 @@ void save_stat(string folder)
   human_date.erase(human_date.size()-1, 1);
   // Add keys and string values
   doc.AddMember("Date", Value().SetString(StringRef(human_date.c_str())), alloc);
-  doc.AddMember("Pilot", Value().SetString(StringRef(PILOTS[config.pilot].c_str())), alloc);
-  doc.AddMember("Race", Value().SetString(StringRef(RACES[config.race].c_str())), alloc);
-  doc.AddMember("Circuit", Value().SetString(StringRef(CIRCUITS[config.circuit].c_str())), alloc);
+  doc.AddMember("Circuit", Value().SetString(StringRef(sesh_config.circuit.c_str())), alloc);
+  doc.AddMember("Pilot", Value().SetString(StringRef(sesh_config.pilot.c_str())), alloc);
+  doc.AddMember("Test", Value().SetString(StringRef(sesh_config.test.c_str())), alloc);
+  doc.AddMember("Configuration", Value().SetString(StringRef(sesh_config.configuration.c_str())), alloc);
 
   Value val;
   val.SetObject();
@@ -472,9 +435,10 @@ void save_stat(string folder)
 void send_ws_data()
 {
   usleep(10000000);
+  int timeout = tel_conf.ws_send_rate;
   while(true)
   {
-    usleep(1000000 * TIMEOUT);
+    usleep(1000000 * timeout);
 
 
     unique_lock<mutex> lck(mtx);
@@ -520,14 +484,14 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
       d["data"].HasMember("circuit") &&
       d["data"].HasMember("race"))
     {
-      config.pilot = d["data"]["pilot"].GetInt();
-      config.circuit = d["data"]["circuit"].GetInt();
-      config.race = d["data"]["race"].GetInt();
+      // config.pilot = d["data"]["pilot"].GetInt();
+      // config.circuit = d["data"]["circuit"].GetInt();
+      // config.race = d["data"]["race"].GetInt();
 
-      cout << "Writing config" << endl;
-      string path = HOME_PATH + "/telemetry_config.json";
-      write_config(config, path);
-      cout << "Done" << endl;
+      // cout << "Writing config" << endl;
+      // string path = HOME_PATH + "/telemetry_config.json";
+      // write_config(config, path);
+      // cout << "Done" << endl;
     }
     else{
       cout << "Wrong members" << endl;
