@@ -15,11 +15,11 @@ using websocketpp::lib::placeholders::_2;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
-class Client {
+class WebSocketClient {
 public:
     typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
-    Client() : m_open(false),m_done(false) {
+    WebSocketClient() : m_open(false),m_done(false) {
         // set up access channels to only log interesting things
         m_client.clear_access_channels(websocketpp::log::alevel::all);
         m_client.set_access_channels(websocketpp::log::alevel::connect);
@@ -30,9 +30,9 @@ public:
         m_client.init_asio();
 
         // Bind the handlers we are using
-        m_client.set_open_handler(bind(&Client::on_open,this,_1));
-        m_client.set_close_handler(bind(&Client::on_close,this,_1));
-        m_client.set_fail_handler(bind(&Client::on_fail,this,_1));
+        m_client.set_open_handler(bind(&WebSocketClient::on_open,this,_1));
+        m_client.set_close_handler(bind(&WebSocketClient::on_close,this,_1));
+        m_client.set_fail_handler(bind(&WebSocketClient::on_fail,this,_1));
         // m_client.set_message_handler(bind(&oon_message,&m_client,::_1,::_2));
         m_new_data.store(false);
     }
@@ -61,7 +61,7 @@ public:
 
 
         asio_thread = new websocketpp::lib::thread(&client::run, &m_client);
-        telemetry_thread = new websocketpp::lib::thread(&Client::loop,this);
+        telemetry_thread = new websocketpp::lib::thread(&WebSocketClient::loop,this);
 
         return telemetry_thread;
     }

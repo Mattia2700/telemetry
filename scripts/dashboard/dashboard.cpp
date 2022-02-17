@@ -2,7 +2,7 @@
 
 int main(){
 
-  Client c;
+  WebSocketClient c;
   auto current_thread = c.run(uri);
   if(current_thread == nullptr){
     cout << get_colored("Failed connecting to server: " + uri, 1) << endl;

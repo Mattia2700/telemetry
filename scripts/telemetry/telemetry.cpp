@@ -32,16 +32,16 @@ int main(int argc, char** argv)
   if(!open_can_socket())
     return 0;
 
-  c = new Client();
+  ws_cli = new WebSocketClient();
   if(tel_conf.ws_enabled)
   {
-    c->set_on_message(&on_message);
-    auto current_thread = c->run(tel_conf.ws_server_url);
+    ws_cli->set_on_message(&on_message);
+    auto current_thread = ws_cli->run(tel_conf.ws_server_url);
     if(current_thread == nullptr){
       console->ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
     }
     // Login as telemetry
-    c->set_data("{\"identifier\":\"telemetry\"}");
+    ws_cli->set_data("{\"identifier\":\"telemetry\"}");
 
     // sends status every 420 ms
     data_thread = new thread(send_ws_data);
@@ -361,7 +361,7 @@ void send_status()
       d.AddMember("data", run_state.load(), alloc);
       d.Accept(w);
 
-      c->set_data(sb.GetString());
+      ws_cli->set_data(sb.GetString());
     }
 
 
@@ -461,7 +461,7 @@ void send_ws_data()
     d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
     d.Accept(w);
 
-    c->set_data(sb.GetString());
+    ws_cli->set_data(sb.GetString());
     chimera->clear_serialized();
   }
 }
@@ -474,12 +474,18 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
   Writer<StringBuffer> w(sb);
   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
 
+  Document ret;
+  StringBuffer sb2;
+  Writer<StringBuffer> w2(sb2);
+  rapidjson::Document::AllocatorType &alloc2 = ret.GetAllocator();
+
+
   ParseResult ok = d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
   if(!ok)
   {
     return;
   }
-  if(d["type"] == "set_telemetry_config"){
+  if(d["type"] == "telemetry_set_config"){
     if(d["data"].HasMember("pilot") &&
       d["data"].HasMember("circuit") &&
       d["data"].HasMember("race"))
@@ -495,6 +501,44 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     }
     else{
       cout << "Wrong members" << endl;
+    }
+  }
+  else if(d["type"] == "ping")
+  {
+    ret.SetObject();
+    ret.AddMember("type", Value().SetString("server_answer_ping"), alloc2);
+    ret.AddMember("time", (get_timestamp() - d["time"].GetDouble()), alloc2);
+    ret.Accept(w2);
+    
+    ws_cli->set_data(sb2.GetString());
+  } else if(d["type"] == "telemetry_get_config")
+  {
+    string conf1 = Serialize(tel_conf).dump();
+    string conf2 = Serialize(sesh_config).dump();
+
+    ret.SetObject();
+    ret.AddMember("type", Value().SetString("telemetry_config"), alloc2);
+    ret.AddMember("telemetry_config", Value().SetString(conf1.c_str(), conf1.size(), alloc2), alloc2);
+    ret.AddMember("session_config", Value().SetString(conf2.c_str(), conf2.size(), alloc2), alloc2);
+    ret.Accept(w2);
+    
+    ws_cli->set_data(sb2.GetString());
+  } else if(d["type"] == "telemetry_kill")
+  {
+    exit(0);
+  } else if(d["type"] == "telemetry_send_can_message")
+  {
+    if((d.HasMember("id") && d.HasMember("payload")) &&
+       (d["id"].IsInt() && d["payload"].IsArray()))
+    {
+      auto payload = d["payload"].GetArray();
+      if(payload.Size() > 0 && payload.Size() <= 8 && payload[0].IsInt())
+      {
+        char msg[8];
+        for(int i = 0 ; i < payload.Size(); i++)
+          msg[i] = (char)payload[i].GetInt();
+        can->send(d["id"].GetInt(), msg, 8);
+      }
     }
   }
 }

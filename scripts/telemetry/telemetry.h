@@ -84,7 +84,7 @@ string human_date;
 std::fstream* dump_file;
 
 Debug::Console* console;
-Client* c;
+WebSocketClient* ws_cli;
 Chimera* chimera;
 Can * can;
 sockaddr_can addr;
