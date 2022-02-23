@@ -12,14 +12,14 @@ Browse::Browse(){
   cursor_y = 0;
 
   stat_fname = string(getenv("HOME")) + "/" + stat_fname;
-  if(exists(boost::filesystem::path(stat_fname))){
+  if(exists(filesystem::path(stat_fname))){
     FILE* f = fopen(stat_fname.c_str(), "r");
     char* line = NULL;
     size_t size = 0;
     getline(&line, &size, f);
     fclose(f);
-    if(exists(boost::filesystem::path(string(line))) &&
-    is_directory(boost::filesystem::path(string(line)))){
+    if(exists(filesystem::path(string(line))) &&
+    is_directory(filesystem::path(string(line)))){
       start_path = string(line);
     }
     else{
@@ -121,11 +121,11 @@ vector<string> Browse::Start(){
         if(path != "/"){
           string prev_path = path;
 
-          path = boost::filesystem::path(path).parent_path().string();
+          path = filesystem::path(path).parent_path().string();
           UpdateDirs();
 
-          vector<directory_entry>::iterator pos;
-          pos = find(all_dirs.begin(), all_dirs.end(), directory_entry(prev_path));
+          vector<filesystem::directory_entry>::iterator pos;
+          pos = find(all_dirs.begin(), all_dirs.end(), filesystem::directory_entry(prev_path));
           if(pos != all_dirs.end()){
             index = pos - all_dirs.begin();
           }
@@ -173,7 +173,7 @@ vector<string> Browse::Start(){
 
   if(selected_paths.size() > 0){
     std::ofstream stat(stat_fname);
-    stat << boost::filesystem::path(selected_paths.at(0)).parent_path().string();;
+    stat << filesystem::path(selected_paths.at(0)).parent_path().string();;
     stat.close();
   }
 
@@ -317,7 +317,7 @@ int Browse::GetSelectedIndex(string path){
 void Browse::UpdateDirs(){
     all_dirs.clear();
     try{
-      copy(directory_iterator(path), directory_iterator(), back_inserter(all_dirs));
+      copy(std::filesystem::directory_iterator(path), std::filesystem::directory_iterator(), back_inserter(all_dirs));
     }catch(exception e){
       cout << "Error" << endl;
       return;
@@ -380,9 +380,9 @@ string Browse::HumanReadable(uintmax_t size){
 }
 
 void Browse::PrintFile(string fname, int column){
-  if(!boost::filesystem::is_regular_file(fname))
+  if(!filesystem::is_regular_file(fname))
     return;
-  if(!exists(fname))
+  if(!std::filesystem::exists(fname))
     return;
 
   FILE* f = fopen(fname.c_str(), "r");

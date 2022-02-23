@@ -4,7 +4,7 @@ int main(int argc, char** argv)
 {
   console = new Debug::Console();
 
-  string HOME_PATH = getenv("HOME");
+  HOME_PATH = getenv("HOME");
 
 
   load_all_config(HOME_PATH);
@@ -33,20 +33,7 @@ int main(int argc, char** argv)
     return 0;
 
   ws_cli = new WebSocketClient();
-  if(tel_conf.ws_enabled)
-  {
-    ws_cli->set_on_message(&on_message);
-    auto current_thread = ws_cli->run(tel_conf.ws_server_url);
-    if(current_thread == nullptr){
-      console->ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
-    }
-    // Login as telemetry
-    ws_cli->set_data("{\"identifier\":\"telemetry\"}");
-
-    // sends status every 420 ms
-    data_thread = new thread(send_ws_data);
-  }
-  status_thread = new thread(send_status);
+  ws_conn_thread = new thread(connect_ws);
 
 
   chimera = new Chimera();
@@ -86,9 +73,10 @@ int main(int argc, char** argv)
     timestamp = get_timestamp();
     can_stat.msg_count++;
 
-    if(run_state == 0 && (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-      message.data[0] == 0x66 && message.data[1] == 0x01))
+    if(run_state == 0 && ((message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+      message.data[0] == 0x66 && message.data[1] == 0x01) || ws_reqeust_on))
     {
+      ws_reqeust_on = false;
       console->DebugMessage("Received request to run");
       // Insert header at top of the file
       create_header(header);
@@ -134,7 +122,25 @@ int main(int argc, char** argv)
     // Parsed messages are for sending via websocket or to be logged in csv
     if(tel_conf.generate_csv || tel_conf.ws_enabled)
     {
-      modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+      try{
+        modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+      }
+      catch(std::exception ex)
+      {
+        console->ErrorMessage("Exception when parsing message");
+        stringstream ss;
+        ss << timestamp << " ";
+
+        ss << get_hex(int(message.can_id), 3) << "#";
+        for (int i = 0; i < message.can_dlc; i++)
+          ss << get_hex(int(message.data[i]), 2);
+
+        console->ErrorMessage("Message: " + ss.str());
+        ss.str("");
+        ss << "Exception: " << ex.what();
+        console->ErrorMessage(ss.str());
+        continue;
+      }
 
       // For every device that has been modified by the parse operation
       for (auto modified : modifiedDevices)
@@ -149,7 +155,7 @@ int main(int argc, char** argv)
         // Serialize with protobuf if websocket is enabled
         if(tel_conf.ws_enabled)
         {
-          if(tel_conf.ws_downsample == false)
+          if(tel_conf.ws_downsample == true)
           {
             if((1.0/tel_conf.ws_downsample_mps) < (timestamp - modified->prev_timestamp))
             {
@@ -165,9 +171,10 @@ int main(int argc, char** argv)
     }
 
     // Stop message
-    if (run_state == 1 && (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-        message.data[0] == 0x66 && message.data[1] == 0x00))
+    if (run_state == 1 && ((message.can_id  == 0xA0 && message.can_dlc >= 2 &&
+        message.data[0] == 0x66 && message.data[1] == 0x00) || ws_reqeust_off))
     {
+      ws_reqeust_off = false;
       unique_lock<mutex> lck(mtx);
       console->DebugMessage("Received request to stop");
 
@@ -337,7 +344,11 @@ void create_folder_name(string& out)
   subfolder << " [";
   subfolder << sesh_config.configuration << "]";
 
-  out = subfolder.str();
+  string s = subfolder.str();
+  std::replace(s.begin(), s.end(), '\\', ' ');
+  std::replace(s.begin(), s.end(), '/', ' ');
+
+  out = s;
 }
 
 // Send status both via can and websocket
@@ -348,7 +359,7 @@ void send_status()
     msg_data[0] = run_state;
     can->send(0x99, (char *)msg_data, 1);
 
-    if(tel_conf.ws_enabled)
+    if(tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
     {
       Document d;
       StringBuffer sb;
@@ -365,7 +376,7 @@ void send_status()
     }
 
 
-    usleep(420000);
+    usleep(1000000);
   }
 }
 
@@ -396,6 +407,19 @@ void load_all_config(std::string& home_path)
     console->DebugMessage("Created: " + path);
     SaveJson(sesh_config, path);
   }
+}
+
+void save_all_config()
+{
+  string path = " ";
+  path = HOME_PATH + "/telemetry_config.json";
+  console->DebugMessage("Saving new tel config");
+  SaveJson(tel_conf, path);
+  console->DebugMessage("Saving done");
+  console->DebugMessage("Saving new sesh config");
+  path = HOME_PATH + "/session_config.json";
+  SaveJson(sesh_config, path);
+  console->DebugMessage("Saving done");
 }
 
 
@@ -434,35 +458,38 @@ void save_stat(string folder)
 
 void send_ws_data()
 {
-  usleep(10000000);
-  int timeout = tel_conf.ws_send_rate;
   while(true)
   {
-    usleep(1000000 * timeout);
-
-
-    unique_lock<mutex> lck(mtx);
-    string serialized_string;
-    chimera->serialized_to_string(&serialized_string);
-
-    if(serialized_string.size() == 0)
+    while(ws_conn_state != ConnectionState_::CONNECTED)
+      usleep(500000);
+    while(ws_conn_state == ConnectionState_::CONNECTED)
     {
-      continue;
+      usleep(1000 * tel_conf.ws_send_rate);
+
+      unique_lock<mutex> lck(mtx);
+
+      string serialized_string;
+      chimera->serialized_to_string(&serialized_string);
+
+      if(serialized_string.size() == 0)
+      {
+        continue;
+      }
+
+      Document d;
+      StringBuffer sb;
+      Writer<StringBuffer> w(sb);
+      rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+      d.SetObject();
+      d.AddMember("type", Value().SetString("update_data"), alloc);
+      d.AddMember("timestamp", get_timestamp(), alloc);
+      d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
+      d.Accept(w);
+
+      ws_cli->set_data(sb.GetString());
+      chimera->clear_serialized();
     }
-
-    Document d;
-    StringBuffer sb;
-    Writer<StringBuffer> w(sb);
-    rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-
-    d.SetObject();
-    d.AddMember("type", Value().SetString("update_data"), alloc);
-    d.AddMember("timestamp", get_timestamp(), alloc);
-    d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
-    d.Accept(w);
-
-    ws_cli->set_data(sb.GetString());
-    chimera->clear_serialized();
   }
 }
 
@@ -481,30 +508,48 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
 
 
   ParseResult ok = d.Parse(msg->get_payload().c_str(), msg->get_payload().size());
-  if(!ok)
+  if(!ok || !d.HasMember("type"))
   {
     return;
   }
-  if(d["type"] == "telemetry_set_config"){
+  if(d["type"] == "telemetry_set_sesh_config"){
     if(d["data"].HasMember("pilot") &&
       d["data"].HasMember("circuit") &&
-      d["data"].HasMember("race"))
+      d["data"].HasMember("configuration") &&
+      d["data"].HasMember("test"))
     {
-      // config.pilot = d["data"]["pilot"].GetInt();
-      // config.circuit = d["data"]["circuit"].GetInt();
-      // config.race = d["data"]["race"].GetInt();
+      sesh_config.configuration = d["data"]["configuration"].GetString();
+      sesh_config.test = d["data"]["test"].GetString();
+      if(d["data"]["pilot"].GetString() != "")
+        sesh_config.pilot = d["data"]["pilot"].GetString();
+      if(d["data"]["circuit"].GetString() != "")
+        sesh_config.circuit = d["data"]["circuit"].GetString();
 
-      // cout << "Writing config" << endl;
-      // string path = HOME_PATH + "/telemetry_config.json";
-      // write_config(config, path);
-      // cout << "Done" << endl;
+      save_all_config();
     }
     else{
       cout << "Wrong members" << endl;
     }
   }
+  if(d["type"] == "telemetry_set_tel_config")
+  {
+    telemetry_config buffer;
+    auto j = json::parse(msg->get_payload());
+    try
+    {
+      Deserialize(buffer, j["data"]);
+    }
+    catch(const std::exception& e)
+    {
+      console->WarnMessage("Failed parsing telemetry config (from ws) " + msg->get_payload());
+    }
+    tel_conf = buffer;
+
+    save_all_config();
+  }
   else if(d["type"] == "ping")
   {
+    console->DebugMessage("Requested ping");
     ret.SetObject();
     ret.AddMember("type", Value().SetString("server_answer_ping"), alloc2);
     ret.AddMember("time", (get_timestamp() - d["time"].GetDouble()), alloc2);
@@ -513,6 +558,8 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     ws_cli->set_data(sb2.GetString());
   } else if(d["type"] == "telemetry_get_config")
   {
+    console->DebugMessage("Requested configs");
+
     string conf1 = Serialize(tel_conf).dump();
     string conf2 = Serialize(sesh_config).dump();
 
@@ -523,11 +570,26 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     ret.Accept(w2);
     
     ws_cli->set_data(sb2.GetString());
-  } else if(d["type"] == "telemetry_kill")
+    console->DebugMessage("Done config");
+  } 
+  else if(d["type"] == "telemetry_kill")
   {
+    console->DebugMessage("Requested Kill");
     exit(0);
-  } else if(d["type"] == "telemetry_send_can_message")
+  }
+  else if(d["type"] == "telemetry_start")
   {
+    console->DebugMessage("Requested Start");
+    ws_reqeust_on = true;
+  }
+  else if(d["type"] == "telemetry_stop")
+  {
+    console->DebugMessage("Requested Stop");
+    ws_reqeust_off = true;
+  }
+  else if(d["type"] == "telemetry_send_can_message")
+  {
+    console->DebugMessage("Requested to send a can message to car");
     if((d.HasMember("id") && d.HasMember("payload")) &&
        (d["id"].IsInt() && d["payload"].IsArray()))
     {
@@ -538,7 +600,55 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
         for(int i = 0 ; i < payload.Size(); i++)
           msg[i] = (char)payload[i].GetInt();
         can->send(d["id"].GetInt(), msg, 8);
+      }else{
+        console->DebugMessage("Can message malformed");
       }
     }
+    else{
+      console->DebugMessage("Can message malformed");
+    }
   }
+}
+
+
+void connect_ws()
+{
+  ws_cli->add_on_open(on_open);
+  ws_cli->add_on_error(on_error);
+  ws_cli->add_on_close(on_close);
+
+  // sends sensors data only if connected
+  data_thread = new thread(send_ws_data);
+  status_thread = new thread(send_status);
+  while(true)
+  {
+    usleep(1000000);
+    if(!tel_conf.ws_enabled)
+      continue;
+    if(ws_conn_state == ConnectionState_::CONNECTED || ws_conn_state == ConnectionState_::CONNECTING)
+      continue;
+    
+    ws_cli->set_on_message(&on_message);
+    ws_cli_thread = ws_cli->run(tel_conf.ws_server_url);
+    if(ws_cli_thread == nullptr){
+      console->ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
+    }
+    // Login as telemetry
+    ws_cli->clear_data();
+    ws_cli->set_data("{\"identifier\":\"telemetry\"}");
+    ws_conn_state = ConnectionState_::CONNECTING;
+  }
+}
+
+void on_open()
+{
+  ws_conn_state = ConnectionState_::CONNECTED;
+}
+void on_error(int code)
+{
+  ws_conn_state = ConnectionState_::FAIL;
+}
+void on_close(int code)
+{
+  ws_conn_state = ConnectionState_::CLOSED;
 }

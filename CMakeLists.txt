@@ -1,25 +1,12 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.16)
 
 project(Telemetry)
 
-set(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
+SET(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_EXTENSIONS OFF)
+SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
-###########
-## BOOST ##
-###########
-find_package(Boost  1.54.0
-   REQUIRED
-   COMPONENTS serialization filesystem
-)
-if(Boost_FOUND)
-  message(STATUS "Boost FOUND")
-endif()
-
-find_package(libOpenGLCustom REQUIRED PATHS /usr/local/lib/cmake/libOpenGLCustom)
-if(libOpenGLCustom_FOUND)
-  message("----- libOpenGLCustom_FOUND")
-endif()
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g -std=c++1z -lstdc++fs -std=c++1z")
 
 ###########
 ## PROTO ##
@@ -36,16 +23,6 @@ endif()
 find_package(websocketpp)
 if(websocketpp_FOUND)
   message(STATUS "Websocketpp FOUND")
-endif()
-
-
-############
-## OPENCV ##
-############
-find_package(OpenCV)
-if(OpenCV_FOUND)
-  message(STATUS "OpenCV FOUND")
-  add_compile_definitions(WITH_OPENCV)
 endif()
 
 
@@ -85,6 +62,8 @@ add_library(
   # JSON
   json_models/telemetry_config/json_loader.cpp
   json_models/session_config/json_loader.cpp
+
+  src/wsclient.cpp
   )
 
 if(websocketpp_FOUND)
@@ -95,28 +74,22 @@ if(Protobuf_FOUND)
   target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
 endif()
 
-if(Boost_FOUND)
-  target_link_libraries(${PROJECT_NAME} ${Boost_LIBRARIES})
-endif()
 
-if(OpenCV_FOUND)
-  target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
-endif()
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 add_executable(logger scripts/logger/logger.cpp)
-target_link_libraries(logger ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(logger ${Protobuf_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(telemetry scripts/telemetry/telemetry.cpp scripts/telemetry/gps_logger.cpp)
-target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME} websocketpp::websocketpp)
+target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${PROJECT_NAME} websocketpp::websocketpp)
 
 add_executable(csv scripts/csv/csv.cpp)
-target_link_libraries(csv ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(csv ${Protobuf_LIBRARIES} ${PROJECT_NAME})
 
-add_executable(log_trimmer scripts/log_trimmer/log_trimmer.cpp)
-target_link_libraries(log_trimmer ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} ${PROJECT_NAME})
+add_executable(log_player scripts/log_player/log_player.cpp)
+target_link_libraries(log_player ${PROJECT_NAME})
 
 
 find_package(glfw3 3.3 REQUIRED)
@@ -129,12 +102,12 @@ add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
 add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 
-if(websocketpp_FOUND AND Protobuf_FOUND AND Boost_FOUND)
+if(websocketpp_FOUND AND Protobuf_FOUND)
   add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
-  target_link_libraries(dashboard_simulator ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+  target_link_libraries(dashboard_simulator ${Protobuf_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
   add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
-  target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} ${Boost_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
+  target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
 
   add_library(libProtoDevices
               SHARED

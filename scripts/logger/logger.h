@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <mutex>
 #include <atomic>
@@ -55,7 +55,7 @@ stats logger_stat;
 
 using namespace std;
 using namespace std::chrono;
-using namespace boost::filesystem;
+using namespace filesystem;
 
 const char *CAN_DEVICE = "vcan0";
 const char *GPS_DEVICE = "/home/gps1";

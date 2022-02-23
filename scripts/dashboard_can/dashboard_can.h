@@ -11,7 +11,7 @@
 #include <string.h>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <mutex>
 #include <thread>
@@ -31,7 +31,7 @@ using namespace rapidjson;
 
 using namespace std;
 using namespace std::chrono;
-using namespace boost::filesystem;
+using namespace filesystem;
 
 // To reduce data to be sent
 #define MAX_DT 0.010

@@ -82,11 +82,11 @@ vector<string> get_candump_from_files(vector<string> files){
 }
 
 string get_parent_dir(string path){
-  return boost::filesystem::path(path).parent_path().string();
+  return std::filesystem::path(path).parent_path().string();
 }
 
 string remove_extension(string path){
-  path = boost::filesystem::path(path).filename().string();
+  path = std::filesystem::path(path).filename().string();
   size_t lastindex = path.find_last_of(".");
   if(lastindex != string::npos)
     return path.substr(0, lastindex);
@@ -94,13 +94,13 @@ string remove_extension(string path){
 }
 
 void mkdir(string path){
-  boost::filesystem::path p = path;
+  std::filesystem::path p = path;
   if(!exists(p))
     create_directory(p);
 }
 
 bool path_exists(string path){
-  return exists(boost::filesystem::path(path));
+  return exists(std::filesystem::path(path));
 }
 
 string get_colored(string text, int color, int style){

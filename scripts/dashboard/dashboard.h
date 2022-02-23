@@ -11,7 +11,7 @@
 #include <string.h>
 #include <iostream>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <mutex>
 #include <thread>
@@ -30,7 +30,7 @@ using namespace rapidjson;
 
 using namespace std;
 using namespace std::chrono;
-using namespace boost::filesystem;
+using namespace filesystem;
 
 // Timeout at which send
 #define TIMEOUT 200

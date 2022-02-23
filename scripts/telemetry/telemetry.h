@@ -17,7 +17,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 #include <mutex>
 #include <atomic>
@@ -40,7 +40,7 @@ struct CAN_Stat_t
 #include "vehicle.h"
 #include "gps_logger.h"
 
-#include "websocket.h"
+#include "wsclient.h"
 #include "devices.pb.h"
 
 #include "common_definitions.h"
@@ -52,7 +52,7 @@ struct CAN_Stat_t
 
 using namespace std;
 using namespace std::chrono;
-using namespace boost::filesystem;
+using namespace filesystem;
 
 
 telemetry_config tel_conf;
@@ -62,10 +62,14 @@ vector<GpsLogger*> gps_loggers;
 
 thread* status_thread = nullptr;
 thread* data_thread = nullptr;
+thread* ws_conn_thread = nullptr;
+thread* ws_cli_thread = nullptr;
 
 
 const char *CAN_DEVICE;
 
+bool ws_reqeust_on=false;
+bool ws_reqeust_off=false;
 atomic<int> run_state;
 bool state_changed = false;
 mutex mtx;
@@ -76,6 +80,9 @@ string FOLDER_PATH;
 
 int id;
 uint8_t *msg_data = new uint8_t[8];
+sockaddr_can addr;
+can_filter rfilter;
+can_frame message;
 
 time_t date;
 struct tm ltm;
@@ -87,12 +94,9 @@ Debug::Console* console;
 WebSocketClient* ws_cli;
 Chimera* chimera;
 Can * can;
-sockaddr_can addr;
-// Filter and message structs
-can_filter rfilter;
-can_frame message;
 
 CAN_Stat_t can_stat;
+ConnectionState_ ws_conn_state = ConnectionState_::NONE;
 
 vector<Device *> modifiedDevices;
 
@@ -132,6 +136,10 @@ void load_all_config(std::string&);
 
 
 void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+void connect_ws();
+void on_open();
+void on_error(int code);
+void on_close(int code);
 
 
 

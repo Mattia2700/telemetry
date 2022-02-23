@@ -25,7 +25,7 @@ int main(){
     return -1;
   }
 
-  string folder = boost::filesystem::path(selected_paths[0]).parent_path().filename().string();
+  string folder = std::filesystem::path(selected_paths[0]).parent_path().filename().string();
 
   devices::Chimera chimera_proto;
 

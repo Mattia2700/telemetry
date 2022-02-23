@@ -7,12 +7,13 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
+#include <fstream>
+#include <unistd.h>
 
-
-#include <boost/filesystem.hpp>
+#include <filesystem>
 
 using namespace std;
-using namespace boost::filesystem;
 
 #define DIR_COLOR 3
 #define FILE_COLOR 9
@@ -66,7 +67,7 @@ private:
 
   string HumanReadable(uintmax_t size);
 
-  vector<directory_entry> all_dirs;
+  vector<filesystem::directory_entry> all_dirs;
 
   int index;
   vector<string> selected_paths;

@@ -348,6 +348,8 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
     break;
     case 0x55:
       if(data[0] == 0x01){
+        // if(size < NUM_STATES)
+        //   break;
         ecu_state->value = "STATE: " + ECU_STATES[data[4]] + " Map: " + to_string(data[3]);
         ecu_state->timestamp = timestamp;
         modifiedDevices.push_back(ecu_state);
