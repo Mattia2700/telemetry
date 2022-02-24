@@ -77,6 +77,9 @@ message Gps {
 	optional double course_over_ground_degrees_magnetic = 12;
 	optional double speed_kmh = 13;
 	optional string mode = 14;
+	optional double position_diluition_precision = 15;
+	optional double horizontal_diluition_precision = 16;
+	optional double vertical_diluition_precision = 17;
 }
 
 

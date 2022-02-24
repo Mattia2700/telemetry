@@ -44,6 +44,8 @@ int main(int argc, char** argv)
     string dev = tel_conf.gps_devices[i];
     string mode = tel_conf.gps_mode[i];
     bool enabled = tel_conf.gps_enabled[i];
+    if(dev == "")
+      continue;
     
     GpsLogger* gps1 = new GpsLogger(dev);
     gps1->SetOutFName("gps_" + to_string(i+1));
@@ -224,7 +226,7 @@ void on_gps_line(int id, string line)
   }
   catch(std::exception e)
   {
-    console->DebugMessage("GPS parse error");
+    console->DebugMessage("GPS parse error: " + line);
     return;
   }
 
@@ -234,7 +236,7 @@ void on_gps_line(int id, string line)
   {
     unique_lock<mutex> lck(mtx);
     chimera->serialize_device(gps);
-    if(run_state)
+    if(run_state.load() == 1)
     {
       (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
     }
@@ -458,6 +460,10 @@ void save_stat(string folder)
 
 void send_ws_data()
 {
+  Document d;
+  StringBuffer sb;
+  Writer<StringBuffer> w(sb);
+  rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
   while(true)
   {
     while(ws_conn_state != ConnectionState_::CONNECTED)
@@ -476,11 +482,8 @@ void send_ws_data()
         continue;
       }
 
-      Document d;
-      StringBuffer sb;
-      Writer<StringBuffer> w(sb);
-      rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
-
+      sb.Clear();
+      w.Reset(sb);
       d.SetObject();
       d.AddMember("type", Value().SetString("update_data"), alloc);
       d.AddMember("timestamp", get_timestamp(), alloc);

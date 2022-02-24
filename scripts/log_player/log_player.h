@@ -1,15 +1,19 @@
-#ifndef DASHBOARD_H
-#define DASHBOARD_H
+#pragma once
 
-
-#include <ctime>
-#include <chrono>
 #include <stdio.h>
-#include <cstdlib>
-#include <iomanip>
-#include <fstream>
-#include <string.h>
+#include <string>
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <stdlib.h>
 #include <iostream>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
+#include <signal.h>
+
+#include <cstdio>
 
 #include <filesystem>
 
@@ -30,6 +34,11 @@ const char *CAN_DEVICE;
 sockaddr_can addr;
 Can * can;
 
-double get_timestamp();
 
-#endif
+std::mutex mtx;
+std::condition_variable cv;
+
+string shared_string;
+
+double get_timestamp();
+void writer(string fname);

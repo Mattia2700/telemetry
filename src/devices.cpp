@@ -469,41 +469,48 @@ std::string State::get_readable()
 ///////////////////////////////
 std::string Gps::get_header(std::string separator)
 {
-	std::string header = "";
-	header += "timestamp" + separator;
-	header += "msg_type" + separator;
-	header += "time" + separator;
-	header += "latitude" + separator;
-	header += "longitude" + separator;
-	header += "altitude" + separator;
-	header += "fix" + separator;
-	header += "satellites" + separator;
-	header += "fix_state" + separator;
-	header += "age_of_correction" + separator;
-	header += "course_over_ground_degrees" + separator;
-	header += "course_over_ground_degrees_magnetic" + separator;
-	header += "speed_kmh" + separator;
-	header += "mode" + separator;
-	return header;
+	std::stringstream ss;
+	ss << "timestamp" + separator
+	<< "msg_type" + separator
+	<< "time" + separator
+	<< "latitude" + separator
+	<< "longitude" + separator
+	<< "altitude" + separator
+	<< "fix" + separator
+	<< "satellites" + separator
+	<< "fix_state" + separator
+	<< "age_of_correction" + separator
+	<< "course_over_ground_degrees" + separator
+	<< "course_over_ground_degrees_magnetic" + separator
+	<< "speed_kmh" + separator
+	<< "mode" + separator
+	<< "position_diluition_precision" + separator
+	<< "horizontal_diluition_precision" + separator
+	<< "vertical_diluition_precision" + separator;
+	return ss.str();
 }
 std::string Gps::get_string(std::string separator)
 {
-	std::string str = "";
-	str += std::to_string(timestamp) + separator;
-	str += msg_type + separator;
-	str += time + separator;
-	str += std::to_string(latitude) + separator;
-	str += std::to_string(longitude) + separator;
-	str += std::to_string(altitude) + separator;
-	str += std::to_string(fix) + separator;
-	str += std::to_string(satellites) + separator;
-	str += fix_state + separator;
-	str += std::to_string(age_of_correction) + separator;
-	str += std::to_string(course_over_ground_degrees) + separator;
-	str += std::to_string(course_over_ground_degrees_magnetic) + separator;
-	str += std::to_string(speed_kmh) + separator;
-	str += mode + separator;
-	return str;
+	std::stringstream ss;
+	ss << std::fixed << std::setprecision(9)
+	<< timestamp << separator
+	<< msg_type + separator
+	<< time + separator
+	<< latitude << separator
+	<< longitude << separator
+	<< altitude << separator
+	<< fix << separator
+	<< satellites << separator
+	<< fix_state + separator
+	<< age_of_correction << separator
+	<< course_over_ground_degrees << separator
+	<< course_over_ground_degrees_magnetic << separator
+	<< speed_kmh << separator
+	<< mode + separator
+	<< position_diluition_precision << separator
+	<< horizontal_diluition_precision << separator
+	<< vertical_diluition_precision << separator;
+	return ss.str();
 }
 Document Gps::get_json()
 {
@@ -524,6 +531,10 @@ Document Gps::get_json()
 	d.AddMember("course_over_ground_degrees_magnetic", course_over_ground_degrees_magnetic, alloc);
 	d.AddMember("speed_kmh", speed_kmh, alloc);
 	d.AddMember("mode", Value().SetString(mode.c_str(), mode.size(), alloc), alloc);
+	d.AddMember("position_diluition_precision", position_diluition_precision, alloc);
+	d.AddMember("horizontal_diluition_precision", horizontal_diluition_precision, alloc);
+	d.AddMember("vertical_diluition_precision", vertical_diluition_precision, alloc);
+
 	return d;
 }
 void Gps::serialize(devices::Gps* gps)
@@ -542,26 +553,32 @@ void Gps::serialize(devices::Gps* gps)
 	gps->set_course_over_ground_degrees_magnetic(course_over_ground_degrees_magnetic);
 	gps->set_speed_kmh(speed_kmh);
 	gps->set_mode(mode);
+	gps->set_position_diluition_precision(position_diluition_precision);
+	gps->set_horizontal_diluition_precision(horizontal_diluition_precision);
+	gps->set_vertical_diluition_precision(vertical_diluition_precision);
 }
 std::string Gps::get_readable()
 {
 	std::stringstream ss;
-	ss.precision(3);
-	ss << get_name() << "\n";
-	ss << "\ttimestamp -> \t" << timestamp << "\n";
-	ss << "\tmsg_type -> \t" << msg_type << "\n";
-	ss << "\ttime -> \t" << time << "\n";
-	ss << "\tlatitude -> \t" << latitude << "\n";
-	ss << "\tlongitude -> \t" << longitude << "\n";
-	ss << "\taltitude -> \t" << altitude << "\n";
-	ss << "\tfix -> \t" << fix << "\n";
-	ss << "\tsatellites -> \t" << satellites << "\n";
-	ss << "\tfix_state -> \t" << fix_state << "\n";
-	ss << "\tage_of_correction -> \t" << age_of_correction << "\n";
-	ss << "\tcourse_over_ground_degrees -> \t" << course_over_ground_degrees << "\n";
-	ss << "\tcourse_over_ground_degrees_magnetic -> \t" << course_over_ground_degrees_magnetic << "\n";
-	ss << "\tspeed_kmh -> \t" << speed_kmh << "\n";
-	ss << "\tmode -> \t" << mode << "\n";
+	ss << std::fixed << std::setprecision(3)
+	<< get_name() << "\n"
+	<< "\ttimestamp -> \t" << timestamp << "\n"
+	<< "\tmsg_type -> \t" << msg_type << "\n"
+	<< "\ttime -> \t" << time << "\n"
+	<< "\tlatitude -> \t" << latitude << "\n"
+	<< "\tlongitude -> \t" << longitude << "\n"
+	<< "\taltitude -> \t" << altitude << "\n"
+	<< "\tfix -> \t" << fix << "\n"
+	<< "\tsatellites -> \t" << satellites << "\n"
+	<< "\tfix_state -> \t" << fix_state << "\n"
+	<< "\tage_of_correction -> \t" << age_of_correction << "\n"
+	<< "\tcourse_over_ground_degrees -> \t" << course_over_ground_degrees << "\n"
+	<< "\tcourse_over_ground_degrees_magnetic -> \t" << course_over_ground_degrees_magnetic << "\n"
+	<< "\tspeed_kmh -> \t" << speed_kmh << "\n"
+	<< "\tmode -> \t" << mode << "\n"
+	<< "\tposition_diluition_precision -> \t" << position_diluition_precision << "\n"
+	<< "\thorizontal_diluition_precision -> \t" << horizontal_diluition_precision << "\n"
+	<< "\tvertical_diluition_precision -> \t" << vertical_diluition_precision << "\n";
 	return ss.str();
 }
 

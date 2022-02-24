@@ -26,8 +26,15 @@ struct message {
   int size;
   uint8_t data[8];
 };
+struct gps_message
+{
+  double timestamp;
+  string message;
+};
 
 bool parse_message(string str, message* msg);
+
+bool parse_gps_line(string str, gps_message* msg);
 
 void get_lines(string filename, vector<string>* lines);
 

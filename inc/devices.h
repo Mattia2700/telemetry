@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <fstream>
+#include <iomanip>
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
@@ -68,10 +69,16 @@ static string BMS_ERRORS[NUM_ERRORS] =
 static string FIX_STATE[7] =
 {
 	"FIX NOT AVAILABLE OR INVALID",
-	"GPS SPS MODE, FIX VALID",
+	"GPS SPS MODE FIX VALID",
 	"DIFFERENTIAL GPS SPS MODE, FIX VALID",
 	"UNSUPPORTED","UNSUPPORTED","UNSUPPORTED",
-	"DEAD RECKONING MODE, FIX VALID"
+	"DEAD RECKONING MODE FIX VALID"
+};
+static string FIX_MODE[3] = 
+{
+	"FIX NOT AVAILABLE",
+	"2D",
+	"3D"
 };
 
 class Device {
@@ -256,6 +263,26 @@ public:
 
 	void serialize(devices::Gps* device);
 
+	void clear(){
+		timestamp = 0.0;
+		msg_type = "";
+		time = "";
+		latitude = 0.0;
+		longitude = 0.0;
+		altitude = 0.0;
+		fix = 0;
+		satellites = 0;
+		fix_state = "";
+		age_of_correction = 0.0;
+		course_over_ground_degrees = 0.0;
+		course_over_ground_degrees_magnetic = 0.0;
+		speed_kmh = 0.0;
+		mode = "";
+		position_diluition_precision = 0.0;
+		horizontal_diluition_precision = 0.0;
+		vertical_diluition_precision = 0.0;
+	}
+
 	double timestamp;
 	std::string msg_type;
 	std::string time;
@@ -270,4 +297,7 @@ public:
 	double course_over_ground_degrees_magnetic;
 	double speed_kmh;
 	std::string mode;
+	double position_diluition_precision;
+	double horizontal_diluition_precision;
+	double vertical_diluition_precision;
 };

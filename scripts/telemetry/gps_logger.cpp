@@ -155,6 +155,7 @@ void GpsLogger::Run()
     }
 
     m_StateChanged = false;
+    int blank_lines_count = 0;
     while(m_Running)
     {
       try
@@ -173,6 +174,18 @@ void GpsLogger::Run()
           break;
         }
       }
+      // When receiving continuously blank lines, sleep a bit
+      if(line == ""){
+        blank_lines_count ++;
+        if(blank_lines_count > 10)
+          usleep(1000);
+        continue;
+      }
+      else{
+        blank_lines_count = 0;
+      }
+
+      // Callback on new line
       if(m_OnNewLine != nullptr)
         m_OnNewLine(id, line);
 
@@ -186,7 +199,8 @@ void GpsLogger::Run()
         try
         {
           line = "(" + to_string(GetTimestamp()) + ")" + "\t" + line + "\n";
-          (*m_GPS) << line << flush;
+          if(m_GPS->is_open())
+            (*m_GPS) << line << flush;
         }
         catch(std::exception e)
         {

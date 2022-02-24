@@ -1,5 +1,28 @@
 #include "log_player.h"
 
+string BASENAME = "/home/gps";
+
+void writer(string fname)
+{
+  int fd;
+  mkfifo(fname.c_str(), 0666);
+  fd = open(fname.c_str(), O_WRONLY);
+  while (1)
+  {
+    std::unique_lock<std::mutex> lk(mtx);
+    cv.wait(lk); // wait for notify by main thread
+
+    // Copy values from the shared string to the fifo file
+    if(write(fd, shared_string.c_str(), shared_string.size()) == -1)
+    {
+      close(fd);
+      mkfifo(fname.c_str(), 0666);
+      fd = open(fname.c_str(), O_WRONLY);
+    }
+  }
+  close(fd);
+}
+
 int main(){
 
   CAN_DEVICE = "can0";
@@ -20,6 +43,27 @@ int main(){
   }
   cout << "Opened Socket: " << CAN_DEVICE;
 
+  signal(SIGPIPE, SIG_IGN);
+
+  {
+    int counter = 0;
+    while( remove((BASENAME + to_string(counter)).c_str() ) == 0 ){
+      counter ++;
+      cout << "Deleted: " << BASENAME << counter << endl;
+    }
+    cout << "Removed " << counter << " previous ports" << endl;
+  }
+  string filename = "";
+  for (int i = 0; i < 1; i++)
+  {
+    filename = BASENAME + to_string(i);
+    thread *t = new thread(writer, filename);
+  }
+  // {
+  //   std::lock_guard<std::mutex> lk(mtx);
+  //   shared_string = line;
+  // }
+
   Browse b;
   b.SetMaxSelections(1);
   b.SetExtension(".log");
@@ -32,6 +76,7 @@ int main(){
   }
 
   string folder = std::filesystem::path(selected_paths[0]).parent_path().filename().string();
+  cout << selected_paths[0] << endl;
 
   for (auto file : selected_paths){
     message msg;

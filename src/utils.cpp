@@ -39,6 +39,31 @@ bool parse_message(string str, message* msg){
   return true;
 }
 
+bool parse_gps_line(string str, gps_message* msg)
+{
+  size_t pos = str.find("(");
+  if(pos == string::npos)
+    return false;
+  string bff = "";
+  bool timestamp = false;
+  bool id = false;
+  
+  for(int i = pos+1; i < str.size(); i++){
+    if(str[i] == ')'){
+      msg->timestamp = stod(bff);
+      bff = "";
+      timestamp = true;
+      break;
+    }
+    bff += str[i];
+  }
+  pos = str.find("$");
+  if(pos == string::npos)
+    return false;
+  msg->message = str.substr(pos, str.size()-pos);
+  return true;
+}
+
 void get_lines(string filename, vector<string>* lines){
   FILE* f = fopen(filename.c_str(), "r");
 

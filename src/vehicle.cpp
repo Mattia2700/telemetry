@@ -285,10 +285,21 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
       }
+      // Speed filtered
       else if(data[0] == 0xA8){
         inverter_left->speed = (data[2] << 8) + data[1];
         if(inverter_left->speed > 32768)
           inverter_left->speed -= 65535;
+        // Todo: divide by 32767 and multiply by speed rmp max
+        inverter_left->timestamp = timestamp;
+        modifiedDevices.push_back(inverter_left);
+      }
+      // Speed unfiltered
+      else if(data[0] == 0x30){
+        inverter_left->speed = (data[2] << 8) + data[1];
+        if(inverter_left->speed > 32768)
+          inverter_left->speed -= 65535;
+        // Todo: divide by 32767 and multiply by speed rmp max
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
       }
@@ -311,10 +322,22 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
       }
+      // Speed filtered
       else if(data[0] == 0xA8){
         inverter_right->speed = (data[2] << 8) + data[1];
         if(inverter_right->speed > 32768)
           inverter_right->speed -= 65535;
+        // Todo: divide by 32767 and multiply by speed rmp max
+        inverter_right->timestamp = timestamp;
+        modifiedDevices.push_back(inverter_right);
+      }
+      // Speed unfiltered
+      else if(data[0] == 0x30){
+        inverter_right->speed = (data[2] << 8) + data[1];
+        if(inverter_right->speed > 32768)
+          inverter_right->speed -= 65535;
+        inverter_right->speed *= -1;
+        // Todo: divide by 32767 and multiply by speed rmp max
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
       }
@@ -408,6 +431,9 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
     if(ret != -1)
       return -3;
 
+    gps_->clear();
+
+
     gps_->timestamp = timestamp;
     gps_->msg_type = "GGA";
 
@@ -416,15 +442,13 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
     gps_->longitude = stod(s_line[4])/100.0;
     gps_->fix = stoi(s_line[6]);
     gps_->satellites = stoi(s_line[7]);
+    gps_->horizontal_diluition_precision = stod(s_line[8]);
     gps_->fix_state = FIX_STATE[gps_->fix];
     gps_->altitude = stod(s_line[9]);
-    if(s_line[14] != "")
-      gps_->age_of_correction = stod(s_line[14]);
-    // Set other data to 0
-    gps_->course_over_ground_degrees = 0.0;
-    gps_->course_over_ground_degrees_magnetic = 0.0;
-    gps_->speed_kmh = 0.0;
-    gps_->mode = "";
+    if(s_line[13] != "")
+    {
+      gps_->age_of_correction = stod(s_line[13]); 
+    }
 
     return 1;
   }
@@ -433,18 +457,11 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
     if(s_line.size() != 10)
       return -5;
 
+    gps_->clear();
+
     gps_->timestamp = timestamp;
     gps_->msg_type = "VTG";
-    // Set other data to 0
-    gps_->time = "";
-    gps_->latitude = 0.0;
-    gps_->longitude = 0.0;
-    gps_->fix = 0.0;
-    gps_->satellites = 0.0;
-    gps_->fix_state = "";
-    gps_->altitude = 0.0;
-    gps_->age_of_correction = 0.0;
-
+    
     if(s_line[1] != "")
       gps_->course_over_ground_degrees = stod(s_line[1]);
     else
@@ -453,13 +470,26 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
       gps_->course_over_ground_degrees_magnetic = stod(s_line[3]);
     else
       gps_->course_over_ground_degrees_magnetic = 0.0;
-    if(s_line[5] != "")
-      gps_->speed_kmh = stod(s_line[5]);
+    if(s_line[7] != "")
+      gps_->speed_kmh = stod(s_line[7]);
     else
       gps_->speed_kmh = 0.0;
 
-    gps_->mode = s_line[7];
+    return 1;
+  }
+  else if(s_line[0] == "GSA")
+  {
+    if(s_line.size() != 19)
+      return -5;
 
+    gps_->clear();
+
+    gps_->timestamp = timestamp;
+    gps_->msg_type = "GSA";
+    gps_->mode = FIX_MODE[stoi(s_line[2])-1];
+    gps_->position_diluition_precision = stod(s_line[15]);
+    gps_->horizontal_diluition_precision = stod(s_line[16]);
+    gps_->vertical_diluition_precision = stod(s_line[17]);
     return 1;
   }
 

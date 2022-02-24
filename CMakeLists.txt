@@ -90,6 +90,8 @@ target_link_libraries(csv ${Protobuf_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(log_player scripts/log_player/log_player.cpp)
 target_link_libraries(log_player ${PROJECT_NAME})
+add_executable(gps_log_player scripts/log_player/gps_log_player.cpp)
+target_link_libraries(gps_log_player ${PROJECT_NAME})
 
 
 find_package(glfw3 3.3 REQUIRED)
