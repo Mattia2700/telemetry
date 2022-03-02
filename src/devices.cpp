@@ -8,6 +8,7 @@ Device::Device(std::string name)
 	id = instance_count;
 	instance_count ++;
 	this->name = name;
+	prev_timestamp = 0.0;
 }
 std::string Device::json_string()
 {

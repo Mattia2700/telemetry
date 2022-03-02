@@ -66,7 +66,6 @@ int main(int argc, char** argv)
   string subfolder;
   string folder;
   double timestamp;
-  double ws_send_timer = get_timestamp();
 
   while (true)
   {
@@ -102,9 +101,12 @@ int main(int argc, char** argv)
       dump_file = new std::fstream(folder + "/" + "candump.log", std::fstream::out);
       (*dump_file) << header << "\n";
 
-      chimera->add_filenames(folder, ".csv");
-      chimera->open_all_files();
-      chimera->write_all_headers(0);
+      if(tel_conf.generate_csv)
+      {
+        chimera->add_filenames(folder, ".csv");
+        chimera->open_all_files();
+        chimera->write_all_headers(0);
+      }
 
       can_stat.duration = timestamp;
 
@@ -149,7 +151,8 @@ int main(int argc, char** argv)
       {
         unique_lock<mutex> lck(mtx);
 
-        if(run_state == 1 && tel_conf.generate_csv)
+        if(run_state == 1 && tel_conf.generate_csv &&
+          modified->files.size() > 0 && modified->files[0] != nullptr)
         {
           (*modified->files[0]) << modified->get_string(",") + "\n";
         }
@@ -159,6 +162,10 @@ int main(int argc, char** argv)
         {
           if(tel_conf.ws_downsample == true)
           {
+            if(modified->get_name() == "Pedals"){
+              cout << modified->prev_timestamp << " " << "Pedals" << endl;
+
+            }
             if((1.0/tel_conf.ws_downsample_mps) < (timestamp - modified->prev_timestamp))
             {
               modified->prev_timestamp = timestamp;
@@ -187,8 +194,10 @@ int main(int argc, char** argv)
       // duration of the log
       can_stat.duration = get_timestamp() - can_stat.duration;
 
-      // Close all csv files and the dump file
-      chimera->close_all_files();
+      if(tel_conf.generate_csv){
+        // Close all csv files and the dump file
+        chimera->close_all_files();
+      }
       dump_file->close();
       delete dump_file;
 

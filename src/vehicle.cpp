@@ -6,14 +6,14 @@ Chimera::Chimera(){
   // Device initialization
   gyro  = new Imu("Gyro");
   accel = new Imu("Accel");
-  bms_lv = new Bms("BMS LV");
-  bms_hv = new Bms("BMS HV");
-  steer = new Steer("Steer");
-  pedal = new Pedals("Pedals");
   encoder_left  = new Encoder("Encoder Left");
   encoder_right = new Encoder("Encoder Right");
   inverter_left  = new Inverter("Inverter Left");
   inverter_right = new Inverter("Inverter Right");
+  bms_lv = new Bms("BMS LV");
+  bms_hv = new Bms("BMS HV");
+  pedal = new Pedals("Pedals");
+  steer = new Steer("Steer");
   ecu_state = new State("State ECU");
   bms_hv_state = new State("State BMS HV");
   steering_wheel_state = new State("State Steering Wheel");
@@ -96,8 +96,11 @@ void Chimera::open_all_files(){
 void Chimera::close_all_files(){
   for(Device* device : devices){
     for(auto file : device->files){
-      file->close();
-      delete file;
+      if(file != nullptr)
+      {
+        file->close();
+        delete file;
+      }
     }
 
     device->files.clear();
@@ -290,7 +293,14 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_left->speed = (data[2] << 8) + data[1];
         if(inverter_left->speed > 32768)
           inverter_left->speed -= 65535;
-        // Todo: divide by 32767 and multiply by speed rmp max
+
+        inverter_left->speed *= (7000.0/32767.0);
+        inverter_left->speed *= (6.28318/60.0);
+
+        // Warning adding this constant to fit data
+        // Check conversion datasheet / inverter
+        inverter_left->speed /= 4.0;
+
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
       }
@@ -299,7 +309,14 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_left->speed = (data[2] << 8) + data[1];
         if(inverter_left->speed > 32768)
           inverter_left->speed -= 65535;
-        // Todo: divide by 32767 and multiply by speed rmp max
+
+        inverter_left->speed *= (7000.0/32767.0);
+        inverter_left->speed *= (6.28318/60.0);
+
+        // Warning adding this constant to fit data
+        // Check conversion datasheet / inverter
+        inverter_left->speed /= 4.0;
+
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
       }
@@ -325,19 +342,31 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       // Speed filtered
       else if(data[0] == 0xA8){
         inverter_right->speed = (data[2] << 8) + data[1];
-        if(inverter_right->speed > 32768)
+        if(inverter_right->speed > 32767)
           inverter_right->speed -= 65535;
-        // Todo: divide by 32767 and multiply by speed rmp max
+        inverter_right->speed *= (7000.0/32767.0);
+        inverter_right->speed *= (6.28318/60.0);
+
+        // Warning adding this constant to fit data
+        // Check conversion datasheet / inverter
+        inverter_right->speed /= 4.0;
+
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
       }
       // Speed unfiltered
       else if(data[0] == 0x30){
         inverter_right->speed = (data[2] << 8) + data[1];
-        if(inverter_right->speed > 32768)
+        if(inverter_right->speed > 32767)
           inverter_right->speed -= 65535;
         inverter_right->speed *= -1;
-        // Todo: divide by 32767 and multiply by speed rmp max
+        inverter_right->speed *= (7000.0/32767.0);
+        inverter_right->speed *= (6.28318/60.0);
+
+        // Warning adding this constant to fit data
+        // Check conversion datasheet / inverter
+        inverter_right->speed /= 4.0;
+
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
       }
@@ -532,10 +561,10 @@ void Chimera::serialize_device(Device* device){
     this->encoder_left->serialize(chimera_proto->add_encoder_left());
   }else if(device == encoder_right){
     this->encoder_right->serialize(chimera_proto->add_encoder_right());
-  }else if(device == inverter_left){
-    this->inverter_left->serialize(chimera_proto->add_inverter_left());
   }else if(device == inverter_right){
     this->inverter_right->serialize(chimera_proto->add_inverter_right());
+  }else if(device == inverter_left){
+    this->inverter_left->serialize(chimera_proto->add_inverter_left());
   }else if(device == bms_lv){
     this->bms_lv->serialize(chimera_proto->add_bms_lv());
   }else if(device == bms_hv){
