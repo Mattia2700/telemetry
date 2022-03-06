@@ -24,7 +24,7 @@ using namespace rapidjson;
 #include "utils.h"
 #include "browse.h"
 #include "vehicle.h"
-#include "websocket.h"
+#include "wsclient.h"
 
 #include "devices.pb.h"
 

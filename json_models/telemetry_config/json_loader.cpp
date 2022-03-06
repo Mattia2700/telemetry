@@ -48,6 +48,8 @@ void CheckJson(telemetry_config& obj, json j)
 		throw std::runtime_error("JSON does not contain key [generate_csv] of type [bool] in object [telemetry_config]");
 	if(!j.contains("ws_enabled"))
 		throw std::runtime_error("JSON does not contain key [ws_enabled] of type [bool] in object [telemetry_config]");
+	if(!j.contains("ws_send_sensor_data"))
+		throw std::runtime_error("JSON does not contain key [ws_send_sensor_data] of type [bool] in object [telemetry_config]");
 	if(!j.contains("ws_send_rate"))
 		throw std::runtime_error("JSON does not contain key [ws_send_rate] of type [int] in object [telemetry_config]");
 	if(!j.contains("ws_downsample"))
@@ -79,6 +81,7 @@ void Deserialize(telemetry_config& obj, json j)
 	}
 	obj.generate_csv = j["generate_csv"];
 	obj.ws_enabled = j["ws_enabled"];
+	obj.ws_send_sensor_data = j["ws_send_sensor_data"];
 	obj.ws_send_rate = j["ws_send_rate"];
 	obj.ws_downsample = j["ws_downsample"];
 	obj.ws_downsample_mps = j["ws_downsample_mps"];
@@ -109,6 +112,7 @@ json Serialize(const telemetry_config& obj)
 	j["gps_enabled"] = gps_enabled_json;
 	j["generate_csv"] = obj.generate_csv;
 	j["ws_enabled"] = obj.ws_enabled;
+	j["ws_send_sensor_data"] = obj.ws_send_sensor_data;
 	j["ws_send_rate"] = obj.ws_send_rate;
 	j["ws_downsample"] = obj.ws_downsample;
 	j["ws_downsample_mps"] = obj.ws_downsample_mps;
@@ -119,6 +123,8 @@ template <>
 bool LoadJson(telemetry_config& obj, std::string path)
 {
 	std::ifstream f(path);
+	if(!f.is_open())
+		return false;
 	json j;
 	f >> j;
 	f.close();

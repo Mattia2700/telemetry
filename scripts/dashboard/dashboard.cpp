@@ -9,10 +9,10 @@ int main(){
     cout << "Exiting" << endl;
     return -1;
   }
-  d.Accept(w);
   // Login as telemetry
   c.set_data("{\"identifier\":\"telemetry\"}");
 
+  d.Accept(w);
 
   Browse b;
   b.SetMaxSelections(1);

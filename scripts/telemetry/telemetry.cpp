@@ -65,14 +65,19 @@ int main(int argc, char** argv)
   string header;
   string subfolder;
   string folder;
-  double timestamp;
+  double timestamp = get_timestamp();
 
+  for(Device* dev : chimera->devices)
+    timers[dev->get_name()] = 0.0;
+
+  timers["second"] = timestamp;
   while (true)
   {
 
     can->receive(&message);
     timestamp = get_timestamp();
     can_stat.msg_count++;
+    can_msgs_counter++;
 
     if(run_state == 0 && ((message.can_id  == 0xA0 && message.can_dlc >= 2 &&
       message.data[0] == 0x66 && message.data[1] == 0x01) || ws_reqeust_on))
@@ -158,17 +163,13 @@ int main(int argc, char** argv)
         }
 
         // Serialize with protobuf if websocket is enabled
-        if(tel_conf.ws_enabled)
+        if(tel_conf.ws_enabled && tel_conf.ws_send_sensor_data)
         {
           if(tel_conf.ws_downsample == true)
           {
-            if(modified->get_name() == "Pedals"){
-              cout << modified->prev_timestamp << " " << "Pedals" << endl;
-
-            }
-            if((1.0/tel_conf.ws_downsample_mps) < (timestamp - modified->prev_timestamp))
+            if((1.0/tel_conf.ws_downsample_mps) < (timestamp - timers[modified->get_name()]))
             {
-              modified->prev_timestamp = timestamp;
+              timers[modified->get_name()] = timestamp;
               chimera->serialize_device(modified);
             }
           }else
@@ -176,6 +177,13 @@ int main(int argc, char** argv)
             chimera->serialize_device(modified);
           }
         }
+      }
+
+      if(timestamp - timers["second"] >= 1.0)
+      {
+        timers["second"] = timestamp;
+        can_msgs_per_second = can_msgs_counter;
+        can_msgs_counter = 0;
       }
     }
 
@@ -381,6 +389,7 @@ void send_status()
       d.AddMember("type", Value().SetString("telemetry_status"), alloc);
       d.AddMember("timestamp", get_timestamp(), alloc);
       d.AddMember("data", run_state.load(), alloc);
+      d.AddMember("can_msgs_per_second", can_msgs_per_second, alloc);
       d.Accept(w);
 
       ws_cli->set_data(sb.GetString());
@@ -480,6 +489,9 @@ void send_ws_data()
     while(ws_conn_state == ConnectionState_::CONNECTED)
     {
       usleep(1000 * tel_conf.ws_send_rate);
+
+      if(!tel_conf.ws_send_sensor_data)
+        continue;
 
       unique_lock<mutex> lck(mtx);
 

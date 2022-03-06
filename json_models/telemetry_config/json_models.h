@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -18,6 +19,7 @@ struct telemetry_config
 	std::vector<bool> gps_enabled;
 	bool generate_csv;
 	bool ws_enabled;
+	bool ws_send_sensor_data;
 	int ws_send_rate;
 	bool ws_downsample;
 	int ws_downsample_mps;

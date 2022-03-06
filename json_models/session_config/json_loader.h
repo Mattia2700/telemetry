@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -8,12 +9,15 @@
 #include <exception>
 #include <iomanip>
 
-#include "nlohmann_json.hpp"
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
+#include "json_models.h"
 
-#include "./session_config/json_models.h"
-#include "./telemetry_config/json_models.h"
 
+
+
+#ifndef JSON_LOADER_H
+#define JSON_LOADER_H
 
 template<class T>
 void CheckJson(T& obj, json);
@@ -26,3 +30,4 @@ bool LoadJson(T& obj, std::string path);
 template<class T>
 void SaveJson(T& obj, std::string path);
 
+#endif // JSON_LOADER_H

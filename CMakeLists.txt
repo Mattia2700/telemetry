@@ -6,7 +6,7 @@ SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g -std=c++1z -lstdc++fs -std=c++1z")
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
 
 ###########
 ## PROTO ##
@@ -56,7 +56,6 @@ add_library(
   src/console.cpp
 
   # PROTO
-  src/proto_deserializer.cpp
   Protobuffer/cpp/devices.pb.cc
 
   # JSON
@@ -65,6 +64,7 @@ add_library(
 
   src/wsclient.cpp
   )
+target_link_libraries(${PROJECT_NAME} stdc++fs)
 
 if(websocketpp_FOUND)
   target_link_libraries(${PROJECT_NAME} websocketpp::websocketpp)
@@ -78,9 +78,6 @@ endif()
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
-
-add_executable(logger scripts/logger/logger.cpp)
-target_link_libraries(logger ${Protobuf_LIBRARIES} ${PROJECT_NAME})
 
 add_executable(telemetry scripts/telemetry/telemetry.cpp scripts/telemetry/gps_logger.cpp)
 target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${PROJECT_NAME} websocketpp::websocketpp)
@@ -107,13 +104,4 @@ add_executable(read scripts/port/reader.cpp src/serial.cpp)
 if(websocketpp_FOUND AND Protobuf_FOUND)
   add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
   target_link_libraries(dashboard_simulator ${Protobuf_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
-
-  add_executable(dashboard_can scripts/dashboard_can/dashboard_can.cpp)
-  target_link_libraries(dashboard_can ${Protobuf_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
-
-  add_library(libProtoDevices
-              SHARED
-              Protobuffer/cpp/devices.pb.cc
-              src/proto_deserializer.cpp
-              )
 endif()

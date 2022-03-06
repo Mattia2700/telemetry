@@ -10,6 +10,7 @@
 #include <string.h>
 #include <iostream>
 #include <exception>
+#include <unordered_map>
 
 #include <cstdio>
 
@@ -43,12 +44,10 @@ struct CAN_Stat_t
 #include "wsclient.h"
 #include "devices.pb.h"
 
-#include "common_definitions.h"
-
 #include "console.h"
 
-#include "json_loader.h"
-// #include "session_config/json_loader.h"
+#include "telemetry_config/json_loader.h"
+#include "session_config/json_loader.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -65,13 +64,16 @@ thread* data_thread = nullptr;
 thread* ws_conn_thread = nullptr;
 thread* ws_cli_thread = nullptr;
 
+unordered_map<string, double> timers;
 
 const char *CAN_DEVICE;
 
 bool ws_reqeust_on=false;
 bool ws_reqeust_off=false;
-atomic<int> run_state;
 bool state_changed = false;
+uint32_t can_msgs_counter = 0;
+uint32_t can_msgs_per_second = 0;
+atomic<int> run_state;
 mutex mtx;
 
 string HOME_PATH;
