@@ -54,6 +54,7 @@ add_library(
   src/devices.cpp
   src/vehicle.cpp
   src/console.cpp
+  src/gps_logger.cpp
 
   # PROTO
   Protobuffer/cpp/devices.pb.cc
@@ -64,44 +65,32 @@ add_library(
 
   src/wsclient.cpp
   )
-target_link_libraries(${PROJECT_NAME} stdc++fs)
-
-if(websocketpp_FOUND)
-  target_link_libraries(${PROJECT_NAME} websocketpp::websocketpp)
-endif()
-
-if(Protobuf_FOUND)
-  target_link_libraries(${PROJECT_NAME} ${Protobuf_LIBRARIES})
-endif()
+target_link_libraries(${PROJECT_NAME} stdc++fs ${Protobuf_LIBRARIES} websocketpp::websocketpp)
 
 
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
-add_executable(telemetry scripts/telemetry/telemetry.cpp scripts/telemetry/gps_logger.cpp)
-target_link_libraries(telemetry ${Protobuf_LIBRARIES} ${PROJECT_NAME} websocketpp::websocketpp)
+## TELEMETRY
+add_executable(telemetry scripts/telemetry/telemetry.cpp)
+target_link_libraries(telemetry ${PROJECT_NAME})
 
+## PORT SHARE
+add_executable(share scripts/port/share.cpp src/serial.cpp)
+add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
+add_executable(read scripts/port/reader.cpp src/serial.cpp)
+
+## CSV CONVERTER
 add_executable(csv scripts/csv/csv.cpp)
 target_link_libraries(csv ${Protobuf_LIBRARIES} ${PROJECT_NAME})
 
+## LOG PLAYERS
 add_executable(log_player scripts/log_player/log_player.cpp)
 target_link_libraries(log_player ${PROJECT_NAME})
 add_executable(gps_log_player scripts/log_player/gps_log_player.cpp)
 target_link_libraries(gps_log_player ${PROJECT_NAME})
 
-
-find_package(glfw3 3.3 REQUIRED)
-find_package(OpenGL REQUIRED)
-find_package(GLEW REQUIRED)
-find_package(glm REQUIRED)
-
-add_executable(share scripts/port/share.cpp src/serial.cpp)
-add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
-add_executable(read scripts/port/reader.cpp src/serial.cpp)
-
-
-if(websocketpp_FOUND AND Protobuf_FOUND)
-  add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
-  target_link_libraries(dashboard_simulator ${Protobuf_LIBRARIES} websocketpp::websocketpp ${PROJECT_NAME})
-endif()
+## DASHBOARD
+add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
+target_link_libraries(dashboard_simulator ${PROJECT_NAME})
