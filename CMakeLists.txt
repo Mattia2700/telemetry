@@ -13,6 +13,7 @@ SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
 ###########
 find_package(Protobuf REQUIRED)
 if(Protobuf_FOUND)
+    message(STATUS "____ Protobuf FOUND")
     message(STATUS "Using Protocol Buffers ${Protobuf_VERSION}")
     include_directories(${PROTOBUF_INCLUDE_DIR})
 endif()
@@ -20,10 +21,23 @@ endif()
 ###############
 ## WEBSOCKET ##
 ###############
-find_package(websocketpp)
+find_package(websocketpp REQUIRED)
 if(websocketpp_FOUND)
-  message(STATUS "Websocketpp FOUND")
+  message(STATUS "____ Websocketpp FOUND")
 endif()
+
+############
+## PYTHON ##
+############
+find_package(PythonLibs 2.7 REQUIRED)
+if(PythonLibs_FOUND)
+  include_directories(${PYTHON_INCLUDE_DIRS})
+endif()
+
+find_package(Boost REQUIRED COMPONENTS
+    iostreams system filesystem
+)
+
 
 
 include_directories(
@@ -32,14 +46,17 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty
   ${CMAKE_CURRENT_SOURCE_DIR}/json_models
   ${CMAKE_CURRENT_SOURCE_DIR}/Protobuffer/cpp
+  
+  # haru
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libharu
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libharu/include
 
-  ${CURL_INCLUDE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/gnuplot-iostream
   )
-
-
-if(PythonLibs_FOUND)
-  include_directories(${PYTHON_INCLUDE_DIRS})
-endif()
+#############
+## LIBHARU ##
+#############
+add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
@@ -55,6 +72,7 @@ add_library(
   src/vehicle.cpp
   src/console.cpp
   src/gps_logger.cpp
+  src/report.cpp
 
   # PROTO
   Protobuffer/cpp/devices.pb.cc
@@ -65,8 +83,16 @@ add_library(
 
   src/wsclient.cpp
   )
-target_link_libraries(${PROJECT_NAME} stdc++fs ${Protobuf_LIBRARIES} websocketpp::websocketpp)
-
+target_link_libraries(${PROJECT_NAME}
+  hpdf
+  stdc++fs
+  ${Protobuf_LIBRARIES}
+  websocketpp::websocketpp
+  ${PYTHON_LIBRARIES}
+  Boost::iostreams
+  Boost::system
+  Boost::filesystem
+  )
 
 
 
@@ -83,7 +109,12 @@ add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 ## CSV CONVERTER
 add_executable(csv scripts/csv/csv.cpp)
-target_link_libraries(csv ${Protobuf_LIBRARIES} ${PROJECT_NAME})
+target_link_libraries(csv
+  ${Protobuf_LIBRARIES}
+  ${PROJECT_NAME}
+  Boost::iostreams
+  Boost::system
+  Boost::filesystem)
 
 ## LOG PLAYERS
 add_executable(log_player scripts/log_player/log_player.cpp)

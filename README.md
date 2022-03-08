@@ -6,7 +6,7 @@ Start and stop logging by sending specific command messages.
 
 GPS messages reference:  
 https://d1.amobbs.com/bbs_upload782111/files_44/ourdev_670625HVMMR6.pdf
-http://www.scarpaz.com/attic/documents/GPS-NMEA.pdf
+http://www.scarpaz.com/attic/documents/GPS-NMEA.pdf    
 
 ## Contents
 - [Telemetry](#telemetry)
@@ -15,9 +15,6 @@ http://www.scarpaz.com/attic/documents/GPS-NMEA.pdf
 
 ## Requirements
 - Required Boost libs, install them with:  
-~~~bash
-sudo apt-get install libboost-serialization-dev libboost-filesystem-dev
-~~~
 
 - Required Google Protobuf
   Download [lastest](https://github.com/protocolbuffers/protobuf/releases)  
@@ -46,7 +43,7 @@ sudo apt-get install libboost-serialization-dev libboost-filesystem-dev
   sudo ldconfig # refresh shared library cache.
   ~~~
 
-- Optional if using dashboard websocketpp  
+- Websocketpp  
   ~~~
   git clone git://github.com/zaphoyd/websocketpp.git  
   cd websocketpp  
@@ -54,7 +51,10 @@ sudo apt-get install libboost-serialization-dev libboost-filesystem-dev
   sudo make install  
   ~~~
 
-- Curl if using dashboard
+- GNU PLOT
+  ~~~
+  git clone https://github.com/dstahlke/gnuplot-iostream.git
+  ~~~
 
 To use **csv_to_mat.py** are needed some other python modules.  
 Run ***pip3 install*** on each of the following:

@@ -18,6 +18,10 @@ Chimera::Chimera(){
   bms_hv_state = new State("State BMS HV");
   steering_wheel_state = new State("State Steering Wheel");
   ecu = new Ecu("ECU");
+  temp_fl = new Temperature("Temperature FL");
+  temp_fr = new Temperature("Temperature FR");
+  temp_rl = new Temperature("Temperature RL");
+  temp_rr = new Temperature("Temperature RR");
   gps1 = new Gps("GPS1");
   gps2 = new Gps("GPS2");
 
@@ -37,6 +41,10 @@ Chimera::Chimera(){
   devices.push_back(bms_hv_state);
   devices.push_back(steering_wheel_state);
   devices.push_back(ecu);
+  devices.push_back(temp_fl);
+  devices.push_back(temp_fr);
+  devices.push_back(temp_rl);
+  devices.push_back(temp_rr);
   devices.push_back(gps1);
   devices.push_back(gps2);
 
@@ -61,6 +69,10 @@ Chimera::Chimera(){
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::State());
   proto_messages.push_back(new devices::Ecu());
+  proto_messages.push_back(new devices::Temperature());
+  proto_messages.push_back(new devices::Temperature());
+  proto_messages.push_back(new devices::Temperature());
+  proto_messages.push_back(new devices::Temperature());
   proto_messages.push_back(new devices::Gps());
   proto_messages.push_back(new devices::Gps());
 
@@ -131,11 +143,11 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       gyro->y = (data[2] << 8) + data[3];
       gyro->z = (data[4] << 8) + data[5];
 
-      if(gyro->x > 32768)
+      if(gyro->x > 32767)
         gyro->x -= 65536;
-      if(gyro->y > 32768)
+      if(gyro->y > 32767)
         gyro->y -= 65536;
-      if(gyro->z > 32768)
+      if(gyro->z > 32767)
         gyro->z -= 65536;
 
       gyro->x /= 100.0f;
@@ -152,11 +164,11 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       accel->y = (data[2] << 8) + data[3];
       accel->z = (data[4] << 8) + data[5];
 
-      if(accel->x > 32768)
+      if(accel->x > 32767)
         accel->x -= 65536;
-      if(accel->y > 32768)
+      if(accel->y > 32767)
         accel->y -= 65536;
-      if(accel->z > 32768)
+      if(accel->z > 32767)
         accel->z -= 65536;
 
       accel->x /= 100.0f;
@@ -291,15 +303,14 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       // Speed filtered
       else if(data[0] == 0xA8){
         inverter_left->speed = (data[2] << 8) + data[1];
-        if(inverter_left->speed > 32768)
+        if(inverter_left->speed > 32767)
           inverter_left->speed -= 65535;
 
         inverter_left->speed *= (7000.0/32767.0);
         inverter_left->speed *= (6.28318/60.0);
 
-        // Warning adding this constant to fit data
-        // Check conversion datasheet / inverter
-        inverter_left->speed /= 4.0;
+        // Motor reduction ratio
+        inverter_left->speed /= 3.47;
 
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
@@ -307,15 +318,14 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       // Speed unfiltered
       else if(data[0] == 0x30){
         inverter_left->speed = (data[2] << 8) + data[1];
-        if(inverter_left->speed > 32768)
+        if(inverter_left->speed > 32767)
           inverter_left->speed -= 65535;
 
         inverter_left->speed *= (7000.0/32767.0);
         inverter_left->speed *= (6.28318/60.0);
 
-        // Warning adding this constant to fit data
-        // Check conversion datasheet / inverter
-        inverter_left->speed /= 4.0;
+        // Motor reduction ratio
+        inverter_left->speed /= 3.47;
 
         inverter_left->timestamp = timestamp;
         modifiedDevices.push_back(inverter_left);
@@ -347,9 +357,8 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_right->speed *= (7000.0/32767.0);
         inverter_right->speed *= (6.28318/60.0);
 
-        // Warning adding this constant to fit data
-        // Check conversion datasheet / inverter
-        inverter_right->speed /= 4.0;
+        // Motor reduction ratio
+        inverter_right->speed /= 3.47;
 
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
@@ -363,9 +372,8 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         inverter_right->speed *= (7000.0/32767.0);
         inverter_right->speed *= (6.28318/60.0);
 
-        // Warning adding this constant to fit data
-        // Check conversion datasheet / inverter
-        inverter_right->speed /= 4.0;
+        // Motor reduction ratio
+        inverter_right->speed /= 3.47;
 
         inverter_right->timestamp = timestamp;
         modifiedDevices.push_back(inverter_right);
@@ -432,6 +440,138 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         ecu->timestamp = timestamp;
         modifiedDevices.push_back(ecu);
       }
+    break;
+    // Temp 1
+    case 0x5B0:
+      temp_fl->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fl->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fl->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fl->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fl);
+    break;
+    case 0x5B1:
+      temp_fl->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fl->temps[ 5] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fl->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fl->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fl);
+    break;
+    case 0x5B2:
+      temp_fl->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fl->temps[ 9] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fl->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fl->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fl);
+    break;
+    case 0x5B3:
+      temp_fl->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fl->temps[13] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fl->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fl->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fl);
+    break;
+    // Temp 2
+    case 0x5B4:
+      temp_fr->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fr->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fr->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fr->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fr);
+    break;
+    case 0x5B5:
+      temp_fr->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fr->temps[ 5] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fr->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fr->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fr);
+    break;
+    case 0x5B6:
+      temp_fr->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fr->temps[ 9] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fr->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fr->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fr);
+    break;
+    case 0x5B7:
+      temp_fr->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_fr->temps[13] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_fr->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_fr->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_fr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_fr);
+    break;
+    // Temp 3
+    case 0x5B8:
+      temp_rl->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rl->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rl->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rl->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rl);
+    break;
+    case 0x5B9:
+      temp_rl->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rl->temps[ 5] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rl->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rl->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rl);
+    break;
+    case 0x5BA:
+      temp_rl->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rl->temps[ 9] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rl->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rl->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rl);
+    break;
+    case 0x5BB:
+      temp_rl->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rl->temps[13] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rl->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rl->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rl->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rl);
+    break;
+    // Temp 4
+    case 0x5BC:
+      temp_rr->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rr->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rr->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rr->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rr);
+    break;
+    case 0x5BD:
+      temp_rr->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rr->temps[ 5] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rr->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rr->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rr);
+    break;
+    case 0x5BE:
+      temp_rr->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rr->temps[ 9] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rr->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rr->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rr);
+    break;
+    case 0x5BF:
+      temp_rr->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
+      temp_rr->temps[13] = (((data[2] << 8) + data[3]) * 0.1) - 100;
+      temp_rr->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
+      temp_rr->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
+      temp_rr->timestamp = timestamp;
+      modifiedDevices.push_back(temp_rr);
     break;
     default:
     break;
@@ -581,6 +721,14 @@ void Chimera::serialize_device(Device* device){
     this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
   }else if(device == ecu){
     this->ecu->serialize(chimera_proto->add_ecu());
+  }else if(device == temp_fl){
+    this->temp_fl->serialize(chimera_proto->add_temp_fl());
+  }else if(device == temp_fr){
+    this->temp_fr->serialize(chimera_proto->add_temp_fr());
+  }else if(device == temp_rl){
+    this->temp_rl->serialize(chimera_proto->add_temp_rl());
+  }else if(device == temp_rr){
+    this->temp_rr->serialize(chimera_proto->add_temp_rr());
   }else if(device == gps1){
     this->gps1->serialize(chimera_proto->add_gps1());
   }else if(device == gps2){

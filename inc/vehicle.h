@@ -130,6 +130,11 @@ public:
 
   Ecu* ecu;
 
+  Temperature* temp_fl;
+  Temperature* temp_fr;
+  Temperature* temp_rl;
+  Temperature* temp_rr;
+
   Gps* gps1;
   Gps* gps2;
 

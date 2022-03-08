@@ -252,6 +252,21 @@ public:
 	std::string value;
 };
 
+class Temperature: public Device{
+	public:
+	Temperature(std::string name): Device(name){};
+
+	virtual std::string get_header(std::string separator);
+	virtual std::string get_string(std::string separator);
+	virtual Document    get_json  ();
+	virtual std::string   get_readable();
+
+	void serialize(devices::Temperature* device);
+
+	double timestamp;
+	double temps[16];	// 16 channels sensor
+};
+
 class Gps: public Device{
 public:
 	Gps(std::string name): Device(name){};

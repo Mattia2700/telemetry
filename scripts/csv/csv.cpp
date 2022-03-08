@@ -10,6 +10,8 @@
 #include "browse.h"
 #include "vehicle.h"
 
+#include "report.h"
+
 using namespace std;
 
 /**
@@ -31,6 +33,8 @@ void parse_files(vector<string> files);
 
 // Add here a thread when is started
 vector<thread *> active_threads;
+
+Report report;
 
 int main()
 {
@@ -70,6 +74,7 @@ int main()
 
     // Divide all files for number of cores available.
     int chunks = thread::hardware_concurrency();
+    chunks = 1;
     if (candump_files.size() < chunks)
       chunks = candump_files.size();
     int increment = candump_files.size() / chunks;
@@ -165,8 +170,12 @@ void parse_file(string fname)
     for (auto modified : modifiedDevices)
     {
       *modified->files[0] << modified->get_string(",") + "\n";
+      report.AddDeviceSample(&chimera, modified);
     }
   }
+  report.Clean(1920*2);
+  report.Generate("blah");
+  exit(0);
   // Debug
   double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count() / 1000;
   cout << "Parsed " << lines.size() << " lines in: " << to_string(dt) << " -> " << lines.size() / dt << " lines/sec" << endl;

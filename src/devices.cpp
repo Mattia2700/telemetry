@@ -465,6 +465,57 @@ std::string State::get_readable()
 	return ss.str();
 }
 
+/////////////////////////////////////
+///////////  TEMPERATURE  ///////////
+/////////////////////////////////////
+std::string Temperature::get_header(std::string separator)
+{
+	std::string header = "";
+	header += "timestamp" + separator;
+	for(int i = 0; i < 16; i++)
+		header += "channel_" + std::to_string(i) + separator;
+	return header;
+}
+std::string Temperature::get_string(std::string separator)
+{
+	std::string str = "";
+	str += std::to_string(timestamp) + separator;
+	for(int i = 0; i < 16; i++)
+		str += std::to_string(temps[i]) + separator;
+	return str;
+}
+Document Temperature::get_json()
+{
+	Document d;
+	d.SetObject();
+	Document::AllocatorType &alloc = d.GetAllocator();
+	d.AddMember("timestamp", timestamp, alloc);
+	Value v;
+	v.SetArray();
+	for(int i = 0; i < 16; i++)
+		v.PushBack(temps[i], alloc);
+	d.AddMember("value", v, alloc);
+	return d;
+}
+void Temperature::serialize(devices::Temperature* temperature)
+{
+	temperature->set_timestamp(timestamp);
+
+	temperature->clear_temps();
+	for(int i = 0; i < 16; i++)
+		temperature->add_temps(temps[i]);
+}
+std::string Temperature::get_readable()
+{
+	std::stringstream ss;
+	ss.precision(3);
+	ss << get_name() << "\n";
+	ss << "\ttimestamp -> \t" << timestamp << "\n";
+	for(int i = 0; i < 16; i++)
+		ss << "\tchannel_" << i << " -> \t" << temps[i] << "\n";
+	return ss.str();
+}
+
 ///////////////////////////////
 ////////////  GPS  ////////////
 ///////////////////////////////
