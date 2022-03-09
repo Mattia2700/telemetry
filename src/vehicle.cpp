@@ -130,7 +130,7 @@ void Chimera::close_files(int index){
 
 void Chimera::write_all_headers(int index){
   for(auto device : devices)
-    *device->files[index] << device->get_header(";") << "\n" << flush;
+    *device->files[index] << device->get_header(",") << "\n" << flush;
 }
 
 vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size){

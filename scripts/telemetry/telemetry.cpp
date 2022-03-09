@@ -1,7 +1,65 @@
 #include "telemetry.h"
 
+#include <iostream>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <cstdlib>
+#include <string>
+
 int main(int argc, char** argv)
 {
+
+  // addrinfo serverinfo, *result, *ptr;
+  // int ret = 0;
+
+  // // memset(&hints,0,sizeof(serverinfo));
+  // serverinfo.ai_family = AF_UNSPEC; // fill this struct partially
+  // serverinfo.ai_socktype = SOCK_STREAM;
+
+  // string input = "";
+  // cout << "Whats the host's name: ";
+  // getline(cin,input);
+
+  // if((ret = getaddrinfo(input.c_str(),NULL,&serverinfo,&result)) != 0){
+  //     cerr << "getaddrinfo(): "<<input <<"-" << gai_strerror(ret) << "\n";
+  //     return 0;
+  // }
+
+  // cout << "IP addresses for "<< input << endl;
+
+  // // Loop through all the linked list of address and get the ip addresses
+  // for(ptr = result; ptr != NULL; ptr = ptr->ai_next){
+  //     void *addr;
+  //     string ipver;
+
+  //     if(ptr->ai_family == AF_INET){
+  //         // IPv4 address
+  //         sockaddr_in *ipv4 = (sockaddr_in*)ptr->ai_addr;
+  //         addr = &(ipv4->sin_addr);
+  //         ipver = "IPv4";
+  //     }
+  //     else{
+  //         // IPv6 address
+  //         sockaddr_in6 *ipv6 = (sockaddr_in6*)ptr->ai_addr;
+  //         addr = &(ipv6->sin6_addr);
+  //         ipver = "IPv6";
+  //     }
+
+  //     // use INET6_ADDRSTRLEN becuase we need it to big enough
+  //     // convert the ip from network(bits) to presentation(eg. 127.0.0.1)
+  //     char ipAddress[INET6_ADDRSTRLEN];
+  //     inet_ntop(ptr->ai_family, addr, ipAddress, sizeof(ipAddress));
+  //     // print it out
+  //     cout << ipver <<" " << ipAddress << endl;
+  // }
+
+  // // free the memory
+  // freeaddrinfo(result);
+
+  // return 0;
   console = new Debug::Console();
 
   HOME_PATH = getenv("HOME");

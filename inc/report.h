@@ -64,6 +64,13 @@ struct MapElement
   string secondary;
 };
 
+struct CurrentFont
+{
+  string font_name;
+  HPDF_Font font;
+  int size;
+};
+
 class Report
 {
 public:
@@ -73,7 +80,12 @@ public:
   void Generate(string path);
   void Clean(int);
   void Filter(const vector<double> &in, vector<double>* out, int window=10);
+  void DownSample(const vector<double>& in, vector<double>* out, int count);
 
 private:
   unordered_map<string, unordered_map<string, vector<double>>> sensor_data;
+
+  unordered_map<string, CurrentFont> c_fonts;
+
+private:
 };

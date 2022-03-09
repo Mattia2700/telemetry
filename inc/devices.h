@@ -104,8 +104,8 @@ public:
 	std::vector<std::string>   filenames;
 	std::vector<std::fstream*> files;
 
-	long int samples_count;
-	double prev_timestamp;
+	long int samples_count = 0;
+	double prev_timestamp = 0.0;
 
 private:
 	int id;
@@ -124,11 +124,11 @@ public:
 
 	void serialize(devices::Imu* device);
 
-	double timestamp;
-	double x;
-	double y;
-	double z;
-	double scale;
+	double timestamp = 0.0;
+	double x = 0.0;
+	double y = 0.0;
+	double z = 0.0;
+	double scale = 0.0;
 };
 
 class Encoder: public Device{
@@ -142,10 +142,10 @@ public:
 
 	void serialize(devices::Encoder* device);
 
-	double timestamp;
-	double rads;
-	double km;
-	double rotations;
+	double timestamp = 0.0;
+	double rads = 0.0;
+	double km = 0.0;
+	double rotations = 0.0;
 };
 
 class Steer: public Device{
@@ -159,8 +159,8 @@ public:
 
 	void serialize(devices::Steer* device);
 
-	double timestamp;
-	double angle;
+	double timestamp = 0.0;
+	double angle = 0.0;
 };
 
 class Pedals: public Device{
@@ -174,11 +174,11 @@ public:
 
 	void serialize(devices::Pedals* device);
 
-	double timestamp;
-	double throttle1;
-	double throttle2;
-	double brake_front;
-	double brake_rear;
+	double timestamp = 0.0;
+	double throttle1 = 0.0;
+	double throttle2 = 0.0;
+	double brake_front = 0.0;
+	double brake_rear = 0.0;
 };
 
 class Inverter: public Device{
@@ -192,11 +192,11 @@ public:
 
 	void serialize(devices::Inverter* device);
 
-	double timestamp;
-	double temperature;
-	double motor_temp;
-	double torque;
-	double speed;
+	double timestamp = 0.0;
+	double temperature = 0.0;
+	double motor_temp = 0.0;
+	double torque = 0.0;
+	double speed = 0.0;
 };
 
 class Bms: public Device{
@@ -210,15 +210,15 @@ public:
 
 	void serialize(devices::Bms* device);
 
-	double timestamp;
-	double temperature;
-	double max_temperature;
-	double min_temperature;
-	double current;
-	double voltage;
-	double max_voltage;
-	double min_voltage;
-	double power;
+	double timestamp = 0.0;
+	double temperature = 0.0;
+	double max_temperature = 0.0;
+	double min_temperature = 0.0;
+	double current = 0.0;
+	double voltage = 0.0;
+	double max_voltage = 0.0;
+	double min_voltage = 0.0;
+	double power = 0.0;
 };
 
 class Ecu: public Device{
@@ -232,9 +232,9 @@ public:
 
 	void serialize(devices::Ecu* device);
 
-	double timestamp;
-	double power_request_left;
-	double power_request_right;
+	double timestamp = 0.0;
+	double power_request_left = 0.0;
+	double power_request_right = 0.0;
 };
 
 class State: public Device{
@@ -248,7 +248,7 @@ public:
 
 	void serialize(devices::State* device);
 
-	double timestamp;
+	double timestamp = 0.0;
 	std::string value;
 };
 
@@ -263,7 +263,7 @@ class Temperature: public Device{
 
 	void serialize(devices::Temperature* device);
 
-	double timestamp;
+	double timestamp = 0.0;
 	double temps[16];	// 16 channels sensor
 };
 

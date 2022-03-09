@@ -34,8 +34,6 @@ void parse_files(vector<string> files);
 // Add here a thread when is started
 vector<thread *> active_threads;
 
-Report report;
-
 int main()
 {
 
@@ -74,7 +72,7 @@ int main()
 
     // Divide all files for number of cores available.
     int chunks = thread::hardware_concurrency();
-    chunks = 1;
+    // chunks = 1;
     if (candump_files.size() < chunks)
       chunks = candump_files.size();
     int increment = candump_files.size() / chunks;
@@ -122,21 +120,28 @@ void parse_files(vector<string> files)
     parse_file(file);
 }
 
+// parse a candump file and a related gps file (if exists)
 void parse_file(string fname)
 {
+  Report report;
 
-  string folder;
+  string folder = get_parent_dir(fname);
+
+  auto files = get_all_files(folder, ".log");
+  auto gps_files = get_gps_from_files(files);
+
   // If the filename has an incremental name create a folder with that number
   // Otherwise create parsed folder
   try
   {
     int n = stoi(remove_extension(fname));
-    folder = get_parent_dir(fname) + "/" + to_string(n);
+    folder += "/" + to_string(n);
   }
   catch (std::exception &e)
   {
-    folder = get_parent_dir(fname) + "/parsed";
+    folder += "/parsed";
   }
+  
   create_directory(folder);
 
   Chimera chimera;
@@ -158,6 +163,7 @@ void parse_file(string fname)
 
   // Start Timer
   time_point t_start = high_resolution_clock::now();
+  double prev_timestsamp;
   for (uint32_t i = 20; i < lines.size(); i++)
   {
     // Try parsing the line
@@ -166,16 +172,48 @@ void parse_file(string fname)
     // Fill the devices
     modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
 
+    if (prev_timestsamp > msg.timestamp)
+    {
+      cout << fname << "\n";
+      cout << std::fixed << setprecision(9) << msg.timestamp << "\t";
+      cout << lines[i] << "\t" << i << endl;
+    }
+
     // For each device modified write the values in the csv file
     for (auto modified : modifiedDevices)
     {
       *modified->files[0] << modified->get_string(",") + "\n";
       report.AddDeviceSample(&chimera, modified);
     }
+    prev_timestsamp = msg.timestamp;
   }
+
+  for(auto gps_file : gps_files)
+  {
+    Gps* current_gps;
+    
+    if(fs::path(gps_file).filename().string().find("2") != string::npos)
+      current_gps = chimera.gps2;
+    else
+      current_gps = chimera.gps1;
+
+    get_lines(gps_file, &lines);
+    gps_message msg;
+    for(size_t i = 20; i < lines.size(); i++)
+    {
+      if(!parse_gps_line(lines[i], &msg))
+        continue;
+
+      int ret = chimera.parse_gps(current_gps, msg.timestamp, msg.message);
+      if (ret == 1)
+      {
+        *current_gps->files[0] << current_gps->get_string(",") + "\n";
+      }
+    }
+  }
+
   report.Clean(1920*2);
-  report.Generate("blah");
-  exit(0);
+  report.Generate(folder + "/Report.pdf");
   // Debug
   double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count() / 1000;
   cout << "Parsed " << lines.size() << " lines in: " << to_string(dt) << " -> " << lines.size() / dt << " lines/sec" << endl;

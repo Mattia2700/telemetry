@@ -56,6 +56,8 @@ include_directories(
 #############
 ## LIBHARU ##
 #############
+# add_definitions(-DLIBHPDF_DEBUG_TRACE)
+# add_definitions(-DHPDF_PTRACE_ON)
 add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)

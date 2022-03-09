@@ -69,6 +69,7 @@ void get_lines(string filename, vector<string>* lines){
 
   char* line = NULL;
   size_t size = 0;
+  lines->clear();
   while(getline(&line, &size, f) != -1){
     lines->push_back(line);
   }
@@ -95,6 +96,16 @@ vector<string> get_all_files(string path, string extension){
   return files;
 }
 
+vector<string> get_gps_from_files(vector<string> files){
+  vector<string> new_vec;
+  for(int i = 0; i < files.size(); i++){
+    size_t pos = files[i].find("gps");
+    if(pos != string::npos){
+      new_vec.push_back(files.at(i));
+    }
+  }
+  return new_vec;
+}
 vector<string> get_candump_from_files(vector<string> files){
   vector<string> new_vec;
   for(int i = 0; i < files.size(); i++){

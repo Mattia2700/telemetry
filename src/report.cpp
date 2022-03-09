@@ -8,6 +8,7 @@ void error_handler  (HPDF_STATUS   error_no,
 {
     printf ("ERROR: error_no=%04X, detail_no=%u   %04X\n", (HPDF_UINT)error_no,
                 (HPDF_UINT)detail_no, (HPDF_UINT)detail_no);
+    throw runtime_error("error");
     longjmp(env, 1);
 }
 
@@ -161,8 +162,6 @@ void Report::Clean(int count)
         sensor_data[element.first][subelement.first].clear();
         Filter(out, &sensor_data[element.first][subelement.first]);
       }
-
-      cout << sensor_data[element.first][subelement.first].size() << endl;
     }
   }
 }
@@ -171,13 +170,18 @@ void Report::Clean(int count)
 void Report::Generate(string path)
 {
   HPDF_Doc  pdf;
-  HPDF_Font font;
   HPDF_Page page;
-  string fname = "test.pdf";
+  string fname = path;
   HPDF_Destination dst;
   HPDF_Image image;
 
 
+  // vectors of coupled graphs
+  // sub vector contains all the data to be plotted in the same image
+  // this means plot as X axis the accel timestamp and plot accel y and gyro z in the same plot
+  // {"accel", "timestamp"}
+  // {"accel", "x"}
+  // {"gyro", "z"}
   vector<vector<MapElement>> coupled_graphs {
     {
       {"accel", "timestamp"},
@@ -235,12 +239,6 @@ void Report::Generate(string path)
 
   double x;
   double y;
-  double angle;
-  double angle1;
-  double angle2;
-  double rad;
-  double rad1;
-  double rad2;
 
   double iw;
   double ih;
@@ -261,9 +259,23 @@ void Report::Generate(string path)
 
   HPDF_SetCompressionMode (pdf, HPDF_COMP_NONE);
 
-  /* create default-font */
-  font = HPDF_GetFont (pdf, "Helvetica", NULL);
+  // Loading fonts
+  c_fonts["main"].font_name = "Helvetica";
+  if(fs::exists("../assets/fonts/Lato-Regular.ttf"))
+    c_fonts["main"].font_name = HPDF_LoadTTFontFromFile (pdf, "../assets/fonts/Lato-Regular.ttf", HPDF_TRUE);
+  else if(fs::exists("assets/fonts/Lato-Regular.ttf"))
+    c_fonts["main"].font_name = HPDF_LoadTTFontFromFile (pdf, "assets/fonts/Lato-Regular.ttf", HPDF_TRUE);
+  c_fonts["main"].font = HPDF_GetFont (pdf, c_fonts["main"].font_name.c_str(), NULL);
 
+  c_fonts["main-bold"].font_name = "Helvetica";
+  if(fs::exists("../assets/fonts/Lato-Bold.ttf"))
+    c_fonts["main-bold"].font_name = HPDF_LoadTTFontFromFile (pdf, "../assets/fonts/Lato-Bold.ttf", HPDF_TRUE);
+  else if(fs::exists("assets/fonts/Lato-Bold.ttf"))
+    c_fonts["main-bold"].font_name = HPDF_LoadTTFontFromFile (pdf, "assets/fonts/Lato-Bold.ttf", HPDF_TRUE);
+  c_fonts["main-bold"].font = HPDF_GetFont (pdf, c_fonts["main-bold"].font_name.c_str(), NULL);
+
+
+  // First Page
   {
     page = HPDF_AddPage (pdf);
 
@@ -273,14 +285,62 @@ void Report::Generate(string path)
     HPDF_Destination_SetXYZ (dst, 0, HPDF_Page_GetHeight (page), 1);
     HPDF_SetOpenAction(pdf, dst);
 
+    string png = "";
+    if(fs::exists("../assets/images/LogoAndText_1.png"))
+      png = "../assets/images/LogoAndText_1.png";
+    else if(fs::exists("assets/images/LogoAndText_1.png"))
+      png = "assets/images/LogoAndText_1.png";
+
+    if(png != "")
+    {
+      image = HPDF_LoadPngImageFromFile (pdf, png.c_str());
+
+      iw = HPDF_Image_GetWidth (image);
+      ih = HPDF_Image_GetHeight (image);
+      float ratio = iw / ih;
+      iw = HPDF_Page_GetWidth(page)/2.0;
+      ih = iw/ratio;
+
+      x = (HPDF_Page_GetWidth(page) - iw)/2;
+      if(x < 0)
+        x = 0;
+      y = HPDF_Page_GetHeight(page) - ih - ih/2.0;
+
+      HPDF_Page_DrawImage (page, image, x, y, iw, ih);
+    }
+
     HPDF_Page_BeginText (page);
-    HPDF_Page_SetFontAndSize (page, font, 24);
-    HPDF_Page_MoveTextPos (page, 20, HPDF_Page_GetHeight (page) - 70);
-    HPDF_Page_ShowText (page, "Eagle TRT Telemetry Report");
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 42);
+    HPDF_Page_SetRGBFill (page, 0.1,0.1,0.15);
+    
+    string title = "Telemetry Report";
+    auto t_width = HPDF_Font_TextWidth(c_fonts["main"].font, (HPDF_BYTE*)title.c_str(), title.size());
+    // 42 is the font size
+    t_width.width *= 42.0 / 1000.0;
+    x = (HPDF_Page_GetWidth(page) - t_width.width)/2.0;
+    y -= 64;
+    HPDF_Page_MoveTextPos (page, x, y);
+
+    HPDF_Page_ShowText (page, title.c_str());
+    HPDF_Page_EndText (page);
+
+    HPDF_Page_BeginText (page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
+    HPDF_Page_SetRGBFill (page, 0.1,0.1,0.15);
+    
+    string text = "Plots and basic information from race session.";
+    t_width = HPDF_Font_TextWidth(c_fonts["main"].font, (HPDF_BYTE*)text.c_str(), text.size());
+    // 24 is the font size
+    t_width.width *= 24.0 / 1000.0;
+    x = (HPDF_Page_GetWidth(page) - t_width.width)/2.0;
+    y -= 64;
+    HPDF_Page_MoveTextPos (page, x, y);
+
+    HPDF_Page_ShowText (page, text.c_str());
     HPDF_Page_EndText (page);
   }
 
-
+  HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
   for(int i = 0; i < coupled_graphs.size(); i++)
   {
     const std::vector<MapElement>& graph = coupled_graphs[i];
@@ -293,8 +353,8 @@ void Report::Generate(string path)
     HPDF_Destination_SetXYZ (dst, 0, HPDF_Page_GetHeight (page), 1);
 
     {
-      //Gnuplot gp;
-      Gnuplot gp("tee plot.gnu | gnuplot -persist");
+      Gnuplot gp;
+      // Gnuplot gp("tee plot.gnu | gnuplot -persist");
 
       gp << "set terminal png size 1920,1080\n";
       gp << "set output 'graph_" << i << ".png'\n";
@@ -302,10 +362,12 @@ void Report::Generate(string path)
       gp << ":" << int(sensor_data[graph[0].primary][graph[0].secondary].back()) << "]\n";
       // gp << "set yrange [-8:8]\n";
 
+
       stringstream command;
       command << "plot ";
       for(int j = 1; j < graph.size(); j++)
       {
+        
         string title = graph[j].primary + " " + graph[j].secondary;
         int idx = title.find('_');
         if(idx != string::npos)
@@ -317,18 +379,47 @@ void Report::Generate(string path)
           command << ", ";
       }
 
-      cout << command.str() << endl;
+      
+      // cout << command.str() << endl;
       gp << command.str();
+
+      // Check if every graph has the same lenght, if not save the minimum size.
+      int min_size = sensor_data[graph[0].primary][graph[0].secondary].size();
+      bool to_be_shrinked=false;
+      for(int j = 1; j < graph.size(); j++)
+      {
+        if(sensor_data[graph[j].primary][graph[j].secondary].size() != min_size)
+        {
+          if(sensor_data[graph[j].primary][graph[j].secondary].size() < min_size)
+            min_size = sensor_data[graph[j].primary][graph[j].secondary].size();
+          to_be_shrinked = true;
+        }
+      }
 
       for(int j = 1; j < graph.size(); j++)
       {
-        cout << graph[0].primary << " " << graph[0].secondary << "\t";
-        cout << graph[j].primary << " " << graph[j].secondary << endl;
+        // cout << graph[0].primary << " " << graph[0].secondary << "\t";
+        // cout << graph[j].primary << " " << graph[j].secondary << endl;
 
-        gp.send1d(make_pair(
-          sensor_data[graph[0].primary][graph[0].secondary],
-          sensor_data[graph[j].primary][graph[j].secondary]
-          ));
+        if(to_be_shrinked)
+        {
+          vector<double> to_plot_x = sensor_data[graph[0].primary][graph[0].secondary];
+          vector<double> to_plot_y = sensor_data[graph[j].primary][graph[j].secondary];
+          DownSample(sensor_data[graph[0].primary][graph[0].secondary], &to_plot_x, min_size);
+          DownSample(sensor_data[graph[j].primary][graph[j].secondary], &to_plot_y, min_size);
+          gp.send1d(make_pair(
+            to_plot_x,
+            to_plot_y
+            ));
+        }
+        else
+        {
+          gp.send1d(make_pair(
+            sensor_data[graph[0].primary][graph[0].secondary],
+            sensor_data[graph[j].primary][graph[j].secondary]
+            ));
+        }
+
       }
     }
 
@@ -347,7 +438,7 @@ void Report::Generate(string path)
     x = (HPDF_Page_GetWidth(page) - iw)/2;
     if(x < 0)
       x = 0;
-    y = HPDF_Page_GetHeight(page) - ih;
+    y = (HPDF_Page_GetHeight(page) - ih)/2.0;
 
     /* Draw image to the canvas. (normal-mode with actual size.)*/
     HPDF_Page_DrawImage (page, image, x, y, iw, ih);
@@ -358,7 +449,22 @@ void Report::Generate(string path)
 
   /* save the document to a file */
   HPDF_SaveToFile (pdf, fname.c_str());
+  HPDF_SaveToFile (pdf, "Last Report.pdf");
 
   /* clean up */
   HPDF_Free (pdf);
+}
+
+void Report::DownSample(const vector<double>& in, vector<double>* out, int count)
+{
+  if(in.size() > count)
+  {
+    int factor = in.size() / count;
+    out->clear();
+    out->reserve(count);
+    for(int k = 0; k < count; k++)
+    {
+      out->push_back(in[k*factor]);
+    }
+  }
 }

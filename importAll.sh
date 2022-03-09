@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-device="ubuntu@192.168.1.104"      ## TELEMETRY pwd telemetrypi
+device="ubuntu@192.168.1.111"      ## TELEMETRY pwd telemetrypi
 
 FOLDERNAME="$(date +"%d-%b-%Y__%H-%M-%S")"
 SOURCEPATH="~/logs/"
