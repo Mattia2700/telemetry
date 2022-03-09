@@ -41,6 +41,7 @@ void get_lines(string filename, vector<string>* lines);
 vector<string> get_all_files(string path, string extension="*");
 
 vector<string> get_gps_from_files(vector<string> files);
+vector<string> get_files_with_word(vector<string> files, string word);
 vector<string> get_candump_from_files(vector<string> files);
 
 string get_parent_dir(string path);

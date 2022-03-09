@@ -403,13 +403,13 @@ void create_header(string& out)
   out = "\r\n\n";
   out += "*** EAGLE-TRT\r\n";
   out += "*** Telemetry Log File\r\n";
-  out += "*** Date: " + sesh_config.date + "\r\n";
-  out += "*** Time: " + sesh_config.time + "\r\n";
+  out += "*** Date: " + sesh_config.Date + "\r\n";
+  out += "*** Time: " + sesh_config.Time + "\r\n";
   out += "\r\n";
-  out += "*** Curcuit       .... " + sesh_config.circuit + "\r\n";
-  out += "*** Pilot         .... " + sesh_config.pilot + "\r\n";
-  out += "*** Test          .... " + sesh_config.test + "\r\n";
-  out += "*** Configuration .... " + sesh_config.configuration;
+  out += "*** Curcuit       .... " + sesh_config.Circuit + "\r\n";
+  out += "*** Pilot         .... " + sesh_config.Pilot + "\r\n";
+  out += "*** Race          .... " + sesh_config.Race + "\r\n";
+  out += "*** Configuration .... " + sesh_config.Configuration;
   out += "\n\n\r";
 }
 
@@ -417,9 +417,9 @@ void create_folder_name(string& out)
 { 
   // Create a folder with current configurations
   stringstream subfolder;
-  subfolder << sesh_config.test;
+  subfolder << sesh_config.Race;
   subfolder << " [";
-  subfolder << sesh_config.configuration << "]";
+  subfolder << sesh_config.Configuration << "]";
 
   string s = subfolder.str();
   std::replace(s.begin(), s.end(), '\\', ' ');
@@ -514,10 +514,10 @@ void save_stat(string folder)
   human_date.erase(human_date.size()-1, 1);
   // Add keys and string values
   doc.AddMember("Date", Value().SetString(StringRef(human_date.c_str())), alloc);
-  doc.AddMember("Circuit", Value().SetString(StringRef(sesh_config.circuit.c_str())), alloc);
-  doc.AddMember("Pilot", Value().SetString(StringRef(sesh_config.pilot.c_str())), alloc);
-  doc.AddMember("Test", Value().SetString(StringRef(sesh_config.test.c_str())), alloc);
-  doc.AddMember("Configuration", Value().SetString(StringRef(sesh_config.configuration.c_str())), alloc);
+  doc.AddMember("Circuit", Value().SetString(StringRef(sesh_config.Circuit.c_str())), alloc);
+  doc.AddMember("Pilot", Value().SetString(StringRef(sesh_config.Pilot.c_str())), alloc);
+  doc.AddMember("Race", Value().SetString(StringRef(sesh_config.Race.c_str())), alloc);
+  doc.AddMember("Configuration", Value().SetString(StringRef(sesh_config.Configuration.c_str())), alloc);
 
   Value val;
   val.SetObject();
@@ -595,17 +595,17 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     return;
   }
   if(d["type"] == "telemetry_set_sesh_config"){
-    if(d["data"].HasMember("pilot") &&
-      d["data"].HasMember("circuit") &&
-      d["data"].HasMember("configuration") &&
-      d["data"].HasMember("test"))
+    if(d["data"].HasMember("Pilot") &&
+      d["data"].HasMember("Circuit") &&
+      d["data"].HasMember("Configuration") &&
+      d["data"].HasMember("Test"))
     {
-      sesh_config.configuration = d["data"]["configuration"].GetString();
-      sesh_config.test = d["data"]["test"].GetString();
-      if(d["data"]["pilot"].GetString() != "")
-        sesh_config.pilot = d["data"]["pilot"].GetString();
-      if(d["data"]["circuit"].GetString() != "")
-        sesh_config.circuit = d["data"]["circuit"].GetString();
+      sesh_config.Configuration = d["data"]["Configuration"].GetString();
+      sesh_config.Race = d["data"]["Race"].GetString();
+      if(d["data"]["Pilot"].GetString() != "")
+        sesh_config.Pilot = d["data"]["Pilot"].GetString();
+      if(d["data"]["Circuit"].GetString() != "")
+        sesh_config.Circuit = d["data"]["Circuit"].GetString();
 
       save_all_config();
     }

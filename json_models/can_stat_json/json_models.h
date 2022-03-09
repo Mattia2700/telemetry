@@ -11,13 +11,20 @@
 
 
 
-struct session_config
+struct _CAN_
 {
+	int Messages;
+	int Average_Frequency_Hz;
+	float Duration_seconds;
+};
+
+struct can_stat_json
+{
+	std::string Date;
 	std::string Circuit;
 	std::string Pilot;
 	std::string Race;
 	std::string Configuration;
-	std::string Date;
-	std::string Time;
+	_CAN_ CAN;
 };
 

@@ -97,19 +97,15 @@ vector<string> get_all_files(string path, string extension){
 }
 
 vector<string> get_gps_from_files(vector<string> files){
-  vector<string> new_vec;
-  for(int i = 0; i < files.size(); i++){
-    size_t pos = files[i].find("gps");
-    if(pos != string::npos){
-      new_vec.push_back(files.at(i));
-    }
-  }
-  return new_vec;
+  return get_files_with_word(files, "gps");
 }
 vector<string> get_candump_from_files(vector<string> files){
+  return get_files_with_word(files, "dump.log");
+}
+vector<string> get_files_with_word(vector<string> files, string word){
   vector<string> new_vec;
   for(int i = 0; i < files.size(); i++){
-    size_t pos = files[i].find("dump.log");
+    size_t pos = files[i].find(word);
     if(pos != string::npos){
       new_vec.push_back(files.at(i));
     }

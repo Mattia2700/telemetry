@@ -11,13 +11,16 @@
 
 
 
-struct session_config
+struct _GPS_
 {
-	std::string Circuit;
-	std::string Pilot;
-	std::string Race;
-	std::string Configuration;
+	int Messages;
+	int Average_Frequency_Hz;
+	float Duration_seconds;
+};
+
+struct gps_stat_json
+{
 	std::string Date;
-	std::string Time;
+	_GPS_ GPS;
 };
 

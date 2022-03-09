@@ -11,13 +11,11 @@
 
 
 
-struct session_config
+struct csv_parser_config
 {
-	std::string Circuit;
-	std::string Pilot;
-	std::string Race;
-	std::string Configuration;
-	std::string Date;
-	std::string Time;
+	std::string subfolder_name;
+	bool parse_candump;
+	bool parse_gps;
+	bool generate_report;
 };
 

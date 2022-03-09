@@ -1,5 +1,6 @@
 #pragma once
 
+#include <setjmp.h>
 #include <vector>
 #include <string>
 #include <stdio.h>
@@ -13,7 +14,6 @@
 
 #include "vehicle.h"
 #include "devices.h"
-#include "matplotlibcpp.h"
 
 #include "libharu/include/hpdf.h"
 
@@ -21,7 +21,6 @@
 
 using namespace std;
 using namespace gnuplotio;
-namespace plt = matplotlibcpp;
 namespace fs = std::filesystem;
 
 

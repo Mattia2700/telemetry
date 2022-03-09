@@ -26,14 +26,6 @@ if(websocketpp_FOUND)
   message(STATUS "____ Websocketpp FOUND")
 endif()
 
-############
-## PYTHON ##
-############
-find_package(PythonLibs 2.7 REQUIRED)
-if(PythonLibs_FOUND)
-  include_directories(${PYTHON_INCLUDE_DIRS})
-endif()
-
 find_package(Boost REQUIRED COMPONENTS
     iostreams system filesystem
 )
@@ -80,8 +72,11 @@ add_library(
   Protobuffer/cpp/devices.pb.cc
 
   # JSON
-  json_models/telemetry_config/json_loader.cpp
   json_models/session_config/json_loader.cpp
+  json_models/telemetry_config/json_loader.cpp
+  json_models/csv_parser_config/json_loader.cpp
+  json_models/can_stat_json/json_loader.cpp
+  json_models/gps_stat_json/json_loader.cpp
 
   src/wsclient.cpp
   )
@@ -90,7 +85,6 @@ target_link_libraries(${PROJECT_NAME}
   stdc++fs
   ${Protobuf_LIBRARIES}
   websocketpp::websocketpp
-  ${PYTHON_LIBRARIES}
   Boost::iostreams
   Boost::system
   Boost::filesystem

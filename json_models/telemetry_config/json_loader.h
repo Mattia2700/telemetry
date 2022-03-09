@@ -1,5 +1,3 @@
-#pragma once
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string>
@@ -20,14 +18,14 @@ using json = nlohmann::json;
 #define JSON_LOADER_H
 
 template<class T>
-void CheckJson(T& obj, json);
+void CheckJson(const T& obj, const json& j);
 template<class T>
 json Serialize(const T& obj);
 template<class T>
-void Deserialize(T& obj, json);
+void Deserialize(T& obj, const json& j);
 template<class T>
-bool LoadJson(T& obj, std::string path);
+bool LoadJson(T& obj, const std::string& path);
 template<class T>
-void SaveJson(T& obj, std::string path);
+void SaveJson(const T& obj, const std::string& path);
 
 #endif // JSON_LOADER_H
