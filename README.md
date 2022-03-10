@@ -15,6 +15,9 @@ http://www.scarpaz.com/attic/documents/GPS-NMEA.pdf
 
 ## Requirements
 - Required Boost libs, install them with:  
+  ~~~
+  sudo apt install libboost-iostreams-dev libboost-system-dev libboost-filesystem-dev
+  ~~~
 
 - Required Google Protobuf
   Download [lastest](https://github.com/protocolbuffers/protobuf/releases)  
@@ -55,6 +58,27 @@ http://www.scarpaz.com/attic/documents/GPS-NMEA.pdf
   ~~~
   git clone https://github.com/dstahlke/gnuplot-iostream.git
   ~~~
+
+- Raspi Cam
+  ~~~
+  git clone https://github.com/rmsalinas/raspicam
+  cd raspicam
+  mkdir build
+  cd build
+  cmake ..
+  make
+  sudo make install
+  sudo ldconfig
+  ~~~
+
+- LibHaru
+  libharu is a submodule in this repo but needs a couple of commands to work properly.  
+  ~~~
+  cd thitdparty/libharu
+  buildconf.sh
+  ./configure
+  ~~~
+
 
 To use **csv_to_mat.py** are needed some other python modules.  
 Run ***pip3 install*** on each of the following:

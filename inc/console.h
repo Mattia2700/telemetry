@@ -204,6 +204,24 @@ namespace Debug
 
       // void LogToFile(const string text, bool print_message=false);
 
+      template<typename... Args>
+      void Log(Args... args)
+      {
+        DebugMessage(LogImpl(args...));
+      }
+
+      template<typename... Args>
+      void LogWarn(Args... args)
+      {
+        WarnMessage(LogImpl(args...));
+      }
+
+      template<typename... Args>
+      void LogError(Args... args)
+      {
+        ErrorMessage(LogImpl(args...));
+      }
+
     private:
 
         int header_color = YELLOW;
@@ -253,6 +271,23 @@ namespace Debug
         void SetBackgorundColor(int color = DEFAULT);
 
         string MakeNonPrintable(const string printable);
+
+        template<typename T>
+        string LogImpl(T arg)
+        {
+          stringstream ss;
+          ss << arg << " ";
+          return ss.str();
+        }
+
+        template<typename T, typename... Args>
+        string LogImpl(T arg1, Args... args)
+        {
+          stringstream ss;
+          ss << LogImpl(arg1);
+          ss << LogImpl(args...);
+          return ss.str();
+        }
 
         // TO BE FIXED
         void ClearCurrentLine();

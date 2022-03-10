@@ -44,19 +44,19 @@ enum BMS_ERROR_T
 	ERROR_CAN,
   NUM_ERRORS
 };
-static string ECU_STATES[NUM_STATES] =
+static std::string ECU_STATES[NUM_STATES] =
 {
   "IDLE",
   "SETUP",
   "RUN"
 };
-static string BMS_WARNINGS[NUM_WARNINGS] =
+static std::string BMS_WARNINGS[NUM_WARNINGS] =
 {
   "WARN_CELL_LOW_VOLTAGE",
   "WARN_CELL_DROPPING",
   "WARN_PRECHARGE_FAIL",
 };
-static string BMS_ERRORS[NUM_ERRORS] =
+static std::string BMS_ERRORS[NUM_ERRORS] =
 {
   "ERROR_LTC6804_PEC_ERROR",
   "ERROR_CELL_UNDER_VOLTAGE",
@@ -66,7 +66,7 @@ static string BMS_ERRORS[NUM_ERRORS] =
   "ERROR_CAN"
 };
 
-static string FIX_STATE[7] =
+static std::string FIX_STATE[7] =
 {
 	"FIX NOT AVAILABLE OR INVALID",
 	"GPS SPS MODE FIX VALID",
@@ -74,7 +74,7 @@ static string FIX_STATE[7] =
 	"UNSUPPORTED","UNSUPPORTED","UNSUPPORTED",
 	"DEAD RECKONING MODE FIX VALID"
 };
-static string FIX_MODE[3] = 
+static std::string FIX_MODE[3] = 
 {
 	"FIX NOT AVAILABLE",
 	"2D",
@@ -98,8 +98,8 @@ public:
 	void serialized_to_text(Message* message, std::string *out);
 	void serialized_to_json(Message* message, std::string *out);
 	static std::vector<std::string> get_field_names(const Descriptor* descriptor);
-	static string get_header(const std::vector<std::string>& fields, string separator);
-	static string get_header(const Descriptor* descriptor, std::string separator);
+	static std::string get_header(const std::vector<std::string>& fields, std::string separator);
+	static std::string get_header(const Descriptor* descriptor, std::string separator);
 
 	std::vector<std::string>   filenames;
 	std::vector<std::fstream*> files;

@@ -687,6 +687,11 @@ void Chimera::serialize(){
 
   this->ecu->serialize(chimera_proto->add_ecu());
 
+  this->temp_fl->serialize(chimera_proto->add_temp_fl());
+  this->temp_fr->serialize(chimera_proto->add_temp_fr());
+  this->temp_rl->serialize(chimera_proto->add_temp_rl());
+  this->temp_rr->serialize(chimera_proto->add_temp_rr());
+
   this->gps1->serialize(chimera_proto->add_gps1());
   this->gps2->serialize(chimera_proto->add_gps2());
 }
@@ -695,43 +700,81 @@ void Chimera::serialize(){
 void Chimera::serialize_device(Device* device){
   if (device == accel){
     this->accel->serialize(chimera_proto->add_accel());
-  }else if(device == gyro){
+  }
+  else if(device == gyro)
+  {
     this->gyro->serialize(chimera_proto->add_gyro());
-  }else if(device == encoder_left){
+  }
+  else if(device == encoder_left)
+  {
     this->encoder_left->serialize(chimera_proto->add_encoder_left());
-  }else if(device == encoder_right){
+  }
+  else if(device == encoder_right)
+  {
     this->encoder_right->serialize(chimera_proto->add_encoder_right());
-  }else if(device == inverter_right){
+  }
+  else if(device == inverter_right)
+  {
     this->inverter_right->serialize(chimera_proto->add_inverter_right());
-  }else if(device == inverter_left){
+  }
+  else if(device == inverter_left)
+  {
     this->inverter_left->serialize(chimera_proto->add_inverter_left());
-  }else if(device == bms_lv){
+  }
+  else if(device == bms_lv)
+  {
     this->bms_lv->serialize(chimera_proto->add_bms_lv());
-  }else if(device == bms_hv){
+  }
+  else if(device == bms_hv)
+  {
     this->bms_hv->serialize(chimera_proto->add_bms_hv());
-  }else if(device == pedal){
+  }
+  else if(device == pedal)
+  {
     this->pedal->serialize(chimera_proto->add_pedal());
-  }else if(device == steer){
+  }
+  else if(device == steer)
+  {
     this->steer->serialize(chimera_proto->add_steer());
-  }else if(device == ecu_state){
+  }
+  else if(device == ecu_state)
+  {
     this->ecu_state->serialize(chimera_proto->add_ecu_state());
-  }else if(device == bms_hv_state){
+  }
+  else if(device == bms_hv_state)
+  {
     this->bms_hv_state->serialize(chimera_proto->add_bms_hv_state());
-  }else if(device == steering_wheel_state){
+  }
+  else if(device == steering_wheel_state)
+  {
     this->steering_wheel_state->serialize(chimera_proto->add_steering_wheel_state());
-  }else if(device == ecu){
+  }
+  else if(device == ecu)
+  {
     this->ecu->serialize(chimera_proto->add_ecu());
-  }else if(device == temp_fl){
+  }
+  else if(device == temp_fl)
+  {
     this->temp_fl->serialize(chimera_proto->add_temp_fl());
-  }else if(device == temp_fr){
+  }
+  else if(device == temp_fr)
+  {
     this->temp_fr->serialize(chimera_proto->add_temp_fr());
-  }else if(device == temp_rl){
+  }
+  else if(device == temp_rl)
+  {
     this->temp_rl->serialize(chimera_proto->add_temp_rl());
-  }else if(device == temp_rr){
+  }
+  else if(device == temp_rr)
+  {
     this->temp_rr->serialize(chimera_proto->add_temp_rr());
-  }else if(device == gps1){
+  }
+  else if(device == gps1)
+  {
     this->gps1->serialize(chimera_proto->add_gps1());
-  }else if(device == gps2){
+  }
+  else if(device == gps2)
+  {
     this->gps2->serialize(chimera_proto->add_gps2());
   }
 }

@@ -60,21 +60,26 @@ int main(int argc, char** argv)
   // freeaddrinfo(result);
 
   // return 0;
+
   console = new Debug::Console();
 
   HOME_PATH = getenv("HOME");
+  console->SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
 
+  console->Log("Loading all config");
   load_all_config(HOME_PATH);
+  console->Log("Done");
 
   CAN_DEVICE = tel_conf.can_device.c_str();
 
-  console->SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
+  console->Log("Opening log folders");
   // Opening Log folders
   // /FOLDER_PATH/<date>/<session>
   if(!open_log_folder())
     return 0;
+  console->Log("Done");
 
   time(&date);
   localtime_r(&date, &ltm);
@@ -87,8 +92,10 @@ int main(int argc, char** argv)
   if(!path_exists(FOLDER_PATH))
     create_directory(FOLDER_PATH);
 
+  console->Log("Opening can socket");
   if(!open_can_socket())
     return 0;
+  console->Log("Done");
 
   ws_cli = new WebSocketClient();
   ws_conn_thread = new thread(connect_ws);
@@ -96,6 +103,8 @@ int main(int argc, char** argv)
 
   chimera = new Chimera();
 
+
+  console->Log("Initializing gps instances");
   // Setup of all GPS devices
   for(size_t i = 0; i < tel_conf.gps_devices.size(); i++)
   {
@@ -104,7 +113,9 @@ int main(int argc, char** argv)
     bool enabled = tel_conf.gps_enabled[i];
     if(dev == "")
       continue;
-    
+
+    console->Log("Initializing ", dev, mode, enabled);
+
     GpsLogger* gps1 = new GpsLogger(dev);
     gps1->SetOutFName("gps_" + to_string(i+1));
     if(mode == "file")
@@ -115,10 +126,13 @@ int main(int argc, char** argv)
 
     gps_loggers.push_back(gps1);
   }
+  console->Log("Done");
 
   usleep(100000);
+  console->Log("Starting gps loggers");
   for(auto logger : gps_loggers)
     logger->Start();
+  console->Log("Done");
 
   string header;
   string subfolder;
@@ -131,7 +145,6 @@ int main(int argc, char** argv)
   timers["second"] = timestamp;
   while (true)
   {
-
     can->receive(&message);
     timestamp = get_timestamp();
     can_stat.msg_count++;
@@ -141,20 +154,23 @@ int main(int argc, char** argv)
       message.data[0] == 0x66 && message.data[1] == 0x01) || ws_reqeust_on))
     {
       ws_reqeust_on = false;
-      console->DebugMessage("Received request to run");
+      console->Log("Received request to run");
       // Insert header at top of the file
       create_header(header);
       
       create_folder_name(subfolder);
 
-      // get absolute path of folder
+      console->Log("Creting new directory");
+      // get absolute path of folder  
       int i = 1;
       do{
         folder = FOLDER_PATH + "/" + subfolder + " " + to_string(i);
         i++;
       }while(path_exists(folder));
       create_directory(folder);
+      console->Log("Done");
 
+      console->Log("Initializing loggers, and csv files");
       for(auto logger : gps_loggers)
       {
         logger->SetOutputFolder(folder);
@@ -170,6 +186,7 @@ int main(int argc, char** argv)
         chimera->open_all_files();
         chimera->write_all_headers(0);
       }
+      console->Log("Done");
 
       can_stat.duration = timestamp;
 
@@ -177,7 +194,7 @@ int main(int argc, char** argv)
         logger->StartLogging();
 
       run_state = 1;
-      console->DebugMessage("\tRunning");
+      console->Log("RUNNING");
     }
 
     if(run_state == 1)
@@ -194,7 +211,7 @@ int main(int argc, char** argv)
       }
       catch(std::exception ex)
       {
-        console->ErrorMessage("Exception when parsing message");
+        console->LogError("Exception when parsing CAN message");
         stringstream ss;
         ss << timestamp << " ";
 
@@ -202,10 +219,8 @@ int main(int argc, char** argv)
         for (int i = 0; i < message.can_dlc; i++)
           ss << get_hex(int(message.data[i]), 2);
 
-        console->ErrorMessage("Message: " + ss.str());
-        ss.str("");
-        ss << "Exception: " << ex.what();
-        console->ErrorMessage(ss.str());
+        console->LogError("CAN message: ", ss.str());
+        console->LogError("Exception: ", ex.what());
         continue;
       }
 
@@ -242,6 +257,7 @@ int main(int argc, char** argv)
         timers["second"] = timestamp;
         can_msgs_per_second = can_msgs_counter;
         can_msgs_counter = 0;
+        console->Log("CAN msgs per second", can_msgs_per_second);
       }
     }
 
@@ -251,7 +267,7 @@ int main(int argc, char** argv)
     {
       ws_reqeust_off = false;
       unique_lock<mutex> lck(mtx);
-      console->DebugMessage("Received request to stop");
+      console->Log("Request to stop");
 
       // Stop
       run_state.store(0);
@@ -260,23 +276,30 @@ int main(int argc, char** argv)
       // duration of the log
       can_stat.duration = get_timestamp() - can_stat.duration;
 
+      console->Log("Closing files");
       if(tel_conf.generate_csv){
         // Close all csv files and the dump file
         chimera->close_all_files();
       }
       dump_file->close();
       delete dump_file;
+      console->Log("Done");
 
+      console->Log("Restarting gps loggers");
       // Stop logging but continue reading port
       for(auto logger : gps_loggers)
       {
         logger->StopLogging();
         logger->Start();
       }
+      console->Log("Done");
+
 
       // Save stats of this log session
+      console->Log("Saving stat: ", folder);
       save_stat(folder);
-      console->DebugMessage("\tStopped");
+      console->Log("Done");
+      console->Log("STOPPED");
     }
 
   }
@@ -301,7 +324,7 @@ void on_gps_line(int id, string line)
   }
   catch(std::exception e)
   {
-    console->DebugMessage("GPS parse error: " + line);
+    console->LogWarn("GPS parse error: ", line);
     return;
   }
 
@@ -311,7 +334,7 @@ void on_gps_line(int id, string line)
   {
     unique_lock<mutex> lck(mtx);
     chimera->serialize_device(gps);
-    if(run_state.load() == 1)
+    if(run_state.load() == 1 && tel_conf.generate_csv)
     {
       (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
     }
@@ -361,16 +384,16 @@ int open_log_folder()
 {
   HOME_PATH = getenv("HOME");
   FOLDER_PATH = "/logs";
-  console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
+  console->Log("Output Folder ", HOME_PATH, FOLDER_PATH);
 
   if (!path_exists(HOME_PATH + FOLDER_PATH))
   {
-    console->WarnMessage("Failed, changing folder... ");
+    console->LogWarn("Failed, changing folder... ");
     FOLDER_PATH = "/Desktop/logs";
-    console->DebugMessage("Output Folder " + HOME_PATH + FOLDER_PATH);
+    console->Log("Output Folder ", HOME_PATH, FOLDER_PATH);
     if (!path_exists(HOME_PATH + FOLDER_PATH))
     {
-      console->ErrorMessage("Folder not found!" + FOLDER_PATH);
+      console->LogWarn("Folder not found!", FOLDER_PATH);
       return 0;
     }
   }
@@ -384,17 +407,17 @@ int open_can_socket()
 
   if (sock < 0)
   {
-    console->WarnMessage("Failed binding socket: " + string(CAN_DEVICE));
+    console->LogWarn("Failed binding socket: ", CAN_DEVICE);
     CAN_DEVICE = "vcan0";
     can = new Can(CAN_DEVICE, &addr);
     sock = can->open();
     if (sock < 0)
     {
-      console->ErrorMessage("FATAL Failed binding socket: " + string(CAN_DEVICE));
+      console->LogError("Failed binding socket: ", CAN_DEVICE);
       return 0;
     }
   }
-  console->DebugMessage("Opened Socket: " + string(CAN_DEVICE));
+  console->Log("Opened Socket: ", CAN_DEVICE);
   return 1;
 }
 
@@ -466,11 +489,11 @@ void load_all_config(std::string& home_path)
   if(path_exists(path))
   {
     if(LoadJson(tel_conf, path))
-      console->DebugMessage("Loaded telemetry config");
+      console->Log("Loaded telemetry config");
     else
-      console->ErrorMessage("Failed loading telemetry config");
+      console->LogError("Failed loading telemetry config");
   }else{
-    console->DebugMessage("Created: " + path);
+    console->Log("Created: " + path);
     SaveJson(tel_conf, path);
   }
 
@@ -478,11 +501,11 @@ void load_all_config(std::string& home_path)
   if(path_exists(path))
   {
     if(LoadJson(sesh_config, path))
-      console->DebugMessage("Loaded session config");
+      console->Log("Loaded session config");
     else
-      console->ErrorMessage("Failed loading session config");
+      console->LogError("Failed loading session config");
   }else{
-    console->DebugMessage("Created: " + path);
+    console->Log("Created: " + path);
     SaveJson(sesh_config, path);
   }
 }
@@ -491,13 +514,13 @@ void save_all_config()
 {
   string path = " ";
   path = HOME_PATH + "/telemetry_config.json";
-  console->DebugMessage("Saving new tel config");
+  console->Log("Saving new tel config");
   SaveJson(tel_conf, path);
-  console->DebugMessage("Saving done");
-  console->DebugMessage("Saving new sesh config");
+  console->Log("Done");
+  console->Log("Saving new sesh config");
   path = HOME_PATH + "/session_config.json";
   SaveJson(sesh_config, path);
-  console->DebugMessage("Saving done");
+  console->Log("Done");
 }
 
 
@@ -598,7 +621,7 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     if(d["data"].HasMember("Pilot") &&
       d["data"].HasMember("Circuit") &&
       d["data"].HasMember("Configuration") &&
-      d["data"].HasMember("Test"))
+      d["data"].HasMember("Race"))
     {
       sesh_config.Configuration = d["data"]["Configuration"].GetString();
       sesh_config.Race = d["data"]["Race"].GetString();
@@ -610,7 +633,7 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
       save_all_config();
     }
     else{
-      cout << "Wrong members" << endl;
+      console->LogWarn("Telemetry set session config (Wrong members)");
     }
   }
   if(d["type"] == "telemetry_set_tel_config")
@@ -623,7 +646,7 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     }
     catch(const std::exception& e)
     {
-      console->WarnMessage("Failed parsing telemetry config (from ws) " + msg->get_payload());
+      console->LogWarn("Failed parsing telemetry config (from ws) ", msg->get_payload());
     }
     tel_conf = buffer;
 
@@ -652,26 +675,26 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
     ret.Accept(w2);
     
     ws_cli->set_data(sb2.GetString());
-    console->DebugMessage("Done config");
+    console->Log("Done config");
   } 
   else if(d["type"] == "telemetry_kill")
   {
-    console->DebugMessage("Requested Kill");
+    console->Log("Requested Kill (from ws)");
     exit(0);
   }
   else if(d["type"] == "telemetry_start")
   {
-    console->DebugMessage("Requested Start");
+    console->Log("Requested Start (from ws)");
     ws_reqeust_on = true;
   }
   else if(d["type"] == "telemetry_stop")
   {
-    console->DebugMessage("Requested Stop");
+    console->Log("Requested Stop (from ws)");
     ws_reqeust_off = true;
   }
   else if(d["type"] == "telemetry_send_can_message")
   {
-    console->DebugMessage("Requested to send a can message to car");
+    console->Log("Requested to send a can message to car");
     if((d.HasMember("id") && d.HasMember("payload")) &&
        (d["id"].IsInt() && d["payload"].IsArray()))
     {
@@ -683,11 +706,11 @@ void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg){
           msg[i] = (char)payload[i].GetInt();
         can->send(d["id"].GetInt(), msg, 8);
       }else{
-        console->DebugMessage("Can message malformed");
+        console->LogWarn("CAN message malformed (from ws)");
       }
     }
     else{
-      console->DebugMessage("Can message malformed");
+      console->LogWarn("CAN message malformed (from ws)");
     }
   }
 }

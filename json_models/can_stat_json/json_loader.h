@@ -7,7 +7,7 @@
 #include <exception>
 #include <iomanip>
 
-#include <nlohmann/json.hpp>
+#include "nlohmann_json.hpp"
 using json = nlohmann::json;
 #include "json_models.h"
 

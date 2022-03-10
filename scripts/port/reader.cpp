@@ -8,16 +8,6 @@
 
 #include <iostream>
 
-#include <libOpenGLCustom/Common.h>
-#include <libOpenGLCustom/Renderer.h>
-#include <libOpenGLCustom/KeyEvent.h>
-
-#define GLEW_STATIC
-
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-
 using namespace std;
 int main(int argc, char const* argv[])
 {

@@ -26,10 +26,21 @@ if(websocketpp_FOUND)
   message(STATUS "____ Websocketpp FOUND")
 endif()
 
+###########
+## BOOST ##
+###########
 find_package(Boost REQUIRED COMPONENTS
     iostreams system filesystem
 )
 
+##############
+## RaspiCam ##
+##############
+find_package(raspicam PATHS /usr/local/lib/cmake/)
+if(raspicam_FOUND)
+  message(STATUS "____ Raspicam FOUND")
+  set(WITH_RASPICAM 1)
+endif()
 
 
 include_directories(
@@ -121,3 +132,8 @@ target_link_libraries(gps_log_player ${PROJECT_NAME})
 ## DASHBOARD
 add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard_simulator ${PROJECT_NAME})
+
+if(WITH_RASPICAM)
+  add_executable(cam_test scripts/raspicam/cam_test.cpp)
+  target_link_libraries(cam_test ${raspicam_LIBS})
+endif()
