@@ -22,88 +22,83 @@
 
 using namespace std;
 
+
+
+static std::string NON_PRINT =      "\e[";       // Escape character
+static std::string EOM =            "\e[0m";     // End of message, clear all the settings used befores
+static std::string COMBINED =       ";" ;        // \e[CMD1;CMD2;CMD3 ...
+static std::string EOC =            "m";         // End of attribute
+static std::string CLEAR_DISPLAY =  "\e[2J";     // Clear display and reset cursor
+static std::string CLEAR_LINE =     "\e[1K";     // Clear line and reset cursor
+static std::string RESET_CURSOR =   "\r";        // Reset cursor position
+static std::string VERTICAL_TAB =   "\v";        // Move cursor up (??)
+static std::string BELL =           "\a";        // System bell
+static std::string MOVE_UP =        "A";         // \e[<N>A
+static std::string MOVE_DW =        "B";         // \e[<N>B
+static std::string MOVE_FW =        "C";         // \e[<N>C
+static std::string MOVE_BW =        "D";         // \e[<N>D
+
+// Messages state options
+static std::string INFO =           "Info";
+static std::string STAT =           "Stat";
+static std::string WARN =           "Warn";
+static std::string ERROR =          "Err ";
+static std::string SYS =            "Sys ";
+
+// What you want to color?
+static int TEXT =       3;
+static int BACKGROUND = 4;
+static int LIGHTER =    9;
+
+/* Text/Foreground
+In order to colorise the part of the terminal that you choose
+(text, background, ...) you first choose the code number refered
+to the part of the temrinal that you want to print and then
+put the color code.
+Example: I want blue background so the code will be:
+BACKGROUND + BLUE = 44
+*/
+static int BLACK =   0;
+static int RED =     1;
+static int GREEN =   2;
+static int YELLOW =  3;
+static int BLUE =    4;
+static int MAGENTA = 5;
+static int CYAN =    6;
+static int GRAY =    7;
+//int XXX =   8;
+static int DEFAULT = 9;
+
+// Text formatting
+static int NORMAL =     0;
+static int BOLD =       1;
+static int DIM =        2;
+//static int XXX =        3;
+static int UNDERLINED = 4;
+static int BLINK =      5;
+static int INVERTED =   6;
+static int HIDDEN =     7;
+
+static std::string SEPARATOR = " ";
+
 namespace Debug
 {
 
-    #define NON_PRINT      "\e["       // Escape character
-    #define EOM            "\e[0m"     // End of message, clear all the settings used befores
-    #define COMBINED       ";"         // \e[CMD1;CMD2;CMD3 ...
-    #define EOC            "m"         // End of attribute
-    #define CLEAR_DISPLAY  "\e[2J"     // Clear display and reset cursor
-    #define CLEAR_LINE     "\e[1K"     // Clear line and reset cursor
-    #define RESET_CURSOR   "\r"        // Reset cursor position
-    #define VERTICAL_TAB   "\v"        // Move cursor up (??)
-    #define BELL           "\a"        // System bell
-    #define MOVE_UP        "A"         // \e[<N>A
-    #define MOVE_DW        "B"         // \e[<N>B
-    #define MOVE_FW        "C"         // \e[<N>C
-    #define MOVE_BW        "D"         // \e[<N>D
-
-    // Messages state options
-    #define INFO           "Info"
-    #define STAT           "Stat"
-    #define WARN           "Warn"
-    #define ERROR          "Err "
-    #define SYS            "Sys "
-
-    // What you want to color?
-    #define TEXT       3
-    #define BACKGROUND 4
-    #define LIGHTER    9
-
-    /* Text/Foreground
-    In order to colorise the part of the terminal that you choose
-    (text, background, ...) you first choose the code number refered
-    to the part of the temrinal that you want to print and then
-    put the color code.
-    Example: I want blue background so the code will be:
-    BACKGROUND + BLUE = 44
-    */
-    #define BLACK   0
-    #define RED     1
-    #define GREEN   2
-    #define YELLOW  3
-    #define BLUE    4
-    #define MAGENTA 5
-    #define CYAN    6
-    #define GRAY    7
-    //#define XXX   8
-    #define DEFAULT 9
-
-    // Text formatting
-    #define NORMAL     0
-    #define BOLD       1
-    #define DIM        2
-    //#define XXX        3
-    #define UNDERLINED 4
-    #define BLINK      5
-    #define INVERTED   6
-    #define HIDDEN     7
-
-    #define SEPARATOR " "
-
   class Console
   {
-    public:
-
+    private:
       /**
        * @brief Construct a new Console object
        *
        */
       Console();
+    public:
 
-      /**
-      * @brief Construct a new Console:: Console object
-      *
-      * @param head_color
-      * @param head_type
-      * @param txt_color
-      * @param txt_type
-      */
-      Console(const int head_color,
-              const int head_type,
-              const int txt_color,
-              const int txt_type);
+      static Console& Get()
+      {
+        static Console instance;
+        return instance;
+      }
 
       /**
       * @brief Destroy the Console:: Console object
@@ -322,3 +317,5 @@ namespace Debug
   };
 
 }; // namespace debug
+
+#define CONSOLE Debug::Console::Get()

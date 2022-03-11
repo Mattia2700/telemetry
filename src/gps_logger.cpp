@@ -48,8 +48,15 @@ void GpsLogger::StartLogging()
 {
   unique_lock<mutex> lck(logger_mtx);
 
+  CONSOLE.Log("GPS", id, "Start Logging");
+
   m_GPS      = new std::ofstream(m_Folder + "/" + m_FName + ".log");
   m_StatFile = new std::ofstream(m_Folder + "/" + m_FName + ".json");
+
+  if(!m_GPS->is_open())
+    CONSOLE.LogError("GPS", id, "Error opening .log file", m_Folder + "/" + m_FName + ".log");
+  if(!m_StatFile->is_open())
+    CONSOLE.LogError("GPS", id, "Error opening .json file", m_Folder + "/" + m_FName + ".json");
 
   if(m_Header != "")
     (*m_GPS) << m_Header << endl;
@@ -61,6 +68,7 @@ void GpsLogger::StartLogging()
   m_Running = true;
   m_StateChanged = true;
   cv.notify_all();
+  CONSOLE.Log("GPS", id, "Done");
 }
 
 void GpsLogger::StopLogging()
@@ -110,6 +118,7 @@ void GpsLogger::WaitForEnd()
 
 int GpsLogger::OpenDevice()
 {
+  CONSOLE.Log("GPS", id, "Opening device mode:", m_Mode);
   if(m_Serial == nullptr)
     m_Serial = new serial(m_Device);
 
@@ -121,12 +130,12 @@ int GpsLogger::OpenDevice()
 
   if (ret < 0)
   {
-    cout << "GPS Failed opeing " << m_Device << endl;
+    CONSOLE.LogError("GPS", id, "Failed opeing", m_Device);
     return 0;
   }
   else
   {
-    cout << "GPS Opened " << m_Device << endl;
+    CONSOLE.Log("GPS", id, "Opened ", m_Device);
     return 1;
   }
 }
@@ -134,7 +143,10 @@ int GpsLogger::OpenDevice()
 void GpsLogger::Run()
 {
   string line;
-  int fail_count = 0;
+  int line_fail_count = 0;
+  int file_fail_count = 0;
+
+  CONSOLE.Log("GPS", id, "Run");
 
   while(!m_Kill)
   {
@@ -164,13 +176,13 @@ void GpsLogger::Run()
       }
       catch(std::exception e)
       {
-        cout << "GPS Error " << e.what() << endl;
-        fail_count ++;
-        if(fail_count >= 20)
+        CONSOLE.LogError("GPS", id, "Error", e.what());
+        line_fail_count ++;
+        if(line_fail_count >= 20)
         {
-          cout << "Failed 20 times readline" << endl;
+          CONSOLE.LogError("GPS", id, "Failed 20 times readline");
           m_Running = false;
-          fail_count = 0;
+          line_fail_count = 0;
           break;
         }
       }
@@ -204,13 +216,13 @@ void GpsLogger::Run()
         }
         catch(std::exception e)
         {
-          cout << "GPS Error " << e.what() << endl;
-          fail_count ++;
-          if(fail_count >= 20)
+          CONSOLE.LogError("GPS", id, "Error:", e.what());
+          file_fail_count ++;
+          if(file_fail_count >= 20)
           {
-            cout << "Failed 20 times write to file" << endl;
+            CONSOLE.LogError("GPS", id, "Failed 20 times writing to file");
             m_Running = false;
-            fail_count = 0;
+            file_fail_count = 0;
             break;
           }
         }
@@ -220,7 +232,9 @@ void GpsLogger::Run()
 
     if(!m_Running)
     {
+      CONSOLE.Log("GPS", id, "closing port");
       m_Serial->close_port();
+      CONSOLE.Log("GPS", id, "Done");
     }
   }
 }
@@ -233,8 +247,9 @@ double GpsLogger::GetTimestamp()
 
 void GpsLogger::SaveStat()
 {
+  CONSOLE.Log("GPS", id, "Saving stat");
   if(m_StatFile == nullptr){
-    cout << "GPS " << id << " no stat file" << endl;
+    CONSOLE.LogError("GPS", id, "no stat file");
     return;
   }
   Document doc;
@@ -260,4 +275,5 @@ void GpsLogger::SaveStat()
 
   doc.Accept(writer);
   (*m_StatFile) << json_ss.GetString();
+  CONSOLE.Log("GPS", id, "Done");
 }

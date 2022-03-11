@@ -92,7 +92,6 @@ string human_date;
 
 std::fstream* dump_file;
 
-Debug::Console* console;
 WebSocketClient* ws_cli;
 Chimera* chimera;
 Can * can;

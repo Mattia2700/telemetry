@@ -13,13 +13,6 @@ Console::Console()
     // TODO: Implement time into console messages
 }
 
-
-Console::Console(const int head_color, const int head_type, const int txt_color, const int txt_type)
-        :header_color(head_color), header_type(head_type), text_color(txt_color), text_type(txt_type)
-{
-    start = time(0); // Open time
-}
-
 /**
  * Class destructor. Close log file.
  */
