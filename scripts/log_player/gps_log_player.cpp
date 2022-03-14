@@ -54,6 +54,7 @@ int main(){
   }
 
   for (auto file : selected_paths){
+    cout << file << endl;
     gps_message msg;
     vector<string> lines;
     get_lines(file, &lines);

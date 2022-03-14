@@ -185,6 +185,7 @@ void GpsLogger::Run()
           line_fail_count = 0;
           break;
         }
+        continue;
       }
       // When receiving continuously blank lines, sleep a bit
       if(line == ""){
@@ -216,7 +217,7 @@ void GpsLogger::Run()
         }
         catch(std::exception e)
         {
-          CONSOLE.LogError("GPS", id, "Error:", e.what());
+          CONSOLE.LogError("GPS", id, "Error writing to file:", e.what());
           file_fail_count ++;
           if(file_fail_count >= 20)
           {

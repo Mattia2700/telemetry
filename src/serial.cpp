@@ -13,8 +13,8 @@ string serial::read_line(char separator){
 
   char ch;
   while(true){
-      if(read(fd, &ch, sizeof(char)) < 0){
-        continue;
+      if(read(fd, &ch, sizeof(char)) <= 0){
+        break;
       }
       if(ch == separator || ch == '\0'|| ch == '\00' || ch == '\000')
         break;

@@ -10,7 +10,6 @@
 #include <mutex>
 #include <condition_variable>
 #include <signal.h>
-
 #include <cstdio>
 
 #include "utils.h"
@@ -22,8 +21,11 @@ std::condition_variable cv;
 
 string shared_string;
 
-int N = 6;
+const int N = 6;
 string BASENAME = "/home/gps";
+
+vector<thread*> threads;
+vector<bool> new_data;
 
 vector<string> split(string str, char separator){
   vector<string> ret;
@@ -42,7 +44,7 @@ vector<string> split(string str, char separator){
 }
 
 
-void writer(string fname)
+void writer(int id, string fname)
 {
   int fd;
   mkfifo(fname.c_str(), 0666);
@@ -50,10 +52,12 @@ void writer(string fname)
   while (1)
   {
     std::unique_lock<std::mutex> lk(mtx);
-    cv.wait(lk); // wait for notify by main thread
+    while(new_data[id] == false)
+      cv.wait(lk); // wait for notify by main thread
 
     // Copy values from the shared string to the fifo file
     write(fd, shared_string.c_str(), shared_string.size());
+    new_data[id] = false;
   }
   close(fd);
 }
@@ -62,6 +66,9 @@ int main()
 {
   // Ignore when the pipe closes (from a reader that disconnects)
   signal(SIGPIPE, SIG_IGN);
+
+  threads.reserve(N);
+  new_data.reserve(N);
 
   {
     int counter = 0;
@@ -76,8 +83,9 @@ int main()
   string filename = "";
   for (int i = 0; i < N; i++)
   {
+    new_data[i] = false;
     filename = BASENAME + to_string(i);
-    thread *t = new thread(writer, filename);
+    threads.push_back(new thread(writer, i, filename));
   }
 
   string line;
@@ -95,6 +103,8 @@ int main()
         shared_string = line + "\n";
       }
       // Notify threads of new data available
+      for(int i = 0; i < N; i++)
+        new_data[i] = true;
       cv.notify_all();
       usleep(1000);
     }

@@ -142,7 +142,7 @@ void Console::SaveAllMessages(string path)
 
     try
     {
-        console_messages.open(filename);
+        console_messages.open(filename, std::ofstream::app);
     }
     catch (const std::ifstream::failure& e)
     {

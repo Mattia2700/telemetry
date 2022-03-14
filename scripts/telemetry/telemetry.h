@@ -71,8 +71,8 @@ const char *CAN_DEVICE;
 bool ws_reqeust_on=false;
 bool ws_reqeust_off=false;
 bool state_changed = false;
-uint32_t can_msgs_counter = 0;
-uint32_t can_msgs_per_second = 0;
+unordered_map<string, uint32_t> msgs_counters;
+unordered_map<string, uint32_t> msgs_per_second;
 atomic<int> run_state;
 mutex mtx;
 

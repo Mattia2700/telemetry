@@ -581,6 +581,11 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
 
 int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
 {
+  auto idx = line.find('$');
+  if(idx == string::npos)
+    return -1;
+  if(idx > 0)
+    line = line.substr(idx, line.size() - idx);
   if(line[0] != '$')
     return -1;
 

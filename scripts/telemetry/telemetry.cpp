@@ -95,6 +95,9 @@ int main(int argc, char** argv)
     return 0;
   CONSOLE.Log("Done");
 
+  msgs_counters["can"] = 0;
+  msgs_per_second["can"] = 0;
+
   ws_cli = new WebSocketClient();
   ws_conn_thread = new thread(connect_ws);
 
@@ -116,6 +119,8 @@ int main(int argc, char** argv)
 
     GpsLogger* gps1 = new GpsLogger(dev);
     gps1->SetOutFName("gps_" + to_string(i+1));
+    msgs_counters["gps_" + to_string(i)] = 0;
+    msgs_per_second["gps_" + to_string(i)] = 0;
     if(mode == "file")
       gps1->SetMode(MODE_FILE);
     else
@@ -146,7 +151,7 @@ int main(int argc, char** argv)
     can->receive(&message);
     timestamp = get_timestamp();
     can_stat.msg_count++;
-    can_msgs_counter++;
+    msgs_counters["can"] ++;
 
     if(run_state == 0 && ((message.can_id  == 0xA0 && message.can_dlc >= 2 &&
       message.data[0] == 0x66 && message.data[1] == 0x01) || ws_reqeust_on))
@@ -253,9 +258,14 @@ int main(int argc, char** argv)
       if(timestamp - timers["second"] >= 1.0)
       {
         timers["second"] = timestamp;
-        can_msgs_per_second = can_msgs_counter;
-        can_msgs_counter = 0;
-        CONSOLE.Log("CAN msgs per second", can_msgs_per_second);
+        msgs_per_second["can"] = msgs_counters["can"];
+        for(int i = 0; i < gps_loggers.size(); i++)
+        {
+          msgs_per_second["gps_"+to_string(i)] = msgs_counters["gps_"+to_string(i)];
+          msgs_counters["gps_"+to_string(i)] = 0;
+        }
+        msgs_counters["can"] = 0;
+        CONSOLE.Log("CAN msgs per second", msgs_per_second["can"]);
       }
     }
 
@@ -330,6 +340,8 @@ void on_gps_line(int id, string line)
   // save parsed data into gps file
   if(ret == 1)
   {
+    msgs_counters["gps_" + to_string(id)] ++;
+
     unique_lock<mutex> lck(mtx);
     chimera->serialize_device(gps);
     if(run_state.load() == 1 && tel_conf.generate_csv)
@@ -468,7 +480,14 @@ void send_status()
       d.AddMember("type", Value().SetString("telemetry_status"), alloc);
       d.AddMember("timestamp", get_timestamp(), alloc);
       d.AddMember("data", run_state.load(), alloc);
-      d.AddMember("can_msgs_per_second", can_msgs_per_second, alloc);
+      Value val;
+      val.SetObject();
+      for(auto el : msgs_per_second)
+      {
+        val.AddMember(Value().SetString(el.first.c_str(), alloc), el.second, alloc);
+      }
+      d.AddMember("msgs_per_second", val, alloc);
+
       d.Accept(w);
 
       ws_cli->set_data(sb.GetString());
