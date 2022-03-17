@@ -441,14 +441,19 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
         modifiedDevices.push_back(ecu);
       }
     break;
-    // Temp 1
+    //////////////////////// Temp 1
     case 0x5B0:
       temp_fl->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
       temp_fl->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
       temp_fl->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fl->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fl);
+      temp_fl->msg_count ++;
+      if(temp_fl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fl);
+        temp_fl->msg_count = 0;
+      }
     break;
     case 0x5B1:
       temp_fl->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -456,7 +461,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fl->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fl->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fl);
+      temp_fl->msg_count ++;
+      if(temp_fl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fl);
+        temp_fl->msg_count = 0;
+      }
     break;
     case 0x5B2:
       temp_fl->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -464,7 +474,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fl->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fl->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fl);
+      temp_fl->msg_count ++;
+      if(temp_fl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fl);
+        temp_fl->msg_count = 0;
+      }
     break;
     case 0x5B3:
       temp_fl->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -472,16 +487,26 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fl->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fl->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fl);
+      temp_fl->msg_count ++;
+      if(temp_fl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fl);
+        temp_fl->msg_count = 0;
+      }
     break;
-    // Temp 2
+    //////////////////////// Temp 2
     case 0x5B4:
       temp_fr->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
       temp_fr->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
       temp_fr->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fr->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fr);
+      temp_fr->msg_count ++;
+      if(temp_fr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fr);
+        temp_fr->msg_count = 0;
+      }
     break;
     case 0x5B5:
       temp_fr->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -489,7 +514,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fr->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fr->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fr);
+      temp_fr->msg_count ++;
+      if(temp_fr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fr);
+        temp_fr->msg_count = 0;
+      }
     break;
     case 0x5B6:
       temp_fr->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -497,7 +527,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fr->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fr->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fr);
+      temp_fr->msg_count ++;
+      if(temp_fr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fr);
+        temp_fr->msg_count = 0;
+      }
     break;
     case 0x5B7:
       temp_fr->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -505,16 +540,26 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_fr->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_fr->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_fr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_fr);
+      temp_fr->msg_count ++;
+      if(temp_fr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_fr);
+        temp_fr->msg_count = 0;
+      }
     break;
-    // Temp 3
+    //////////////////////// Temp 3
     case 0x5B8:
       temp_rl->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
       temp_rl->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
       temp_rl->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rl->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rl);
+      temp_rl->msg_count ++;
+      if(temp_rl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rl);
+        temp_rl->msg_count = 0;
+      }
     break;
     case 0x5B9:
       temp_rl->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -522,7 +567,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rl->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rl->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rl);
+      temp_rl->msg_count ++;
+      if(temp_rl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rl);
+        temp_rl->msg_count = 0;
+      }
     break;
     case 0x5BA:
       temp_rl->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -530,7 +580,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rl->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rl->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rl);
+      temp_rl->msg_count ++;
+      if(temp_rl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rl);
+        temp_rl->msg_count = 0;
+      }
     break;
     case 0x5BB:
       temp_rl->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -538,16 +593,26 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rl->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rl->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rl->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rl);
+      temp_rl->msg_count ++;
+      if(temp_rl->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rl);
+        temp_rl->msg_count = 0;
+      }
     break;
-    // Temp 4
+    //////////////////////// Temp 4
     case 0x5BC:
       temp_rr->temps[ 0] = (((data[0] << 8) + data[1]) * 0.1) - 100;
       temp_rr->temps[ 1] = (((data[2] << 8) + data[3]) * 0.1) - 100;
       temp_rr->temps[ 2] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rr->temps[ 3] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rr);
+      temp_rr->msg_count ++;
+      if(temp_rr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rr);
+        temp_rr->msg_count = 0;
+      }
     break;
     case 0x5BD:
       temp_rr->temps[ 4] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -555,7 +620,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rr->temps[ 6] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rr->temps[ 7] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rr);
+      temp_rr->msg_count ++;
+      if(temp_rr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rr);
+        temp_rr->msg_count = 0;
+      }
     break;
     case 0x5BE:
       temp_rr->temps[ 8] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -563,7 +633,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rr->temps[10] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rr->temps[11] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rr);
+      temp_rr->msg_count ++;
+      if(temp_rr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rr);
+        temp_rr->msg_count = 0;
+      }
     break;
     case 0x5BF:
       temp_rr->temps[12] = (((data[0] << 8) + data[1]) * 0.1) - 100;
@@ -571,7 +646,12 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
       temp_rr->temps[14] = (((data[4] << 8) + data[5]) * 0.1) - 100;
       temp_rr->temps[15] = (((data[6] << 8) + data[7]) * 0.1) - 100;
       temp_rr->timestamp = timestamp;
-      modifiedDevices.push_back(temp_rr);
+      temp_rr->msg_count ++;
+      if(temp_rr->msg_count == 4)
+      {
+        modifiedDevices.push_back(temp_rr);
+        temp_rr->msg_count = 0;
+      }
     break;
     default:
     break;

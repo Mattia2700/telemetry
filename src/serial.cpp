@@ -13,7 +13,7 @@ string serial::read_line(char separator){
 
   char ch;
   while(true){
-      if(read(fd, &ch, sizeof(char)) <= 0){
+      if(read(fd, &ch, 1) <= 0){
         break;
       }
       if(ch == separator || ch == '\0'|| ch == '\00' || ch == '\000')
@@ -25,7 +25,7 @@ string serial::read_line(char separator){
 
 char serial::get_char(){
   char c;
-  read(fd, &c, sizeof(char));
+  read(fd, &c, 1);
   return c;
 }
 
@@ -63,6 +63,10 @@ int serial::open_port(){
     return -1;
   }
 
+  // Setting baud rate
+  cfsetispeed(&tty, B460800);
+  cfsetospeed(&tty, B460800);
+
   tty.c_cflag &= ~PARENB;				// disable parity bit
   tty.c_cflag &= ~CSTOPB;				// clear stop field
   tty.c_cflag |= CS8;					// 8 data bits per byte
@@ -83,10 +87,6 @@ int serial::open_port(){
   // setting VTIME VMIN
   tty.c_cc[VTIME] = 10;		// read() will block until either any amount of data is received or the timeout ocurs
   tty.c_cc[VMIN] = 0;
-
-  // Setting baud rate
-  cfsetispeed(&tty, B460800);
-  cfsetospeed(&tty, B460800);
 
   // After changing settings we need to save the tty termios struct, also error checking
   if(tcsetattr(fd, TCSANOW, &tty) != 0) {

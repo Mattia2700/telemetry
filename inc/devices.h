@@ -265,6 +265,9 @@ class Temperature: public Device{
 
 	double timestamp = 0.0;
 	double temps[16];	// 16 channels sensor
+
+	// helper only
+	int msg_count = 0;
 };
 
 class Gps: public Device{

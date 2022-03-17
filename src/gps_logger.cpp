@@ -154,6 +154,7 @@ void GpsLogger::Run()
     while(!m_Running)
       cv.wait(lck);
 
+
     m_StateChanged = false;
     if(m_Kill)
       break;
