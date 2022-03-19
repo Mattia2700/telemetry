@@ -71,7 +71,7 @@ STATE_DEFINE(Camera, InitImpl, InitData)
   CONSOLE.Log("Opening raspi_cam");
 #ifdef __arm__
 	if ( !raspi_cam->open(false)) {
-		error_data.error = CamError::OPENING;
+		error_data.error = CamError::OPENING_CAM;
 		InternalEvent(ST_ERROR, &error_data);
 		return;
 	}
@@ -152,6 +152,7 @@ double Camera::get_timestamp()
 void Camera::SaveLoop()
 {
 	usleep(1000);
+	raspi_cam->startCapture();
 	while (true)
 	{
 		if(GetCurrentState() != ST_RUN)
@@ -175,6 +176,10 @@ void Camera::SaveLoop()
 		{
 			cv::cvtColor(*img, *img, cv::COLOR_BGR2RGB);
 			writer.write(*img);
+		}
+		else
+		{
+			CONSOLE.LogWarn("Empty Image");
 		}
 
 		double t1 = get_timestamp();
