@@ -83,6 +83,11 @@ add_library(
   src/console.cpp
   src/gps_logger.cpp
   src/report.cpp
+  src/camera.cpp
+
+  # StateMachine
+  src/StateMachine/StateMachine.cpp
+  src/StateMachine/Fault.cpp
 
   # PROTO
   Protobuffer/cpp/devices.pb.cc
@@ -139,13 +144,8 @@ add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard_simulator ${PROJECT_NAME})
 
 if(WITH_RASPICAM AND WITH_OPENCV)
-  add_executable(cam_test scripts/raspicam/cam_test.cpp)
-  target_link_libraries(cam_test ${raspicam_LIBS})
-
-  include_directories( ${OpenCV_INCLUDE_DIRS} )
-  add_executable(video_test scripts/raspicam/video_test.cpp)
-  target_link_libraries(video_test ${raspicam_LIBS} ${OpenCV_LIBS})
+  target_link_libraries(${PROJECT_NAME} ${raspicam_LIBS} ${OpenCV_LIBS})
   
   add_executable(cam_video scripts/raspicam/cam_video.cpp)
-  target_link_libraries(cam_video ${raspicam_LIBS} ${OpenCV_LIBS})
+  target_link_libraries(cam_video ${PROJECT_NAME} ${raspicam_LIBS} ${OpenCV_LIBS})
 endif()
