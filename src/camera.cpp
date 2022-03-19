@@ -3,10 +3,11 @@
 Camera::Camera() :
 	StateMachine(ST_MAX_STATES)
 {
+	SetError(CAM_NONE);
 }
 
 // set motor speed external event
-void Camera::Init(InitData* data)
+void Camera::Init(CamInitData* data)
 {
 	BEGIN_TRANSITION_MAP			              			// - Current State -
 		TRANSITION_MAP_ENTRY (ST_INIT)				      // ST_IDLE
@@ -18,7 +19,7 @@ void Camera::Init(InitData* data)
 }
 
 // halt motor external event
-void Camera::Run()
+void Camera::Run(CamRunData* data)
 {
 	BEGIN_TRANSITION_MAP			              			// - Current State -
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_IDLE
@@ -26,7 +27,7 @@ void Camera::Run()
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_RUN
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_STOP
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_ERROR
-	END_TRANSITION_MAP(&no_data)
+	END_TRANSITION_MAP(data)
 }
 
 void Camera::Stop(){
@@ -49,7 +50,7 @@ STATE_DEFINE(Camera, IdleImpl, NoEventData)
 }
 
 // Define state INIT function
-STATE_DEFINE(Camera, InitImpl, InitData)
+STATE_DEFINE(Camera, InitImpl, CamInitData)
 {
 	if(raspi_cam != nullptr)  
 		delete raspi_cam;
@@ -71,13 +72,13 @@ STATE_DEFINE(Camera, InitImpl, InitData)
   CONSOLE.Log("Opening raspi_cam");
 #ifdef __arm__
 	if ( !raspi_cam->open(false)) {
-		error_data.error = CamError::OPENING_CAM;
+		error_data.error = CamError::CAM_OPENING_CAM;
 		InternalEvent(ST_ERROR, &error_data);
 		return;
 	}
   CONSOLE.Log("Done");
 #else
-	error_data.error = CamError::NOT_RASPI;
+	error_data.error = CamError::CAM_NOT_RASPI;
 	InternalEvent(ST_ERROR, &error_data);
 	return;
 #endif
@@ -92,25 +93,25 @@ STATE_DEFINE(Camera, InitImpl, InitData)
 	img_data = new unsigned char[framesize];
 	img = new cv::Mat(data->height, data->width, CV_8UC3);
 
+	cam_config_data.framerate = data->framerate;
+	cam_config_data.framesize = cv::Size(data->width, data->height);
+}
 
-  CONSOLE.Log("Initializing VideoWriter");
+// Define state RUN function
+STATE_DEFINE(Camera, RunImpl, CamRunData)
+{
+	CONSOLE.Log("Initializing VideoWriter");
 	
-	if(!writer.open(data->filename, cv::VideoWriter::fourcc('M','J','P','G'), data->framerate, cv::Size(640, 480), true))
+	if(!writer.open(data->filename, cv::VideoWriter::fourcc('M','J','P','G'), cam_config_data.framerate, cam_config_data.framesize, true))
 	{
-		error_data.error = CamError::OPENING_FILE;
+		error_data.error = CamError::CAM_OPENING_FILE;
 		InternalEvent(ST_ERROR, &error_data);
 		return;
 	}
   CONSOLE.Log("Done");
 
 	cam_config_data.fname = data->filename;
-	cam_config_data.framerate = data->framerate;
-	cam_config_data.framesize = cv::Size(data->width, data->height);
-}
 
-// Define state RUN function
-STATE_DEFINE(Camera, RunImpl, NoEventData)
-{
 	save_thread = new thread(&Camera::SaveLoop, this);
 }
 
@@ -122,6 +123,8 @@ STATE_DEFINE(Camera, StopImpl, NoEventData)
 		CONSOLE.Log("Joining Threads");
 		save_thread->join();
 	}
+
+	writer.release();
 }
 
 // Define state ERROR function

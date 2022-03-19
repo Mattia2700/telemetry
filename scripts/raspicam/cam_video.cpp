@@ -14,16 +14,17 @@ using namespace chrono;
 int main ( int argc,char **argv ) {
 
     Camera cam;
+    CamInitData initData;
+    CamRunData runData;
 
     cam.Stop();
-    cam.Run();
-    InitData initData;
+    cam.Run(&runData);
     initData.framerate = 30;
     initData.width = 640; // 320
     initData.height = 480; // 240
-    initData.filename = "test.avi";
     cam.Init(&initData);
-    cam.Run();
+    runData.filename = "test.avi";
+    cam.Run(&runData);
 
     usleep(10000000);
     cam.Stop();

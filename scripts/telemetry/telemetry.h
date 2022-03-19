@@ -40,6 +40,7 @@ struct CAN_Stat_t
 #include "serial.h"
 #include "vehicle.h"
 #include "gps_logger.h"
+#include "camera.h"
 
 #include "wsclient.h"
 #include "devices.pb.h"
@@ -58,6 +59,7 @@ telemetry_config tel_conf;
 session_config sesh_config;
 
 vector<GpsLogger*> gps_loggers;
+Camera camera;
 
 thread* status_thread = nullptr;
 thread* data_thread = nullptr;

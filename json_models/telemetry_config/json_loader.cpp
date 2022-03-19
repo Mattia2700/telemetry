@@ -37,27 +37,29 @@ template <>
 void CheckJson(const telemetry_config& obj, const json& j)
 {
 	if(!j.contains("can_device"))
-		std::cout << "ERROR" << "JSON does not contain key [can_device] of type [std::string] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [can_device] of type [std::string] in object [telemetry_config]" << std::endl;
 	if(!j.contains("gps_devices"))
-		std::cout << "ERROR" << "JSON does not contain key [gps_devices] of type [std::vector] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [gps_devices] of type [std::vector] in object [telemetry_config]" << std::endl;
 	if(!j.contains("gps_mode"))
-		std::cout << "ERROR" << "JSON does not contain key [gps_mode] of type [std::vector] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [gps_mode] of type [std::vector] in object [telemetry_config]" << std::endl;
 	if(!j.contains("gps_enabled"))
-		std::cout << "ERROR" << "JSON does not contain key [gps_enabled] of type [std::vector] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [gps_enabled] of type [std::vector] in object [telemetry_config]" << std::endl;
 	if(!j.contains("generate_csv"))
-		std::cout << "ERROR" << "JSON does not contain key [generate_csv] of type [bool] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [generate_csv] of type [bool] in object [telemetry_config]" << std::endl;
+	if(!j.contains("camera_enable"))
+		std::cout << "ERROR " << "JSON does not contain key [camera_enable] of type [bool] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_enabled"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_enabled] of type [bool] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_enabled] of type [bool] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_send_sensor_data"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_send_sensor_data] of type [bool] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_send_sensor_data] of type [bool] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_send_rate"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_send_rate] of type [int] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_send_rate] of type [int] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_downsample"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_downsample] of type [bool] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_downsample] of type [bool] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_downsample_mps"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_downsample_mps] of type [int] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_downsample_mps] of type [int] in object [telemetry_config]" << std::endl;
 	if(!j.contains("ws_server_url"))
-		std::cout << "ERROR" << "JSON does not contain key [ws_server_url] of type [std::string] in object [telemetry_config]" << std::endl;
+		std::cout << "ERROR " << "JSON does not contain key [ws_server_url] of type [std::string] in object [telemetry_config]" << std::endl;
 }
 template <>
 void Deserialize(telemetry_config& obj,const json& j)
@@ -94,6 +96,10 @@ void Deserialize(telemetry_config& obj,const json& j)
 	if(j.contains("generate_csv"))
 	{
 		obj.generate_csv = j["generate_csv"];
+	}
+	if(j.contains("camera_enable"))
+	{
+		obj.camera_enable = j["camera_enable"];
 	}
 	if(j.contains("ws_enabled"))
 	{
@@ -144,6 +150,7 @@ json Serialize(const telemetry_config& obj)
 	}
 	j["gps_enabled"] = gps_enabled_json;
 	j["generate_csv"] = obj.generate_csv;
+	j["camera_enable"] = obj.camera_enable;
 	j["ws_enabled"] = obj.ws_enabled;
 	j["ws_send_sensor_data"] = obj.ws_send_sensor_data;
 	j["ws_send_rate"] = obj.ws_send_rate;

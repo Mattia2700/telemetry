@@ -18,6 +18,7 @@ struct telemetry_config
 	std::vector<std::string> gps_mode;
 	std::vector<bool> gps_enabled;
 	bool generate_csv;
+	bool camera_enable;
 	bool ws_enabled;
 	bool ws_send_sensor_data;
 	int ws_send_rate;

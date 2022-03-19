@@ -100,6 +100,18 @@ int main(int argc, char** argv)
   for(Device* dev : chimera->devices)
     timers[dev->get_name()] = 0.0;
 
+  
+  if(tel_conf.camera_enable)
+  {
+    CamInitData initData;
+    initData.framerate = 24;
+    initData.width = 320;
+    initData.height = 240;
+    CONSOLE.Log("Initializing Camera");
+    camera.Init(&initData);
+    CONSOLE.Log("Done");
+  }
+
   timers["second"] = timestamp;
   while (true)
   {
@@ -159,6 +171,15 @@ int main(int argc, char** argv)
 
       for(auto logger : gps_loggers)
         logger->StartLogging();
+
+      if(tel_conf.camera_enable)
+      {
+        CamRunData runData;
+        runData.filename = folder + "/" + "onboard.avi";
+        CONSOLE.Log("Starting camera");
+        camera.Run(&runData);
+        CONSOLE.Log("Done");
+      }
 
       run_state = 1;
       CONSOLE.Log("RUNNING");
@@ -264,6 +285,14 @@ int main(int argc, char** argv)
         logger->Start();
       }
       CONSOLE.Log("Done");
+
+
+      if(tel_conf.camera_enable)
+      {
+        CONSOLE.Log("Stopping Camera");
+        camera.Stop();
+        CONSOLE.Log("Done");
+      }
 
 
       // Save stats of this log session

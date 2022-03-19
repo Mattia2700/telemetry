@@ -30,12 +30,12 @@ using namespace std::chrono;
 
 enum CamError
 {
-	NONE,
-	OPENING_CAM,
-	NOT_RASPI,
-	OPENING_FILE,
+	CAM_NONE,
+	CAM_OPENING_CAM,
+	CAM_NOT_RASPI,
+	CAM_OPENING_FILE,
 	CAM_NOT_INITIALIZED,
-	GENERAL_ERROR
+	CAM_GENERAL_ERROR
 };
 
 const char* CamErrorStr[]
@@ -49,13 +49,17 @@ const char* CamErrorStr[]
 };
 
 
-class InitData : public EventData
+class CamInitData : public EventData
 {
 public:
   uint framerate;
-  string filename;
 	uint width;
 	uint height;
+};
+class CamRunData : public EventData
+{
+public:
+  string filename;
 };
 class ErrorData : public EventData
 {
@@ -68,8 +72,8 @@ class Camera : public StateMachine
 public:
   Camera();
 
-  void Init(InitData*);
-  void Run();
+  void Init(CamInitData*);
+  void Run(CamRunData*);
   void Stop();
 
 	CamError GetError();
@@ -119,8 +123,8 @@ private:
 
 	// Define the state machine state functions with event data type
 	STATE_DECLARE(Camera, 	IdleImpl,			NoEventData)
-	STATE_DECLARE(Camera, 	InitImpl,			InitData)
-	STATE_DECLARE(Camera, 	RunImpl,			NoEventData)
+	STATE_DECLARE(Camera, 	InitImpl,			CamInitData)
+	STATE_DECLARE(Camera, 	RunImpl,			CamRunData)
 	STATE_DECLARE(Camera, 	StopImpl,			NoEventData)
 	STATE_DECLARE(Camera, 	ErrorImpl,		ErrorData)
 
