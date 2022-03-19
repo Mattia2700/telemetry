@@ -41,6 +41,11 @@ if(raspicam_FOUND)
   message(STATUS "____ Raspicam FOUND")
   set(WITH_RASPICAM 1)
 endif()
+find_package( OpenCV )
+if(OpenCV_FOUND)
+  message(STATUS "____ OpenCV FOUND")
+  set(WITH_OPENCV 1)
+endif()
 
 
 include_directories(
@@ -133,7 +138,14 @@ target_link_libraries(gps_log_player ${PROJECT_NAME})
 add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
 target_link_libraries(dashboard_simulator ${PROJECT_NAME})
 
-if(WITH_RASPICAM)
+if(WITH_RASPICAM AND WITH_OPENCV)
   add_executable(cam_test scripts/raspicam/cam_test.cpp)
   target_link_libraries(cam_test ${raspicam_LIBS})
+
+  include_directories( ${OpenCV_INCLUDE_DIRS} )
+  add_executable(video_test scripts/raspicam/video_test.cpp)
+  target_link_libraries(video_test ${raspicam_LIBS} ${OpenCV_LIBS})
+  
+  add_executable(cam_video scripts/raspicam/cam_video.cpp)
+  target_link_libraries(cam_video ${raspicam_LIBS} ${OpenCV_LIBS})
 endif()

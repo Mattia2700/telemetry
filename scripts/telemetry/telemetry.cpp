@@ -14,6 +14,9 @@ int main(int argc, char** argv)
 
   HOME_PATH = getenv("HOME");
   CONSOLE.SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
+  CONSOLE.Log("============================================");
+  CONSOLE.Log("============================================");
+  CONSOLE.Log("============================================");
 
 
   CONSOLE.Log("Loading all config");
@@ -36,6 +39,7 @@ int main(int argc, char** argv)
   ss << std::put_time(&ltm, "%d_%m_%Y");
 
   FOLDER_PATH += "/" + ss.str();
+  sesh_config.Date = ss.str();
   
   FOLDER_PATH = HOME_PATH + FOLDER_PATH;
   if(!path_exists(FOLDER_PATH))
@@ -109,6 +113,14 @@ int main(int argc, char** argv)
     {
       ws_reqeust_on = false;
       CONSOLE.Log("Received request to run");
+
+      {
+        localtime_r(&date, &ltm);
+        std::ostringstream ss;
+        ss << std::put_time(&ltm, "%H:%M:%S");
+        sesh_config.Time = ss.str();
+      }
+
       // Insert header at top of the file
       create_header(header);
       
@@ -207,19 +219,17 @@ int main(int argc, char** argv)
         }
       }
 
-      if(timestamp - timers["second"] >= 1.0)
-      {
-        timers["second"] = timestamp;
-        msgs_per_second["can"] = msgs_counters["can"];
-        for(int i = 0; i < gps_loggers.size(); i++)
-        {
-          msgs_per_second["gps_"+to_string(i)] = msgs_counters["gps_"+to_string(i)];
-          msgs_counters["gps_"+to_string(i)] = 0;
-        }
-        msgs_counters["can"] = 0;
-        CONSOLE.Log("MSGS per second: CAN", msgs_per_second["can"],
-                    "gps_0", msgs_per_second["gps_0"], "gps_1", msgs_per_second["gps_1"]);
-      }
+      // if(timestamp - timers["second"] >= 1.0)
+      // {
+      //   timers["second"] = timestamp;
+      //   msgs_per_second["can"] = msgs_counters["can"];
+      //   for(int i = 0; i < gps_loggers.size(); i++)
+      //   {
+      //     msgs_per_second["gps_"+to_string(i)] = msgs_counters["gps_"+to_string(i)];
+      //     msgs_counters["gps_"+to_string(i)] = 0;
+      //   }
+      //   msgs_counters["can"] = 0;
+      // }
     }
 
     // Stop message
@@ -285,7 +295,7 @@ void on_gps_line(int id, string line)
   }
   catch(std::exception e)
   {
-    CONSOLE.LogWarn("GPS parse error: ", line);
+    CONSOLE.LogError("GPS parse error: ", line);
     return;
   }
 
@@ -296,11 +306,13 @@ void on_gps_line(int id, string line)
     msgs_counters["gps_" + to_string(id)] ++;
 
     unique_lock<mutex> lck(mtx);
-    chimera->serialize_device(gps);
+      
     if(run_state.load() == 1 && tel_conf.generate_csv)
     {
       (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
     }
+    if(tel_conf.ws_send_sensor_data)
+      chimera->serialize_device(gps);
   }
   else
   {
@@ -422,6 +434,17 @@ void send_status()
     msg_data[0] = run_state;
     can->send(0x99, (char *)msg_data, 1);
 
+    
+    msgs_per_second["can"] = msgs_counters["can"];
+    for(int i = 0; i < gps_loggers.size(); i++)
+    {
+      msgs_per_second["gps_"+to_string(i)] = msgs_counters["gps_"+to_string(i)];
+      msgs_counters["gps_"+to_string(i)] = 0;
+    }
+    msgs_counters["can"] = 0;
+    CONSOLE.Log("Status",run_state.load(),"MSGS per second: CAN", msgs_per_second["can"],
+            "gps_0", msgs_per_second["gps_0"], "gps_1", msgs_per_second["gps_1"]);
+
     if(tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
     {
       Document d;
@@ -502,11 +525,9 @@ void save_stat(string folder)
   rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
 
   doc.SetObject();
-  time_t date = time(0);
-  string human_date = string(ctime(&date));
-  human_date.erase(human_date.size()-1, 1);
   // Add keys and string values
-  doc.AddMember("Date", Value().SetString(StringRef(human_date.c_str())), alloc);
+  doc.AddMember("Date", Value().SetString(StringRef(sesh_config.Date.c_str())), alloc);
+  doc.AddMember("Time", Value().SetString(StringRef(sesh_config.Time.c_str())), alloc);
   doc.AddMember("Circuit", Value().SetString(StringRef(sesh_config.Circuit.c_str())), alloc);
   doc.AddMember("Pilot", Value().SetString(StringRef(sesh_config.Pilot.c_str())), alloc);
   doc.AddMember("Race", Value().SetString(StringRef(sesh_config.Race.c_str())), alloc);
@@ -717,13 +738,16 @@ void connect_ws()
 
 void on_open()
 {
+  CONSOLE.Log("WS opened");
   ws_conn_state = ConnectionState_::CONNECTED;
 }
 void on_error(int code)
 {
+  CONSOLE.LogError("WS Error");
   ws_conn_state = ConnectionState_::FAIL;
 }
 void on_close(int code)
 {
+  CONSOLE.LogError("WS Closed");
   ws_conn_state = ConnectionState_::CLOSED;
 }

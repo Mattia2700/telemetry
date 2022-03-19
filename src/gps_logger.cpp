@@ -260,11 +260,20 @@ void GpsLogger::SaveStat()
   rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
 
   doc.SetObject();
-  time_t date = time(0);
-  string human_date = string(ctime(&date));
-  human_date.erase(human_date.size()-1, 1);
-
-  doc.AddMember("Date", Value().SetString(StringRef(human_date.c_str())), alloc);
+  
+  time_t date_ = time(0);
+  struct tm ltm;
+  localtime_r(&date_, &ltm);
+  std::ostringstream ss;
+  string date;
+  string time;
+  ss << std::put_time(&ltm, "%d_%m_%Y");
+  date = ss.str();
+  ss.str("");
+  ss << std::put_time(&ltm, "%H:%M:%S");
+  time = ss.str();
+  doc.AddMember("Date", Value().SetString(StringRef(date.c_str())), alloc);
+  doc.AddMember("Time", Value().SetString(StringRef(time.c_str())), alloc);
 
   Value val;
   val.SetObject();
