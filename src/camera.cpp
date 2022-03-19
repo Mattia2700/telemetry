@@ -6,24 +6,24 @@ Camera::Camera() :
 	SetError(CAM_NONE);
 }
 
-// set motor speed external event
 void Camera::Init(CamInitData* data)
 {
 	BEGIN_TRANSITION_MAP			              			// - Current State -
-		TRANSITION_MAP_ENTRY (ST_INIT)				      // ST_IDLE
+		TRANSITION_MAP_ENTRY (ST_INIT)							// ST_NONE
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_INIT
+		TRANSITION_MAP_ENTRY (ST_INIT)							// ST_IDLE
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_RUN
 		TRANSITION_MAP_ENTRY (ST_INIT)				      // ST_STOP
 		TRANSITION_MAP_ENTRY (ST_INIT)				      // ST_ERROR
 	END_TRANSITION_MAP(data)
 }
 
-// halt motor external event
 void Camera::Run(CamRunData* data)
 {
 	BEGIN_TRANSITION_MAP			              			// - Current State -
-		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_IDLE
-		TRANSITION_MAP_ENTRY (ST_RUN)								// ST_INIT
+		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_NONE
+		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_INIT
+		TRANSITION_MAP_ENTRY (ST_RUN)								// ST_IDLE
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_RUN
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_STOP
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_ERROR
@@ -32,8 +32,9 @@ void Camera::Run(CamRunData* data)
 
 void Camera::Stop(){
 	BEGIN_TRANSITION_MAP			              			// - Current State -
-		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_IDLE
+		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_NONE
 		TRANSITION_MAP_ENTRY (ST_STOP)							// ST_INIT
+		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_IDLE
 		TRANSITION_MAP_ENTRY (ST_STOP)				      // ST_RUN
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_STOP
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_ERROR
@@ -41,10 +42,14 @@ void Camera::Stop(){
 }
 
 // Define state IDLE function
+STATE_DEFINE(Camera, NoneImpl, NoEventData)
+{
+}
+
+// Define state IDLE function
 STATE_DEFINE(Camera, IdleImpl, NoEventData)
 {
-	cout << " ===> IDLE" << endl;
-
+	CONSOLE.Log("Camera Idling");
   // Once init if finished change state to idle
 	// InternalEvent(ST_INIT);
 }
@@ -95,6 +100,8 @@ STATE_DEFINE(Camera, InitImpl, CamInitData)
 
 	cam_config_data.framerate = data->framerate;
 	cam_config_data.framesize = cv::Size(data->width, data->height);
+
+	InternalEvent(ST_IDLE, &no_data);
 }
 
 // Define state RUN function
@@ -122,9 +129,12 @@ STATE_DEFINE(Camera, StopImpl, NoEventData)
 	{
 		CONSOLE.Log("Joining Threads");
 		save_thread->join();
+		delete save_thread;
 	}
 
 	writer.release();
+
+	InternalEvent(ST_IDLE, &no_data);
 }
 
 // Define state ERROR function

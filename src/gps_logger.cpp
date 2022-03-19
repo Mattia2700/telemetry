@@ -130,7 +130,7 @@ int GpsLogger::OpenDevice()
 
   if (ret < 0)
   {
-    CONSOLE.LogError("GPS", id, "Failed opeing", m_Device);
+    CONSOLE.LogError("GPS", id, "Failed opening", m_Device);
     return 0;
   }
   else

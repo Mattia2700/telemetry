@@ -113,8 +113,9 @@ private:
 	// in the state map.
 	enum States
 	{
-		ST_IDLE,
+		ST_NONE,
 		ST_INIT,
+		ST_IDLE,
 		ST_RUN,
 		ST_STOP,
 		ST_ERROR,
@@ -122,8 +123,9 @@ private:
 	};
 
 	// Define the state machine state functions with event data type
-	STATE_DECLARE(Camera, 	IdleImpl,			NoEventData)
+	STATE_DECLARE(Camera, 	NoneImpl,			NoEventData)
 	STATE_DECLARE(Camera, 	InitImpl,			CamInitData)
+	STATE_DECLARE(Camera, 	IdleImpl,			NoEventData)
 	STATE_DECLARE(Camera, 	RunImpl,			CamRunData)
 	STATE_DECLARE(Camera, 	StopImpl,			NoEventData)
 	STATE_DECLARE(Camera, 	ErrorImpl,		ErrorData)
@@ -131,8 +133,9 @@ private:
 	// State map to define state object order. Each state map entry defines a
 	// state object.
 	BEGIN_STATE_MAP
-		STATE_MAP_ENTRY(&IdleImpl)
+		STATE_MAP_ENTRY(&NoneImpl)
 		STATE_MAP_ENTRY(&InitImpl)
+		STATE_MAP_ENTRY(&IdleImpl)
 		STATE_MAP_ENTRY(&RunImpl)
 		STATE_MAP_ENTRY(&StopImpl)
 		STATE_MAP_ENTRY(&ErrorImpl)
