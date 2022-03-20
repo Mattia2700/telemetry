@@ -39,6 +39,7 @@ public:
     void add_on_open(std::function<void()>);
     void add_on_close(std::function<void(int code)>clbk);
     void add_on_error(std::function<void(int code)>clbk);
+    void set_on_message(std::function<void(client*, websocketpp::connection_hdl, message_ptr)>clbk);
 
     void set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr));
 

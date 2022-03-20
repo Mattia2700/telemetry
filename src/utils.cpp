@@ -176,3 +176,15 @@ int empty_fields(const vector<string>& vec, const vector<int>& indeces)
   }
   return -1;
 }
+
+
+double get_timestamp()
+{
+  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
+}
+string get_hex(int num, int zeros)
+{
+  stringstream ss;
+  ss << setw(zeros) << uppercase << setfill('0') << hex << num;
+  return ss.str();
+}

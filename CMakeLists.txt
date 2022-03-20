@@ -85,6 +85,8 @@ add_library(
   src/report.cpp
   src/camera.cpp
 
+  scripts/telemetry_sm/telemetry_sm.cpp
+
   # StateMachine
   src/StateMachine/StateMachine.cpp
   src/StateMachine/Fault.cpp
@@ -118,6 +120,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 ## TELEMETRY
 add_executable(telemetry scripts/telemetry/telemetry.cpp)
 target_link_libraries(telemetry ${PROJECT_NAME})
+
+add_executable(telemetry_sm scripts/telemetry_sm/run.cpp)
+target_link_libraries(telemetry_sm ${PROJECT_NAME})
 
 ## PORT SHARE
 add_executable(share scripts/port/share.cpp src/serial.cpp)

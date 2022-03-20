@@ -39,9 +39,13 @@ void GpsLogger::SetHeader(const string& header)
   m_Header = header;
 }
 
-void GpsLogger::SetCallback(void (*f)(int, string))
+void GpsLogger::SetCallback(void (*clbk)(int, string))
 {
-  m_OnNewLine = f;
+  m_OnNewLine = clbk;
+}
+void GpsLogger::SetCallback(std::function<void(int, string)> clbk)
+{
+  m_OnNewLine = clbk;
 }
 
 void GpsLogger::StartLogging()
@@ -200,7 +204,7 @@ void GpsLogger::Run()
       }
 
       // Callback on new line
-      if(m_OnNewLine != nullptr)
+      if(m_OnNewLine)
         m_OnNewLine(id, line);
 
 

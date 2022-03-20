@@ -1,6 +1,13 @@
 #include "can.h"
 
+Can::Can(){
+}
+
 Can::Can(const char* device, sockaddr_can* address){
+  init(device, address);
+}
+
+void Can::init(const char* device, sockaddr_can* address){
   this->device = device;
   this->address = address;
 }

@@ -118,22 +118,6 @@ void save_stat(string folder);
 void on_gps_line(int id, string line);
 
 
-/**
-* Gets current timestamp in seconds
-*/
-double get_timestamp();
-
-/**
-* Returns a string whith int expressed as Hexadecimal
-* Capital letters
-*
-* @param num number to be converted
-* @param zeros length of the final string (num = 4 => 0000A)
-* return string
-*/
-string get_hex(int num, int zeros);
-
-
 
 void load_all_config(std::string&);
 

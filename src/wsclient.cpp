@@ -81,6 +81,9 @@ void WebSocketClient::loop(){
 void WebSocketClient::set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr)){
     m_client.set_message_handler(bind(clbk,&m_client,::_1,::_2));
 }
+void WebSocketClient::set_on_message(std::function<void(client*, websocketpp::connection_hdl, message_ptr)>clbk){
+    m_client.set_message_handler(bind(clbk,&m_client,::_1,::_2));
+}
 
 void WebSocketClient::on_open(websocketpp::connection_hdl) {
     scoped_lock guard(m_lock);

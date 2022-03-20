@@ -9,6 +9,7 @@
 #include <string.h>
 #include <iostream>
 #include <exception>
+#include <functional>
 
 #include <mutex>
 #include <atomic>
@@ -44,6 +45,7 @@ public:
   void SetOutputFolder(const string& folder);
   void SetHeader(const string& header);
   void SetCallback(void (*f)(int, string));
+  void SetCallback(std::function<void(int, string)> function);
   void SetMode(int mode = 0);
 
   void StartLogging();
@@ -86,7 +88,8 @@ private:
   condition_variable cv;
   bool m_StateChanged;
 
-  void (*m_OnNewLine)(int, string) = nullptr;
+  // void (*m_OnNewLine)(int, string) = nullptr;
+  std::function<void(int, string)> m_OnNewLine;
 
   GPS_Stat_t stat;
   int id;

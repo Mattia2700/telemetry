@@ -18,10 +18,21 @@ using namespace std;
 class Can{
 public:
   /**
+   *  Must set device and address with init
+  */
+  Can();
+
+  /**
   * Sets device string (can0, vcan0)
   * Sets address pointer
   */
   Can(const char* device, struct sockaddr_can* address);
+
+  /**
+  * Sets device string (can0, vcan0)
+  * Sets address pointer
+  */
+  void init(const char* device, struct sockaddr_can* address);
 
   /**
   * Opens device updating address,

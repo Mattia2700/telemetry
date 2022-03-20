@@ -349,18 +349,6 @@ void on_gps_line(int id, string line)
   }
 }
 
-double get_timestamp()
-{
-  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
-}
-
-string get_hex(int num, int zeros)
-{
-  stringstream ss;
-  ss << setw(zeros) << uppercase << setfill('0') << hex << num;
-  return ss.str();
-}
-
 
 void log_can(double& timestamp, can_frame& msg, std::fstream& out)
 {

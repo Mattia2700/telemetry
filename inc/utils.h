@@ -33,10 +33,13 @@ struct gps_message
 };
 
 bool parse_message(string str, message* msg);
-
 bool parse_gps_line(string str, gps_message* msg);
-
 void get_lines(string filename, vector<string>* lines);
+
+/**
+* Gets current timestamp in seconds
+*/
+double get_timestamp();
 
 vector<string> get_all_files(string path, string extension="*");
 
@@ -64,5 +67,16 @@ int empty_fields(const vector<string>& vec);
 // returns -1 if all fields are filled
 // returns index of first empty field
 int empty_fields(const vector<string>& vec, const vector<int>& indeces);
+
+
+/**
+* Returns a string whith int expressed as Hexadecimal
+* Capital letters
+*
+* @param num number to be converted
+* @param zeros length of the final string (num = 4 => 0000A)
+* return string
+*/
+string get_hex(int num, int zeros);
 
 #endif // UTILS_H

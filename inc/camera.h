@@ -28,6 +28,23 @@ using namespace std;
 using namespace std::chrono;
 
 
+
+
+/**
+ * This is a state machine:
+ * The process is to init the camera (setting framerate and framesize)
+ *  then the SM should automatically change state to IDLE waiting for a run command.
+ * When calling Run() function (which requires filename of the output video)
+ *  the SM lauches a thread that starts saving the raspicam video.
+ * To stop logging call Stop().
+ * If errors occurs during one of the previous steps the SM goes into ERROR state.
+ * The error can be retrieved using GetError().
+ * To be able to restart after an error the Init() function MUST be called.
+ * The SM cannot change state to IDLE or RUN while being in ERROR state.
+ * 
+ * After Init is called if the SM does not change state to IDLE an error occurred.
+**/
+
 enum CamError
 {
 	CAM_NONE,
@@ -38,7 +55,7 @@ enum CamError
 	CAM_GENERAL_ERROR
 };
 
-const char* CamErrorStr[]
+static const char* CamErrorStr[]
 {
 	"NONE",
 	"OPENING CAMERA",
@@ -56,11 +73,13 @@ public:
 	uint width;
 	uint height;
 };
+
 class CamRunData : public EventData
 {
 public:
   string filename;
 };
+
 class ErrorData : public EventData
 {
 public:
@@ -72,10 +91,15 @@ class Camera : public StateMachine
 public:
   Camera();
 
+	// Init the raspicam
   void Init(CamInitData*);
+	// Starts saving the video
   void Run(CamRunData*);
+	// Stops savig the video
   void Stop();
 
+
+	// returns the current error
 	CamError GetError();
 
 private:

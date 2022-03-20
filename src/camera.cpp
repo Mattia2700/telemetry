@@ -33,7 +33,7 @@ void Camera::Run(CamRunData* data)
 void Camera::Stop(){
 	BEGIN_TRANSITION_MAP			              			// - Current State -
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_NONE
-		TRANSITION_MAP_ENTRY (ST_STOP)							// ST_INIT
+		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_INIT
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_IDLE
 		TRANSITION_MAP_ENTRY (ST_STOP)				      // ST_RUN
 		TRANSITION_MAP_ENTRY (EVENT_IGNORED)				// ST_STOP
@@ -41,22 +41,23 @@ void Camera::Stop(){
 	END_TRANSITION_MAP(&no_data)
 }
 
-// Define state IDLE function
+// Define state NONE function
 STATE_DEFINE(Camera, NoneImpl, NoEventData)
 {
+	currentError = CamError::CAM_NONE;
 }
 
 // Define state IDLE function
 STATE_DEFINE(Camera, IdleImpl, NoEventData)
 {
 	CONSOLE.Log("Camera Idling");
-  // Once init if finished change state to idle
-	// InternalEvent(ST_INIT);
 }
 
 // Define state INIT function
 STATE_DEFINE(Camera, InitImpl, CamInitData)
 {
+	currentError = CamError::CAM_NONE;
+
 	if(raspi_cam != nullptr)  
 		delete raspi_cam;
 
@@ -150,6 +151,12 @@ STATE_DEFINE(Camera, ErrorImpl, ErrorData)
 	}
 }
 
+CamError Camera::GetError()
+{
+	CamError err = currentError;
+	currentError = CamError::CAM_NONE;
+	return err;
+}
 
 void Camera::SetError(const CamError& err)
 {
@@ -173,7 +180,7 @@ void Camera::SaveLoop()
 		
 		if(raspi_cam == nullptr)
 		{
-			error_data.error = CAM_NOT_INITIALIZED;
+			error_data.error = CamError::CAM_NOT_INITIALIZED;
 			InternalEvent(ST_ERROR, &error_data);
 			return;
 		}
