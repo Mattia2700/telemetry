@@ -10,9 +10,15 @@ Can::Can(const char* device, sockaddr_can* address){
 void Can::init(const char* device, sockaddr_can* address){
   this->device = device;
   this->address = address;
+	opened = false;
 }
 
-int Can::open(){
+bool Can::is_open()
+{
+	return opened;
+}
+
+int Can::open_socket(){
   int can_socket;
 	struct ifreq ifr;
 
@@ -21,6 +27,8 @@ int Can::open(){
 		return -1;
 	}
 
+	// If can_socket is set to 0,
+	// messages are received from all interfaces (can0, can1, vcan0)
 	strcpy(ifr.ifr_name, this->device);
 	ioctl(can_socket, SIOCGIFINDEX, &ifr);
 
@@ -31,8 +39,22 @@ int Can::open(){
 		return -2;
 	}
 
+	opened = true;
   this->sock = can_socket;
 	return can_socket;
+}
+
+bool Can::close_socket()
+{
+	if(opened)
+	{
+		if(close(this->sock) < 0)
+		{
+			cout << "Error closing can socket: " << errno << endl;
+			return false;
+		}
+	}
+	return true;
 }
 
 int Can::send(int id, char* data, int len){

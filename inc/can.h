@@ -39,7 +39,20 @@ public:
   *
   * return socket fd
   */
-  int open();
+  int open_socket();
+
+  /**
+   * Closes the can socket
+   * 
+   * return true if close was successfull
+  */
+  bool close_socket();
+
+  /**
+   * Returns if the socket is opened
+  */
+  bool is_open();
+
   /**
   * Sends an array of bytes
   *
@@ -70,6 +83,8 @@ private:
   int sock;                           // socket fd
   const char* device;                 // name of device
   sockaddr_can* address;              // address of device
+
+  bool opened;
 };
 
 #endif

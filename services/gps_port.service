@@ -1,5 +1,5 @@
 [Unit]
-Description = making network connection up
+Description = GPS port share service
 After = network.target
 
 [Service]

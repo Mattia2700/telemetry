@@ -153,8 +153,9 @@ namespace Debug
       void DebugMessage(const string header,
                         const string text);
 
-      // FIXME - CHECK.
       void DebugMessage(const string text);
+
+      // void DebugMessage(const string text);
 
 
       void ErrorMessage(const string header, const string text);
@@ -203,6 +204,12 @@ namespace Debug
       void Log(Args... args)
       {
         DebugMessage(LogImpl(args...));
+      }
+
+      template<typename... Args>
+      void LogStatus(Args... args)
+      {
+        StatMessage(LogImpl(args...));
       }
 
       template<typename... Args>

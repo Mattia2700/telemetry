@@ -27,14 +27,14 @@ int main(){
 
   CAN_DEVICE = "can0";
   can = new Can(CAN_DEVICE, &addr);
-  int sock = can->open();
+  int sock = can->open_socket();
 
   if (sock < 0)
   {
     cout << "Failed binding socket: " << CAN_DEVICE;
     CAN_DEVICE = "vcan0";
     can = new Can(CAN_DEVICE, &addr);
-    sock = can->open();
+    sock = can->open_socket();
     if (sock < 0)
     {
       cout << "FATAL Failed binding socket: " << CAN_DEVICE;

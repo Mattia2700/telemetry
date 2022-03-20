@@ -64,17 +64,19 @@ class TelemetrySM : public StateMachine
 {
 public:
 	TelemetrySM();
+	~TelemetrySM();
 
   void Init();
   void Run();
   void Stop();
+	void Reset();
 
 	TelemetryError GetError();
 
 private:
 	enum States
 	{
-		ST_NONE,
+		ST_UNINITIALIZED,
 		ST_INIT,
 		ST_IDLE,
 		ST_RUN,
@@ -82,7 +84,7 @@ private:
 		ST_ERROR,
 		ST_MAX_STATES
 	};
-	string StatesStr[ST_MAX_STATES+1];
+	string StatesStr[ST_MAX_STATES];
 
 
 	string HOME_PATH;
@@ -102,6 +104,7 @@ private:
 
 	// Threads
 	mutex mtx;
+	atomic<bool> kill_threads;
 
 	thread* data_thread;
 	thread* status_thread;
@@ -117,7 +120,7 @@ private:
 
 	// WebSocket
 	ConnectionState_ ws_conn_state = ConnectionState_::NONE;
-	atomic<States> wsRequestState = ST_NONE;
+	atomic<States> wsRequestState = ST_UNINITIALIZED;
 
 
 	// Maps
@@ -166,22 +169,26 @@ private:
 	// Stats
 	void SaveStat();
 
+	// Protobuffer
+	void ProtoSerialize(const double& timestamp, Device*);
+
 
 private:
 	// Define the state machine state functions with event data type
-	STATE_DECLARE(TelemetrySM, 	NoneImpl,			NoEventData)
-	STATE_DECLARE(TelemetrySM, 	InitImpl,			NoEventData)
-	STATE_DECLARE(TelemetrySM, 	IdleImpl,			NoEventData)
-	STATE_DECLARE(TelemetrySM, 	RunImpl,			NoEventData)
-	STATE_DECLARE(TelemetrySM, 	StopImpl,			NoEventData)
-	STATE_DECLARE(TelemetrySM, 	ErrorImpl,		NoEventData)
+	STATE_DECLARE(TelemetrySM, 	UninitializedImpl,	NoEventData)
+	STATE_DECLARE(TelemetrySM, 	InitImpl,						NoEventData)
+	STATE_DECLARE(TelemetrySM, 	IdleImpl,						NoEventData)
+	STATE_DECLARE(TelemetrySM, 	RunImpl,						NoEventData)
+	STATE_DECLARE(TelemetrySM, 	StopImpl,						NoEventData)
+	STATE_DECLARE(TelemetrySM, 	ErrorImpl,					NoEventData)
 
-	ENTRY_DECLARE(TelemetrySM,	ToRun,				NoEventData)
+	ENTRY_DECLARE(TelemetrySM,	Deinitialize,				NoEventData)
+	ENTRY_DECLARE(TelemetrySM,	ToRun,							NoEventData)
 
 	// State map to define state object order. Each state map entry defines a
 	// state object.
 	BEGIN_STATE_MAP_EX
-		STATE_MAP_ENTRY_EX(&NoneImpl)
+		STATE_MAP_ENTRY_ALL_EX(&UninitializedImpl, nullptr, &Deinitialize, nullptr)
 		STATE_MAP_ENTRY_EX(&InitImpl)
 		STATE_MAP_ENTRY_EX(&IdleImpl)
 		STATE_MAP_ENTRY_ALL_EX(&RunImpl, nullptr, &ToRun, nullptr)

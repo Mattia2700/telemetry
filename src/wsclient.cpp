@@ -19,7 +19,10 @@ WebSocketClient::WebSocketClient() : m_open(false),m_done(false) {
 
 void WebSocketClient::close()
 {
-  m_client.close(m_hdl, 1000, "Closed by user");
+  if(m_open)
+    m_client.close(m_hdl, 1000, "Closed by user");
+  m_done.store(true);
+  m_cv.notify_all();
 }
 
 websocketpp::lib::thread* WebSocketClient::run(const std::string & uri) {
@@ -49,7 +52,7 @@ websocketpp::lib::thread* WebSocketClient::run(const std::string & uri) {
 
 void WebSocketClient::loop(){
     while(!m_open)
-      usleep(1000);
+      usleep(10000);
     while(!m_done){
       unique_lock<mutex> lck(m_worker_mtx);
 

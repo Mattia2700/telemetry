@@ -395,14 +395,14 @@ int open_log_folder()
 int open_can_socket()
 {
   can = new Can(CAN_DEVICE, &addr);
-  int sock = can->open();
+  int sock = can->open_socket();
 
   if (sock < 0)
   {
     CONSOLE.LogWarn("Failed binding socket: ", CAN_DEVICE);
     CAN_DEVICE = "vcan0";
     can = new Can(CAN_DEVICE, &addr);
-    sock = can->open();
+    sock = can->open_socket();
     if (sock < 0)
     {
       CONSOLE.LogError("Failed binding socket: ", CAN_DEVICE);
