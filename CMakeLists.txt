@@ -193,8 +193,3 @@ add_executable(log_player scripts/log_player/log_player.cpp)
 target_link_libraries(log_player libBase)
 add_executable(gps_log_player scripts/log_player/gps_log_player.cpp)
 target_link_libraries(gps_log_player libBase)
-
-if(WITH_CAMERA)  
-  add_executable(cam_video scripts/raspicam/cam_video.cpp)
-  target_link_libraries(cam_video libBase libCamera)
-endif()

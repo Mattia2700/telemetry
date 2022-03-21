@@ -17,6 +17,7 @@ using namespace std;
 class Chimera{
 public:
   Chimera();
+  ~Chimera();
 
   /**
   * Fills the sensor values basing on ids and payload

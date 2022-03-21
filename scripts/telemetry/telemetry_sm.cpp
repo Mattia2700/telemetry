@@ -487,6 +487,14 @@ void TelemetrySM::LoadAllConfig()
       EmitError(TEL_LOAD_CONFIG_TELEMETRY);
   }else{
     CONSOLE.Log("Created: " + path);
+    tel_conf.can_device = "can0";
+    tel_conf.generate_csv = false;
+    tel_conf.ws_enabled = true;
+    tel_conf.ws_send_sensor_data = true;
+    tel_conf.ws_send_rate = 500;
+    tel_conf.ws_downsample = true;
+    tel_conf.ws_downsample_mps = 50;
+    tel_conf.ws_server_url = "ws://eagle-telemetry-server.herokuapp.com";
     SaveJson(tel_conf, path);
   }
 
