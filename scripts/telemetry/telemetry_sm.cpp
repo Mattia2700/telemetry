@@ -132,6 +132,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
 
   if(tel_conf.camera_enable)
   {
+#ifdef WITH_CAMERA
     CamInitData initData;
     initData.framerate = 24;
     initData.width = 320;
@@ -139,6 +140,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
     CONSOLE.Log("Initializing Camera");
     camera.Init(&initData);
     CONSOLE.Log("Done");
+#endif
   }
 
   InternalEvent(ST_IDLE);
@@ -167,7 +169,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     }
 
     try{
-      modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+      chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
     }
     catch(std::exception ex)
     {
@@ -239,11 +241,13 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
 
   if(tel_conf.camera_enable)
   {
+#ifdef WITH_CAMERA
     CamRunData runData;
     runData.filename = CURRENT_LOG_FOLDER + "/" + "onboard.avi";
     CONSOLE.Log("Starting camera");
     camera.Run(&runData);
     CONSOLE.Log("Done");
+#endif
   }
   CONSOLE.LogStatus("TO_RUN DONE");
 }
@@ -271,7 +275,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     if(tel_conf.generate_csv || tel_conf.ws_enabled)
     {
       try{
-        modifiedDevices = chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc);
+        chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
       }
       catch(std::exception ex)
       {
@@ -337,9 +341,11 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
 
   if(tel_conf.camera_enable)
   {
+#ifdef WITH_CAMERA
     CONSOLE.Log("Stopping Camera");
     camera.Stop();
     CONSOLE.Log("Done");
+#endif
   }
 
 

@@ -143,6 +143,8 @@ void parse_files(vector<string> files)
 // parse a candump file and a related gps file (if exists)
 void parse_file(string fname)
 {
+  int can_lines = 0;
+  int gps_lines = 0;
   int lines_count = 0;
   Report report;
 
@@ -199,7 +201,7 @@ void parse_file(string fname)
   vector<Device *> modifiedDevices;
 
   // Start Timer
-  time_point t_start = high_resolution_clock::now();
+  double t_start = get_timestamp();
   double prev_timestsamp;
   if(config.parse_candump)
   {
@@ -209,7 +211,7 @@ void parse_file(string fname)
       if (!parse_message(lines[i], &msg))
         continue;
       // Fill the devices
-      modifiedDevices = chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size);
+      chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size, modifiedDevices);
 
       if (prev_timestsamp > msg.timestamp)
       {
@@ -222,12 +224,13 @@ void parse_file(string fname)
       for (auto modified : modifiedDevices)
       {
         *modified->files[0] << modified->get_string(",") + "\n";
-        report.AddDeviceSample(&chimera, modified);
+        if(config.generate_report)
+          report.AddDeviceSample(&chimera, modified);
       }
       prev_timestsamp = msg.timestamp;
     }
   }
-  lines_count += lines.size();
+  can_lines = lines.size();
 
   if(config.parse_gps)
   {
@@ -255,24 +258,23 @@ void parse_file(string fname)
       }
     }
   }
-  lines_count += lines.size();
+  gps_lines = lines.size();
 
-
-  if(config.generate_report)
-  {
-    string header = "";
-    if(can_stat.Date != "" && can_stat.Pilot != "")
-    {
-
-    }
-    report.Clean(1920*2);
-    report.Generate(folder + "/Report.pdf");
-  }
   // Debug
-  double dt = duration<double, milli>(high_resolution_clock::now() - t_start).count() / 1000;
+  lines_count = can_lines + gps_lines;
+  double dt =  get_timestamp() - t_start;
   cout << "Parsed " << lines_count << " lines in: " << to_string(dt) << " -> " << lines_count / dt << " lines/sec" << endl;
   chimera.close_all_files();
 
   // Increment total lines
   total_lines += lines_count;
+
+  if(config.generate_report && can_lines > 1000)
+  {
+    t_start = get_timestamp();
+    report.Clean(1920*2);
+    report.Generate(folder + "/Report.pdf", can_stat);
+    cout << "Generating Report took: " << (get_timestamp() - t_start) << endl;
+  }
+
 }

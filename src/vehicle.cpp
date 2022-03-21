@@ -92,6 +92,33 @@ Chimera::Chimera(){
   }
 }
 
+Chimera::~Chimera(){
+  delete chimera_proto;
+
+  delete accel;
+  delete gyro;
+  delete encoder_left;
+  delete encoder_right;
+  delete bms_lv;
+  delete bms_hv;
+  delete inverter_left;
+  delete inverter_right;
+  delete pedal;
+  delete steer;
+  delete ecu_state;
+  delete bms_hv_state;
+  delete steering_wheel_state;
+  delete ecu;
+  delete temp_fl;
+  delete temp_fr;
+  delete temp_rl;
+  delete temp_rr;
+  delete gps1;
+  delete gps2;
+
+  
+}
+
 
 void Chimera::add_filenames(string base_path, string extension){
   for(auto device : devices){
@@ -133,7 +160,7 @@ void Chimera::write_all_headers(int index){
     *device->files[index] << device->get_header(",") << "\n" << flush;
 }
 
-vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size){
+void Chimera::parse_message(const double& timestamp, const int &id, const uint8_t data[], const int &size, vector<Device *>& modifiedDevices){
   modifiedDevices.clear();
 
   switch (id) {
@@ -656,7 +683,6 @@ vector<Device *> Chimera::parse_message(const double& timestamp, const int &id, 
     default:
     break;
   }
-  return modifiedDevices;
 }
 
 int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)

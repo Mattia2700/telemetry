@@ -33,18 +33,18 @@ find_package(Boost REQUIRED COMPONENTS
     iostreams system filesystem
 )
 
-##############
-## RaspiCam ##
-##############
+#########################
+## RaspiCam and OpenCV ##
+#########################
 find_package(raspicam PATHS /usr/local/lib/cmake/)
 if(raspicam_FOUND)
   message(STATUS "____ Raspicam FOUND")
-  set(WITH_RASPICAM 1)
-endif()
-find_package( OpenCV )
-if(OpenCV_FOUND)
-  message(STATUS "____ OpenCV FOUND")
-  set(WITH_OPENCV 1)
+  find_package( OpenCV )
+  if(OpenCV_FOUND)
+    message(STATUS "____ OpenCV FOUND")
+    set(WITH_CAMERA 1)
+    add_definitions(-DWITH_CAMERA)
+  endif()
 endif()
 
 
@@ -71,28 +71,76 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
 add_library(
-  ${PROJECT_NAME}
+  libBase
   SHARED
-  # SRC
+
   src/can.cpp
   src/utils.cpp
   src/browse.cpp
   src/serial.cpp
+  src/console.cpp
+
+  src/wsclient.cpp
+)
+target_link_libraries(libBase
+  stdc++fs
+  websocketpp::websocketpp
+)
+
+
+
+add_library(
+  libVehicle
+  SHARED
+
   src/devices.cpp
   src/vehicle.cpp
-  src/console.cpp
   src/gps_logger.cpp
   src/report.cpp
-  src/camera.cpp
-
-  scripts/telemetry_sm/telemetry_sm.cpp
-
-  # StateMachine
-  src/StateMachine/StateMachine.cpp
-  src/StateMachine/Fault.cpp
 
   # PROTO
   Protobuffer/cpp/devices.pb.cc
+)
+target_link_libraries(libVehicle
+  hpdf
+  stdc++fs
+  ${Protobuf_LIBRARIES}
+  Boost::iostreams
+  Boost::system
+  Boost::filesystem
+)
+
+
+
+add_library(
+  libStateMachine
+  SHARED
+  
+  # StateMachine
+  src/StateMachine/StateMachine.cpp
+  src/StateMachine/Fault.cpp
+)
+add_library(
+  libSMImpl
+  SHARED
+  scripts/telemetry/telemetry_sm.cpp
+)
+target_link_libraries(libSMImpl
+  stdc++fs
+  ${Protobuf_LIBRARIES}
+  websocketpp::websocketpp
+
+  libBase
+  libVehicle
+  libJsonModels
+  libStateMachine
+)
+
+
+
+add_library(
+  libJsonModels
+  SHARED
 
   # JSON
   json_models/session_config/json_loader.cpp
@@ -100,29 +148,32 @@ add_library(
   json_models/csv_parser_config/json_loader.cpp
   json_models/can_stat_json/json_loader.cpp
   json_models/gps_stat_json/json_loader.cpp
+)
 
-  src/wsclient.cpp
+if(WITH_CAMERA)
+  add_library(
+    libCamera
+    SHARED
+    src/camera.cpp
   )
-target_link_libraries(${PROJECT_NAME}
-  hpdf
-  stdc++fs
-  ${Protobuf_LIBRARIES}
-  websocketpp::websocketpp
-  Boost::iostreams
-  Boost::system
-  Boost::filesystem
+  target_link_libraries(libCamera
+    libBase
+    libStateMachine
+    ${raspicam_LIBS}
+    ${OpenCV_LIBS}
   )
+  target_link_libraries(libSMImpl
+  libCamera)
+endif()
+
 
 
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ## TELEMETRY
-add_executable(telemetry scripts/telemetry/telemetry.cpp)
-target_link_libraries(telemetry ${PROJECT_NAME})
-
-add_executable(telemetry_sm scripts/telemetry_sm/run.cpp)
-target_link_libraries(telemetry_sm ${PROJECT_NAME})
+add_executable(telemetry scripts/telemetry/main.cpp)
+target_link_libraries(telemetry libSMImpl libCamera)
 
 ## PORT SHARE
 add_executable(share scripts/port/share.cpp src/serial.cpp)
@@ -132,25 +183,18 @@ add_executable(read scripts/port/reader.cpp src/serial.cpp)
 ## CSV CONVERTER
 add_executable(csv scripts/csv/csv.cpp)
 target_link_libraries(csv
-  ${Protobuf_LIBRARIES}
-  ${PROJECT_NAME}
-  Boost::iostreams
-  Boost::system
-  Boost::filesystem)
+  libBase
+  libVehicle
+  libJsonModels
+)
 
 ## LOG PLAYERS
 add_executable(log_player scripts/log_player/log_player.cpp)
-target_link_libraries(log_player ${PROJECT_NAME})
+target_link_libraries(log_player libBase)
 add_executable(gps_log_player scripts/log_player/gps_log_player.cpp)
-target_link_libraries(gps_log_player ${PROJECT_NAME})
+target_link_libraries(gps_log_player libBase)
 
-## DASHBOARD
-add_executable(dashboard_simulator scripts/dashboard/dashboard.cpp)
-target_link_libraries(dashboard_simulator ${PROJECT_NAME})
-
-if(WITH_RASPICAM AND WITH_OPENCV)
-  target_link_libraries(${PROJECT_NAME} ${raspicam_LIBS} ${OpenCV_LIBS})
-  
+if(WITH_CAMERA)  
   add_executable(cam_video scripts/raspicam/cam_video.cpp)
-  target_link_libraries(cam_video ${PROJECT_NAME} ${raspicam_LIBS} ${OpenCV_LIBS})
+  target_link_libraries(cam_video libBase libCamera)
 endif()

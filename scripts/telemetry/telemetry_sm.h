@@ -17,7 +17,10 @@
 #include "serial.h"
 #include "vehicle.h"
 #include "gps_logger.h"
+
+#ifdef WITH_CAMERA
 #include "camera.h"
+#endif
 
 #include "wsclient.h"
 #include "devices.pb.h"
@@ -96,11 +99,12 @@ private:
 
 	Can* can;
 	sockaddr_can addr;
-
-	Camera camera;
 	Chimera* chimera;
 	WebSocketClient* ws_cli;
 	vector<GpsLogger*> gps_loggers;
+#ifdef WITH_CAMERA
+	Camera camera;
+#endif
 
 	// Threads
 	mutex mtx;

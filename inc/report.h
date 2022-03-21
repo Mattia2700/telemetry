@@ -17,6 +17,8 @@
 
 #include "libharu/include/hpdf.h"
 
+#include "can_stat_json/json_loader.h"
+
 #include "gnuplot-iostream.h"
 
 using namespace std;
@@ -70,13 +72,18 @@ struct CurrentFont
   int size;
 };
 
+struct Configs
+{
+
+};
+
 class Report
 {
 public:
   Report(){};
 
   void AddDeviceSample(Chimera* chim, Device* device);
-  void Generate(string path);
+  void Generate(const string& path, const can_stat_json& stat);
   void Clean(int);
   void Filter(const vector<double> &in, vector<double>* out, int window=10);
   void DownSample(const vector<double>& in, vector<double>* out, int count);
@@ -86,5 +93,6 @@ private:
 
   unordered_map<string, CurrentFont> c_fonts;
 
+  double first_timestamp = -1.0;
 private:
 };

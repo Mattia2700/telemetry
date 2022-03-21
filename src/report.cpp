@@ -51,51 +51,67 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
 {
   if (device == chim->accel){
     Imu* accel = (Imu*) device;
-    sensor_data["accel"]["timestamp"].push_back(accel->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = accel->timestamp;
+    sensor_data["accel"]["timestamp"].push_back(accel->timestamp - first_timestamp);
     sensor_data["accel"]["x"].push_back(accel->x);
     sensor_data["accel"]["y"].push_back(accel->y);
     sensor_data["accel"]["z"].push_back(accel->z);
   }else if(device == chim->gyro){
     Imu* gyro = (Imu*) device;
-    sensor_data["gyro"]["timestamp"].push_back(gyro->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = gyro->timestamp;
+    sensor_data["gyro"]["timestamp"].push_back(gyro->timestamp - first_timestamp);
     sensor_data["gyro"]["x"].push_back(gyro->x);
     sensor_data["gyro"]["y"].push_back(gyro->y);
     sensor_data["gyro"]["z"].push_back(gyro->z);
   }else if(device == chim->encoder_left){
     Encoder* enc = (Encoder*) device;
-    sensor_data["encoder_l"]["timestamp"].push_back(enc->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = enc->timestamp;
+    sensor_data["encoder_l"]["timestamp"].push_back(enc->timestamp - first_timestamp);
     sensor_data["encoder_l"]["rads"].push_back(enc->rads);
     sensor_data["encoder_l"]["km"].push_back(enc->km);
     sensor_data["encoder_l"]["rotations"].push_back(enc->rotations);
   }else if(device == chim->encoder_right){
     Encoder* enc = (Encoder*) device;
-    sensor_data["encoder_r"]["timestamp"].push_back(enc->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = enc->timestamp;
+    sensor_data["encoder_r"]["timestamp"].push_back(enc->timestamp - first_timestamp);
     sensor_data["encoder_r"]["rads"].push_back(enc->rads);
     sensor_data["encoder_r"]["km"].push_back(enc->km);
     sensor_data["encoder_r"]["rotations"].push_back(enc->rotations);
   }else if(device == chim->inverter_right){
     Inverter* inv = (Inverter*) device;
-    sensor_data["inverter_r"]["timestamp"].push_back(inv->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = inv->timestamp;
+    sensor_data["inverter_r"]["timestamp"].push_back(inv->timestamp - first_timestamp);
     sensor_data["inverter_r"]["temperature"].push_back(inv->temperature);
     sensor_data["inverter_r"]["motor_temp"].push_back(inv->motor_temp);
     sensor_data["inverter_r"]["torque"].push_back(inv->torque);
     sensor_data["inverter_r"]["speed"].push_back(inv->speed);
   }else if(device == chim->inverter_left){
     Inverter* inv = (Inverter*) device;
-    sensor_data["inverter_l"]["timestamp"].push_back(inv->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = inv->timestamp;
+    sensor_data["inverter_l"]["timestamp"].push_back(inv->timestamp - first_timestamp);
     sensor_data["inverter_l"]["temperature"].push_back(inv->temperature);
     sensor_data["inverter_l"]["motor_temp"].push_back(inv->motor_temp);
     sensor_data["inverter_l"]["torque"].push_back(inv->torque);
     sensor_data["inverter_l"]["speed"].push_back(inv->speed);
   }else if(device == chim->bms_lv){
     Bms* bms = (Bms*)device;
-    sensor_data["bms_lv"]["timestamp"].push_back(bms->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = bms->timestamp;
+    sensor_data["bms_lv"]["timestamp"].push_back(bms->timestamp - first_timestamp);
     sensor_data["bms_lv"]["temperature"].push_back(bms->temperature);
     sensor_data["bms_lv"]["max_temperature"].push_back(bms->max_temperature);
     sensor_data["bms_lv"]["voltage"].push_back(bms->voltage);
   }else if(device == chim->bms_hv){
     Bms* bms = (Bms*)device;
-    sensor_data["bms_hv"]["timestamp"].push_back(bms->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = bms->timestamp;
+    sensor_data["bms_hv"]["timestamp"].push_back(bms->timestamp - first_timestamp);
     sensor_data["bms_hv"]["temperature"].push_back(bms->temperature);
     sensor_data["bms_hv"]["max_temperature"].push_back(bms->max_temperature);
     sensor_data["bms_hv"]["min_temperature"].push_back(bms->min_temperature);
@@ -106,14 +122,18 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["bms_hv"]["power"].push_back(bms->power);
   }else if(device == chim->pedal){
     Pedals* pedals = (Pedals*)device;
-    sensor_data["pedals"]["timestamp"].push_back(pedals->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = pedals->timestamp;
+    sensor_data["pedals"]["timestamp"].push_back(pedals->timestamp - first_timestamp);
     sensor_data["pedals"]["throttle1"].push_back(pedals->throttle1);
     sensor_data["pedals"]["throttle2"].push_back(pedals->throttle2);
     sensor_data["pedals"]["brake_front"].push_back(pedals->brake_front);
     sensor_data["pedals"]["brake_rear"].push_back(pedals->brake_rear);
   }else if(device == chim->steer){
     Steer* steer = (Steer*)device;
-    sensor_data["steer"]["timestamp"].push_back(steer->timestamp);
+    if(first_timestamp == -1.0)
+      first_timestamp = steer->timestamp;
+    sensor_data["steer"]["timestamp"].push_back(steer->timestamp - first_timestamp);
     sensor_data["steer"]["angle"].push_back(steer->angle);
   }else if(device == chim->ecu_state){
     
@@ -167,7 +187,7 @@ void Report::Clean(int count)
 }
 
 
-void Report::Generate(string path)
+void Report::Generate(const string& path, const can_stat_json& stat)
 {
   HPDF_Doc  pdf;
   HPDF_Page page;
@@ -335,9 +355,40 @@ void Report::Generate(string path)
     x = (HPDF_Page_GetWidth(page) - t_width.width)/2.0;
     y -= 64;
     HPDF_Page_MoveTextPos (page, x, y);
-
     HPDF_Page_ShowText (page, text.c_str());
     HPDF_Page_EndText (page);
+
+
+    y -= 96;
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
+    HPDF_Page_TextOut(page, 120, y, "Date: ");
+    HPDF_Page_TextOut(page, 360, y, stat.Date.c_str());
+    HPDF_Page_EndText(page);
+    y -= 32;
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
+    HPDF_Page_TextOut(page, 120, y, "Circuit: ");
+    HPDF_Page_TextOut(page, 360, y, stat.Circuit.c_str());
+    HPDF_Page_EndText(page);
+    y -= 32;
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
+    HPDF_Page_TextOut(page, 120, y, "Pilot: ");
+    HPDF_Page_TextOut(page, 360, y, stat.Pilot.c_str());
+    HPDF_Page_EndText(page);
+    y -= 32;
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
+    HPDF_Page_TextOut(page, 120, y, "Race: ");
+    HPDF_Page_TextOut(page, 360, y, stat.Race.c_str());
+    HPDF_Page_EndText(page);
+    y -= 32;
+    HPDF_Page_BeginText(page);
+    HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
+    HPDF_Page_TextOut(page, 120, y, "Configuration: ");
+    HPDF_Page_TextOut(page, 120, y, stat.Configuration.c_str());
+    HPDF_Page_EndText(page);
   }
 
   HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
@@ -358,6 +409,12 @@ void Report::Generate(string path)
 
       gp << "set terminal png size 1920,1080\n";
       gp << "set output 'graph_" << i << ".png'\n";
+      gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+      gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+      gp << "set grid\n";     // Enables grid
+
+      // gp << "set grid mxtics mytics\n"; // Sets grid line every x and y tick
+
       gp << "set xrange ["<< int(sensor_data[graph[0].primary][graph[0].secondary][0]);
       gp << ":" << int(sensor_data[graph[0].primary][graph[0].secondary].back()) << "]\n";
       // gp << "set yrange [-8:8]\n";

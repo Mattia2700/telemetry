@@ -17,9 +17,6 @@ using namespace std;
 class Chimera{
 public:
   Chimera();
-  ~Chimera(){
-    delete chimera_proto;
-  }
 
   /**
   * Fills the sensor values basing on ids and payload
@@ -30,7 +27,7 @@ public:
   * @param size of the payload
   * return vector containing pointers to devices modified with this message
   */
-  vector<Device*> parse_message(const double& timestamp, const int &id, uint8_t data[], const int &size);
+  void parse_message(const double& timestamp, const int &id, const uint8_t data[], const int &size, vector<Device*>&);
 
   int parse_gps(Gps* gps_device, const double& timestamp, string& line);
 
@@ -142,7 +139,6 @@ public:
   * Vector containing all the devices
   */
   vector<Device*> devices;
-  vector<Device *> modifiedDevices;
 
   vector<string> proto_names;
   vector<Message *> proto_messages;
