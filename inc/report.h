@@ -112,10 +112,13 @@ private:
   Delta_ST min_voltage_drop;
   Delta_ST total_voltage_drop;
   Delta_ST distance_travelled;
+  
+  double lat_0 = -1.0;
+  double long_0 = -1.0;
+  double last_alt = -1.0;
 
-  vector<Point_ST> gps1_coord;
-  vector<Point_ST> gps2_coord;
-private:
   static int instances;
   int id;
+private:
+  void lla2xyz(const double& lat, const double& lng, const double& alt, const double& lat0, const double& lng0, double&, double&, double&);
 };

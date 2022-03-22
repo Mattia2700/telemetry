@@ -78,6 +78,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["encoder_l"]["rads"].push_back(enc->rads);
     sensor_data["encoder_l"]["km"].push_back(enc->km);
     sensor_data["encoder_l"]["rotations"].push_back(enc->rotations);
+    sensor_data["encoder_l"]["kmh"].push_back((enc->rads* 0.395/2.0)*3.6);
     max_speed = max(max_speed, fabs(enc->rads));
     if(distance_travelled.setted)
     {
@@ -103,6 +104,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["encoder_r"]["rads"].push_back(enc->rads);
     sensor_data["encoder_r"]["km"].push_back(enc->km);
     sensor_data["encoder_r"]["rotations"].push_back(enc->rotations);
+    sensor_data["encoder_r"]["kmh"].push_back((enc->rads* 0.395/2.0)*3.6);
     max_speed = max(max_speed, fabs(enc->rads));
   }else if(device == chim->inverter_right){
     Inverter* inv = (Inverter*) device;
@@ -197,17 +199,68 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     
   }else if(device == chim->gps1){
     Gps* gps = (Gps*)device;
+    if(gps->altitude != 0)
+    {
+      last_alt = gps->altitude;
+      sensor_data["gps1"]["alt"].push_back(gps->altitude);
+    }
+
     if(gps->latitude != 0 && gps->longitude != 0)
     {
-      sensor_data["gps1"]["latitude"].push_back(gps->latitude);
-      sensor_data["gps1"]["longitude"].push_back(gps->longitude);
+      if(lat_0 == -1.0)
+        lat_0 = gps->latitude;
+      if(long_0 == -1.0)
+        long_0 = gps->longitude;
+
+      double x, y, z;
+      lla2xyz(gps->latitude,
+              gps->longitude,
+              last_alt,
+              lat_0,
+              long_0,
+              x,
+              y,
+              z);
+      sensor_data["gps1"]["latlong_timestamp"].push_back(gps->timestamp);
+      sensor_data["gps1"]["latitude"].push_back(x);
+      sensor_data["gps1"]["longitude"].push_back(y);
     }
+    if(gps->speed_kmh != 0.0)
+    {
+      sensor_data["gps1"]["speed_timestamp"].push_back(gps->timestamp);
+      sensor_data["gps1"]["kmh"].push_back(gps->speed_kmh);
+    }
+    
   }else if(device == chim->gps2){
     Gps* gps = (Gps*)device;
-    if(gps->latitude != 0 && gps->longitude != 0)
+    if(gps->altitude != 0)
     {
-      sensor_data["gps2"]["latitude"].push_back(gps->latitude);
-      sensor_data["gps2"]["longitude"].push_back(gps->longitude);
+      last_alt = gps->altitude;
+      sensor_data["gps2"]["alt"].push_back(gps->altitude);
+    }
+    if(gps->latitude != 0 && gps->longitude != 0 && last_alt != -1.0)
+    {
+      if(lat_0 == -1.0)
+        lat_0 = gps->latitude;
+      if(long_0 == -1.0)
+        long_0 = gps->longitude;
+
+      double x, y, z;
+      lla2xyz(gps->latitude,
+              gps->longitude,
+              last_alt,
+              lat_0,
+              long_0,
+              x,
+              y,
+              z);
+      sensor_data["gps2"]["latitude"].push_back(x);
+      sensor_data["gps2"]["longitude"].push_back(y);
+    }
+    if(gps->speed_kmh != 0.0)
+    {
+      sensor_data["gps2"]["speed_timestamp"].push_back(gps->timestamp);
+      sensor_data["gps2"]["kmh"].push_back(gps->speed_kmh);
     }
   }
 }
@@ -281,6 +334,14 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       {"encoder_r", "rads"},
       {"inverter_l", "speed"},
       {"inverter_r", "speed"}
+    },
+    {
+      {"gps1", "speed_timestamp"},
+      {"gps1", "kmh"}
+    },
+    {
+      {"gps2", "speed_timestamp"},
+      {"gps2", "kmh"}
     },
     {
       {"pedals", "timestamp"},
@@ -554,11 +615,9 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       gp << "set grid\n";     // Enables grid
 
       // gp << "set grid mxtics mytics\n"; // Sets grid line every x and y tick
-
-      cout << graph[0].primary << " " << graph[0].secondary << endl;
       
       {
-        int idx = graph[0].primary.find("gps");
+        int idx = graph[0].secondary.find("lat");
         if(idx == string::npos)
         {
           gp << "set xrange ["<< int(sensor_data[graph[0].primary][graph[0].secondary][0]);
@@ -581,11 +640,14 @@ void Report::Generate(const string& path, const can_stat_json& stat)
             break;
           title[idx] = '-';
         }
-        int is_gps = title.find("gps");
+        int is_gps = title.find("lat");
+        if(is_gps == string::npos)
+          is_gps = title.find("long");
+
         if(is_gps == string::npos)
           command << "'-' with lines title '" << title << "'";
         else
-          command << "'-' with points title '" << title << "'";
+          command << "'-' with points pt 7 lc rgb \"black\" title '" << title << "'";
         if(j == graph.size()-1)
           command << "\n";
         else
@@ -680,4 +742,49 @@ void Report::DownSample(const vector<double>& in, vector<double>* out, int count
       out->push_back(in[k*factor]);
     }
   }
+}
+
+void Report::lla2xyz(const double& lat,
+                      const double& lng,
+                      const double& alt,
+                      const double& lat0,
+                      const double& lng0,
+                      double& x,
+                      double& y,
+                      double& z)
+{
+  double f = 0.00335281066474748071;
+  double earth_radius = 6378137.0;
+
+  double Lat_p = lat * M_PI / 180.0;
+  double Lon_p = lng * M_PI / 180.0;
+  double Alt_p = alt;
+
+  // Reference location (lat, lon), from degrees to radians
+  double Lat_o = lat_0 * M_PI / 180.0;
+  double Lon_o = long_0 * M_PI / 180.0;
+  
+  double psio = psio * M_PI / 180.0;  // from degrees to radians
+
+  double dLat = Lat_p - Lat_o;
+  double dLon = Lon_p - Lon_o;
+
+  double ff = (2.0 * f) - (f * f);  // Can be precomputed
+
+  double sinLat = sin(Lat_o);
+
+  // Radius of curvature in the prime vertical
+  double Rn = earth_radius / sqrt(1 - (ff * (sinLat * sinLat)));
+
+  // Radius of curvature in the meridian
+  double Rm = Rn * ((1 - ff) / (1 - (ff * (sinLat * sinLat))));
+
+  double dNorth = (dLat) / atan2(1, Rm);
+  double dEast = (dLon) / atan2(1, (Rn * cos(Lat_o)));
+
+  // Rotate matrice clockwise
+  x = (dNorth * cos(psio)) + (dEast * sin(psio));
+  y = (-dNorth * sin(psio)) + (dEast * cos(psio));
+  double href = 0.0;
+  z = -Alt_p - href;
 }
