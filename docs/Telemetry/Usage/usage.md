@@ -5,6 +5,11 @@ This installation procedure is tested and written only for Linux, this is becaus
 
 ## Installation
 
+Clone the repo with
+~~~
+git clone --recursive https://github.com/eagletrt/telemetry.git
+~~~
+
 ### Requirements
 - Required cmake and other stuff to compile the project:  
   ~~~
@@ -84,6 +89,21 @@ This installation procedure is tested and written only for Linux, this is becaus
   This is the latest added so please wait for the installation, OpenCV is a HUGE library but for this project only a tiny part is required. This guide will avoid installing the whole library.
 
 ### Building
+
+Cd to Protobuffer folder:
+~~~bash
+mkdir cpp python js
+chmod 777 compile
+./compile
+~~~
+
+Then run the following:
+~~~
+cd thirdparty/libharu
+bash buildconf.sh
+./configure
+~~~
+
 Once all the requirements are installed:
 ~~~bash
 mkdir build

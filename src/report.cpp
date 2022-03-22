@@ -2,11 +2,13 @@
 
 jmp_buf env;
 
+int Report::instances = 0;
+
 void error_handler  (HPDF_STATUS   error_no,
                 HPDF_STATUS   detail_no,
                 void         *user_data)
 {
-    printf ("ERROR: error_no=%04X, detail_no=%u   %04X\n", (HPDF_UINT)error_no,
+    printf ("HPDF ERROR: error_no=%04X, detail_no=%u   %04X\n", (HPDF_UINT)error_no,
                 (HPDF_UINT)detail_no, (HPDF_UINT)detail_no);
     throw runtime_error("error");
     longjmp(env, 1);
@@ -49,6 +51,8 @@ show_description (HPDF_Page    page,
 
 void Report::AddDeviceSample(Chimera* chim, Device* device)
 {
+  static int discard_distance_count = 0;
+  static int discard_voltage_count = 0;
   if (device == chim->accel){
     Imu* accel = (Imu*) device;
     if(first_timestamp == -1.0)
@@ -57,6 +61,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["accel"]["x"].push_back(accel->x);
     sensor_data["accel"]["y"].push_back(accel->y);
     sensor_data["accel"]["z"].push_back(accel->z);
+    max_g = max(max_g, max(fabs(accel->x), fabs(accel->y)));
   }else if(device == chim->gyro){
     Imu* gyro = (Imu*) device;
     if(first_timestamp == -1.0)
@@ -73,6 +78,23 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["encoder_l"]["rads"].push_back(enc->rads);
     sensor_data["encoder_l"]["km"].push_back(enc->km);
     sensor_data["encoder_l"]["rotations"].push_back(enc->rotations);
+    max_speed = max(max_speed, fabs(enc->rads));
+    if(distance_travelled.setted)
+    {
+      distance_travelled.val1 = enc->km;
+    }
+    else
+    {
+      if(discard_distance_count >= 10)
+      {
+        distance_travelled.setted = true;
+        distance_travelled.val0 = enc->km;
+      }
+      else
+      {
+        discard_distance_count ++;
+      }
+    }
   }else if(device == chim->encoder_right){
     Encoder* enc = (Encoder*) device;
     if(first_timestamp == -1.0)
@@ -81,6 +103,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["encoder_r"]["rads"].push_back(enc->rads);
     sensor_data["encoder_r"]["km"].push_back(enc->km);
     sensor_data["encoder_r"]["rotations"].push_back(enc->rotations);
+    max_speed = max(max_speed, fabs(enc->rads));
   }else if(device == chim->inverter_right){
     Inverter* inv = (Inverter*) device;
     if(first_timestamp == -1.0)
@@ -120,6 +143,34 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["bms_hv"]["max_voltage"].push_back(bms->max_voltage);
     sensor_data["bms_hv"]["min_voltage"].push_back(bms->min_voltage);
     sensor_data["bms_hv"]["power"].push_back(bms->power);
+    if(min_voltage_drop.setted)
+    {
+      min_voltage_drop.val1 = bms->min_voltage;
+    }
+    else
+    {
+      if(discard_voltage_count >= 10)
+      {
+        min_voltage_drop.setted = true;
+        min_voltage_drop.val0 = bms->min_voltage;
+      }
+      else
+      {
+        discard_voltage_count ++;
+      }
+    }
+    if(total_voltage_drop.setted)
+    {
+      total_voltage_drop.val1 = bms->voltage;
+    }
+    else
+    {
+      if(discard_voltage_count >= 10)
+      {
+        total_voltage_drop.setted = true;
+        total_voltage_drop.val0 = bms->voltage;
+      }
+    }
   }else if(device == chim->pedal){
     Pedals* pedals = (Pedals*)device;
     if(first_timestamp == -1.0)
@@ -129,6 +180,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["pedals"]["throttle2"].push_back(pedals->throttle2);
     sensor_data["pedals"]["brake_front"].push_back(pedals->brake_front);
     sensor_data["pedals"]["brake_rear"].push_back(pedals->brake_rear);
+    max_brake_pressure = max(max_brake_pressure, max(pedals->brake_front, pedals->brake_rear));
   }else if(device == chim->steer){
     Steer* steer = (Steer*)device;
     if(first_timestamp == -1.0)
@@ -144,9 +196,19 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
   }else if(device == chim->ecu){
     
   }else if(device == chim->gps1){
-    
+    Gps* gps = (Gps*)device;
+    if(gps->latitude != 0 && gps->longitude != 0)
+    {
+      sensor_data["gps1"]["latitude"].push_back(gps->latitude);
+      sensor_data["gps1"]["longitude"].push_back(gps->longitude);
+    }
   }else if(device == chim->gps2){
-    
+    Gps* gps = (Gps*)device;
+    if(gps->latitude != 0 && gps->longitude != 0)
+    {
+      sensor_data["gps2"]["latitude"].push_back(gps->latitude);
+      sensor_data["gps2"]["longitude"].push_back(gps->longitude);
+    }
   }
 }
 
@@ -204,18 +266,6 @@ void Report::Generate(const string& path, const can_stat_json& stat)
   // {"gyro", "z"}
   vector<vector<MapElement>> coupled_graphs {
     {
-      {"accel", "timestamp"},
-      {"accel", "x"},
-      {"accel", "y"},
-      {"accel", "z"}
-    },
-    {
-      {"gyro", "timestamp"},
-      {"gyro", "x"},
-      {"gyro", "y"},
-      {"gyro", "z"}
-    },
-    {
       {"encoder_l", "timestamp"},
       {"encoder_l", "rads"},
       {"encoder_r", "rads"}
@@ -254,6 +304,36 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       {"accel", "x"},
       {"pedals", "throttle1"},
       {"pedals", "brake_front"}
+    },
+    {
+      {"bms_hv", "timestamp"},
+      {"bms_hv", "voltage"}
+    },
+    {
+      {"bms_hv", "timestamp"},
+      {"bms_hv", "voltage"},
+      {"pedals", "throttle1"},
+      {"encoder_l", "rads"}
+    },
+    {
+      {"accel", "timestamp"},
+      {"accel", "x"},
+      {"accel", "y"},
+      {"accel", "z"}
+    },
+    {
+      {"gyro", "timestamp"},
+      {"gyro", "x"},
+      {"gyro", "y"},
+      {"gyro", "z"}
+    },
+    {
+      {"gps1", "latitude"},
+      {"gps1", "longitude"},
+    },
+    {
+      {"gps2", "latitude"},
+      {"gps2", "longitude"},
     }
   };
 
@@ -389,12 +469,72 @@ void Report::Generate(const string& path, const can_stat_json& stat)
     HPDF_Page_TextOut(page, 120, y, "Configuration: ");
     HPDF_Page_TextOut(page, 120, y, stat.Configuration.c_str());
     HPDF_Page_EndText(page);
+
+    {
+      stringstream ss;
+      HPDF_Page page = HPDF_AddPage (pdf);
+      HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_LANDSCAPE);
+      y = HPDF_Page_GetHeight(page);
+      y -= 120;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
+      HPDF_Page_TextOut(page, 120, y, "Race stats");
+      HPDF_Page_EndText(page);
+      y -= 64;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Distance travelled [m]: ");
+      HPDF_Page_TextOut(page, 360, y, to_string(int(distance_travelled.val1 - distance_travelled.val0)).c_str());
+      HPDF_Page_EndText(page);
+      y -= 32;
+      ss << std::fixed << setprecision(3) << (max_speed * 0.395/2.0)*3.6;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Max Speed [km/h]: ");
+      HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
+      HPDF_Page_EndText(page);
+      y -= 32;
+      ss.str("");
+      ss << max_g;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Max acceleration (both x and y) [g]: ");
+      HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
+      HPDF_Page_EndText(page);
+      y -= 32;
+      ss.str("");
+      ss << max_brake_pressure;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Max brake pressure [bar]: ");
+      HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
+      HPDF_Page_EndText(page);
+      y -= 32;
+      ss.str("");
+      ss << total_voltage_drop.val0 - total_voltage_drop.val1;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Voltage drop of total pack: ");
+      HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
+      HPDF_Page_EndText(page);
+      y -= 32;
+      ss.str("");
+      ss << min_voltage_drop.val0 - min_voltage_drop.val1;
+      HPDF_Page_BeginText(page);
+      HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
+      HPDF_Page_TextOut(page, 120, y, "Voltage drop of min cell: ");
+      HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
+      HPDF_Page_EndText(page);
+    }
   }
 
   HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
   for(int i = 0; i < coupled_graphs.size(); i++)
   {
     const std::vector<MapElement>& graph = coupled_graphs[i];
+
+    if(sensor_data[graph[0].primary][graph[0].secondary].size() < 100)
+      continue;
 
     HPDF_Page page = HPDF_AddPage (pdf);
 
@@ -408,15 +548,23 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       // Gnuplot gp("tee plot.gnu | gnuplot -persist");
 
       gp << "set terminal png size 1920,1080\n";
-      gp << "set output 'graph_" << i << ".png'\n";
+      gp << "set output 'graph_" << id << "_" << i << ".png'\n";
       gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
       gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
       gp << "set grid\n";     // Enables grid
 
       // gp << "set grid mxtics mytics\n"; // Sets grid line every x and y tick
 
-      gp << "set xrange ["<< int(sensor_data[graph[0].primary][graph[0].secondary][0]);
-      gp << ":" << int(sensor_data[graph[0].primary][graph[0].secondary].back()) << "]\n";
+      cout << graph[0].primary << " " << graph[0].secondary << endl;
+      
+      {
+        int idx = graph[0].primary.find("gps");
+        if(idx == string::npos)
+        {
+          gp << "set xrange ["<< int(sensor_data[graph[0].primary][graph[0].secondary][0]);
+          gp << ":" << int(sensor_data[graph[0].primary][graph[0].secondary].back()) << "]\n";
+        }
+      }
       // gp << "set yrange [-8:8]\n";
 
 
@@ -426,10 +574,18 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       {
         
         string title = graph[j].primary + " " + graph[j].secondary;
-        int idx = title.find('_');
-        if(idx != string::npos)
+        while(true)
+        {
+          int idx = title.find('_');
+          if(idx == string::npos)
+            break;
           title[idx] = '-';
-        command << "'-' with lines title '" << title << "'";
+        }
+        int is_gps = title.find("gps");
+        if(is_gps == string::npos)
+          command << "'-' with lines title '" << title << "'";
+        else
+          command << "'-' with points title '" << title << "'";
         if(j == graph.size()-1)
           command << "\n";
         else
@@ -484,7 +640,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
 
 
     /* load image file. */
-    image = HPDF_LoadPngImageFromFile (pdf, string("graph_"+to_string(i)+".png").c_str());
+    image = HPDF_LoadPngImageFromFile (pdf, string("graph_"+to_string(id)+"_"+to_string(i)+".png").c_str());
 
     iw = HPDF_Image_GetWidth (image);
     ih = HPDF_Image_GetHeight (image);
@@ -500,7 +656,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
     /* Draw image to the canvas. (normal-mode with actual size.)*/
     HPDF_Page_DrawImage (page, image, x, y, iw, ih);
 
-    // fs::remove("graph.png");
+    fs::remove("graph_"+to_string(id)+"_"+to_string(i)+".png");
   }
 
 

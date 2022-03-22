@@ -254,6 +254,8 @@ void parse_file(string fname)
         if (ret == 1)
         {
           *current_gps->files[0] << current_gps->get_string(",") + "\n";
+          if(config.generate_report)
+            report.AddDeviceSample(&chimera, current_gps);
         }
       }
     }

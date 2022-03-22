@@ -72,15 +72,26 @@ struct CurrentFont
   int size;
 };
 
-struct Configs
+struct Delta_ST
 {
+  double val0 = 0.0;
+  double val1 = 0.0;
+  bool setted = false;
+};
 
+struct Point_ST
+{
+  double x;
+  double y;
 };
 
 class Report
 {
 public:
-  Report(){};
+  Report(){
+    id = instances;
+    instances ++;
+  };
 
   void AddDeviceSample(Chimera* chim, Device* device);
   void Generate(const string& path, const can_stat_json& stat);
@@ -94,5 +105,17 @@ private:
   unordered_map<string, CurrentFont> c_fonts;
 
   double first_timestamp = -1.0;
+
+  double max_speed = 0.0;
+  double max_g = 0.0;
+  double max_brake_pressure = 0.0;
+  Delta_ST min_voltage_drop;
+  Delta_ST total_voltage_drop;
+  Delta_ST distance_travelled;
+
+  vector<Point_ST> gps1_coord;
+  vector<Point_ST> gps2_coord;
 private:
+  static int instances;
+  int id;
 };
