@@ -121,12 +121,12 @@ The data that telemetry produces can be found in:
 ~~~
 Folder names are explained [here](#sessionconfigjson).  
 Files that telemetry produces:  
-**Raw**:
-- candump.log: contains all raw CAN messages.
+**Raw**:  
+- candump.log: contains all raw CAN messages.  
 - gps_n.log: n is the index of the device (index in the vector of gps devices defined in [telemetry_config.json](#telemetryconfigjson)), contains raw strings coming from GPS device.  
 
-**Stats**:
-- CAN_Info.json: json formatted file containing the session infos like Race, Pilot, Configuration and some extra informations about CAN messages: number and frequency during the log session.
+**Stats**:  
+- CAN_Info.json: json formatted file containing the session infos like Race, Pilot, Configuration and some extra informations about CAN messages: number and frequency during the log session.  
 - gps_n.log: contains date and time of the log and informations about gps messages: number and frequency.
 
 **CSV**:  
@@ -134,7 +134,7 @@ If generate_csv option is enabled, in a subfolder are located a bunch of .csv fi
 The files are named as the sensor. The first line is a header, contains the column value name. Every other line is the actual sensor value.  
 
 **Example**  
-Pedals.csv contains the sensors values of the "pedals".
+Pedals.csv contains the sensors values of the "pedals".  
 *Header*  
 ~~~
 timestamp,throttle1,throttle2,brake_front,brake_rear,
@@ -155,4 +155,4 @@ timestamp,throttle1,throttle2,brake_front,brake_rear,
 1637591203.963181,33.000000,65.000000,1.246000,1.138000,
 1637591203.964085,33.000000,65.000000,1.328000,1.138000,
 ~~~
-Split each line by comma and the resul is a vector of values, each column value refers to the column name defined in the header.
+Split each line by comma and the result is a vector of values, each column value refers to the column name defined in the header.

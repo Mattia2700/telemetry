@@ -33,7 +33,6 @@ git clone --recursive https://github.com/eagletrt/telemetry.git
   sudo make install
   sudo ldconfig
   ~~~
-
   or
   ~~~
   git clone https://github.com/protocolbuffers/protobuf.git
@@ -79,7 +78,7 @@ git clone --recursive https://github.com/eagletrt/telemetry.git
 - LibHaru
   libharu is a submodule in this repo but needs a couple of commands to work properly.  
   ~~~
-  cd thitdparty/libharu
+  cd thirdparty/libharu
   buildconf.sh
   ./configure
   ~~~
