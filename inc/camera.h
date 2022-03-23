@@ -55,7 +55,7 @@ enum CamError
 	CAM_GENERAL_ERROR
 };
 
-static const char* CamErrorStr[]
+static string CamErrorStr[]
 {
 	"NONE",
 	"OPENING CAMERA",
@@ -103,6 +103,19 @@ public:
 	CamError GetError();
 
 private:
+	// State enumeration order must match the order of state method entries
+	// in the state map.
+	enum States
+	{
+		ST_NONE,
+		ST_INIT,
+		ST_IDLE,
+		ST_RUN,
+		ST_STOP,
+		ST_ERROR,
+		ST_MAX_STATES
+	};
+
 	NoEventData no_data;
 	ErrorData error_data;
 	CamError currentError;
@@ -125,6 +138,8 @@ private:
 	};
 
 	CamConfigData cam_config_data;
+public:
+	string StatesStr[ST_MAX_STATES];
 
 private:
 	void SetError(const CamError&);
@@ -133,18 +148,6 @@ private:
 	void SaveLoop();
 
 private:
-  // State enumeration order must match the order of state method entries
-	// in the state map.
-	enum States
-	{
-		ST_NONE,
-		ST_INIT,
-		ST_IDLE,
-		ST_RUN,
-		ST_STOP,
-		ST_ERROR,
-		ST_MAX_STATES
-	};
 
 	// Define the state machine state functions with event data type
 	STATE_DECLARE(Camera, 	NoneImpl,			NoEventData)

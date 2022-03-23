@@ -221,17 +221,21 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
     logger->SetOutputFolder(CURRENT_LOG_FOLDER);
     logger->SetHeader(header);
   }
+  CONSOLE.Log("Loggers DONE");
 
   dump_file = new std::fstream(CURRENT_LOG_FOLDER + "/" + "candump.log", std::fstream::out);
   (*dump_file) << header << "\n";
 
   if(tel_conf.generate_csv)
   {
-    chimera->add_filenames(CURRENT_LOG_FOLDER, ".csv");
+    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
+      create_directory(CURRENT_LOG_FOLDER + "/Parsed");
+      
+    chimera->add_filenames(CURRENT_LOG_FOLDER + "/Parsed", ".csv");
     chimera->open_all_files();
     chimera->write_all_headers(0);
   }
-  CONSOLE.Log("Done");
+  CONSOLE.Log("CSV Done");
 
   can_stat.msg_count = 0;
   can_stat.duration = get_timestamp();
@@ -917,6 +921,10 @@ void TelemetrySM::SendStatus()
         val.AddMember(Value().SetString(el.first.c_str(), alloc), el.second, alloc);
       }
       d.AddMember("msgs_per_second", val, alloc);
+      auto cam_state = camera.StatesStr[camera.GetCurrentState()];
+      auto cam_error = CamErrorStr[camera.GetError()];
+      d.AddMember("camera_status", Value().SetString(cam_state.c_str(), cam_state.size(), alloc), alloc);
+      d.AddMember("camera_error", Value().SetString(cam_error.c_str(), cam_error.size(), alloc), alloc);
 
       d.Accept(w);
 

@@ -4,6 +4,13 @@ Camera::Camera() :
 	StateMachine(ST_MAX_STATES)
 {
 	SetError(CAM_NONE);
+
+	StatesStr[ST_NONE] = "ST_NONE";
+	StatesStr[ST_INIT] = "ST_INIT";
+	StatesStr[ST_IDLE] = "ST_IDLE";
+	StatesStr[ST_RUN] = "ST_RUN";
+	StatesStr[ST_STOP] = "ST_STOP";
+	StatesStr[ST_ERROR] = "ST_ERROR";
 }
 
 void Camera::Init(CamInitData* data)
@@ -154,7 +161,6 @@ STATE_DEFINE(Camera, ErrorImpl, ErrorData)
 CamError Camera::GetError()
 {
 	CamError err = currentError;
-	currentError = CamError::CAM_NONE;
 	return err;
 }
 
