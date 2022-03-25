@@ -16,7 +16,7 @@ string serial::read_line(char separator){
       if(read(fd, &ch, 1) <= 0){
         break;
       }
-      if(ch == separator || ch == '\0'|| ch == '\00' || ch == '\000')
+      if(ch == separator)
         break;
       line += ch;
   };

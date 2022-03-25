@@ -7,6 +7,7 @@
 
 #include "utils.h"
 #include "devices.h"
+#include "ubxparser.h"
 #include "devices.pb.h"
 #include <google/protobuf/text_format.h>
 #include <google/protobuf/util/json_util.h>

@@ -693,6 +693,10 @@ void TelemetrySM::SetupGps()
 // Callback, fires every time a line from a GPS is received
 void TelemetrySM::OnGpsLine(int id, string line)
 {
+  UBX_MSG_MATCH match {0x01, 0x07, 92};
+  UBX_MSG_PVT msg;
+  UBX_MSG_PVT* msg_ptr = &msg;
+
   Gps* gps = nullptr;
 
   // Selecting one of chimera GPS
@@ -731,6 +735,34 @@ void TelemetrySM::OnGpsLine(int id, string line)
   {
     // cout << ret << " " << line << endl;
   }
+
+  // if(ret == 1)
+  //   return;
+  auto ptr = (uint8_t*)line.c_str();
+  int idx = -1;
+  for(int i = 0; i < line.size(); i++)
+  {
+    if(*(ptr + i + 0) == 0xb5 && *(ptr + i + 1) == 0x62)
+    {
+      if(*(ptr + i + 2) == match.msgClass && *(ptr + i + 3) == match.msgID)
+      {
+        uint16_t sz = (*(ptr + i + 5) << 8) | *(ptr + i + 4);
+        if(sz == (match.length))
+        {
+          idx = i + 2;
+        }
+      }
+    }
+  }
+  if(idx == -1)
+    return;
+  msg = *(UBX_MSG_PVT*)(void*)(ptr + idx + sizeof(UBX_MSG_MATCH));
+  cout << (int)msg.day << endl;
+  // cout << line.size() << "\t" << idx << "\t" << line << endl;
+  // cout << line.size() << "\t" << idx << "\t";
+  // for(int i = 0; i < line.size(); i++)
+  //   cout << get_hex((int)line[i], 2) << " ";
+  // cout << endl;
 }
 
 

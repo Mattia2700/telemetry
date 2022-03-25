@@ -177,7 +177,7 @@ void GpsLogger::Run()
     {
       try
       {
-        line = m_Serial->read_line('\n');
+        line = '$' + m_Serial->read_line('$');
       }
       catch(std::exception e)
       {

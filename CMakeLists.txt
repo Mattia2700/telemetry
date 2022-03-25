@@ -95,6 +95,7 @@ add_library(
 
   src/devices.cpp
   src/vehicle.cpp
+  src/ubxparser.cpp
   src/gps_logger.cpp
   src/report.cpp
 
