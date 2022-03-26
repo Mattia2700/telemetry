@@ -22,7 +22,7 @@ def findAllFiles(path, extension):
 def compressFolders(paths, zipPath):
     print("COMPRESSING")
 
-    zf = ZipFile(os.path.join(zipPath, "CSV.zip"), "w", compression=ZIP_STORED)
+    zf = ZipFile(os.path.join(zipPath, "MatFiles.zip"), "w", compression=ZIP_STORED)
 
     for path in tqdm(paths):
         zf.write(path, path.replace(zipPath, ""))
@@ -32,7 +32,7 @@ def compressFolders(paths, zipPath):
 
 
 if __name__ == "__main__":
-    browser = terminalBrowser(startPath="/home/filippo/Downloads")
+    browser = terminalBrowser(startPath="/home/")
     base_path = browser.browse()
 
     files = findAllFiles(base_path, ".csv")
@@ -45,13 +45,15 @@ if __name__ == "__main__":
     mat_total_file_size = 0
     for file in tqdm(files):
         try:
-            csv = read_csv(file, sep=';', index_col=False)
+            csv = read_csv(file, sep=',', index_col=False)
         except:
             pass
 
         values = {}
         for i, col in enumerate(csv.columns):
-            values[col] = csv.iloc[:,i].values
+            if("Unnamed" in col):
+                continue
+            values[col] = csv.iloc[:,i].values.transpose()
 
         new_fname = file.replace(".csv", ".mat")
         scipy.io.savemat(new_fname, values)
@@ -61,5 +63,6 @@ if __name__ == "__main__":
         mat_total_file_size += os.path.getsize(new_fname)
 
     zip_size = compressFolders(to_zip, base_path)
+    print("Path parsed: " + base_path)
     print("CSV total files sizes: {} Mb".format(csv_total_file_size/1000000))
     print("MAT total files sizes: {} Mb".format(mat_total_file_size/1000000))

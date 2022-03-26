@@ -687,6 +687,27 @@ void Chimera::parse_message(const double& timestamp, const int &id, const uint8_
 
 int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
 {
+
+
+  UBX_MSG_PVT msg;
+  if(parse_ubx_line(line, msg))
+  {
+    gps_->clear();
+    gps_->timestamp = timestamp;
+    gps_->msg_type = "UBX";
+    gps_->latitude = ((double)msg.lat) * 10e-8;
+    gps_->longitude = ((double)msg.lon) * 10e-8;
+    gps_->altitude = msg.hMSL * 10e-4;
+    gps_->speed_kmh = msg.gSpeed * 3.6 * 10e-4;
+    gps_->heading_motion = ((double)msg.headMot) * 10e-6;
+    gps_->speed_accuracy = msg.sAcc * 3.6 * 10e-4;
+    gps_->heading_accuracy_estimate = ((double)msg.headAcc) * 10e-6;
+    gps_->position_diluition_precision = ((double)msg.pDOP) * 0.01;
+    gps_->age_of_correction = (uint8_t)(msg.flags3 & 0b0000000000011110);
+    gps_->heading_vehicle = ((double)msg.headVeh) * 10e-6;
+    return 1;
+  }
+
   auto idx = line.find('$');
   if(idx == string::npos)
     return -1;

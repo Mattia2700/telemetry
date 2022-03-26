@@ -3,9 +3,15 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <string>
 
 
-// Page 141 of interface manual ublox
+#include "utils.h"
+
+using namespace std;
+
+
+// Page 145 of interface manual ublox
 // header: 0xb5 0x62
 // class : 0x01
 // id    : 0x07
@@ -41,6 +47,7 @@ struct UBX_MSG_PVT
   uint32_t headAcc;
   uint16_t pDOP;
   uint16_t flags3;
+  uint32_t reserved;
   int32_t  headVeh;
   int16_t  magDec;
   uint16_t magAcc;
@@ -52,3 +59,15 @@ struct UBX_MSG_MATCH
   uint8_t  msgID;
   uint16_t length;
 };
+
+
+//////
+
+bool parse_ubx_line(const string& line, UBX_MSG_PVT& msg);
+
+
+uint16_t reverse16(const uint16_t& in);
+uint32_t reverse32(const uint32_t& in);
+
+int16_t reversei16(const int16_t& in);
+int32_t reversei32(const int32_t& in);

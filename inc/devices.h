@@ -299,6 +299,12 @@ public:
 		position_diluition_precision = 0.0;
 		horizontal_diluition_precision = 0.0;
 		vertical_diluition_precision = 0.0;
+
+		heading_valid = false;
+		heading_vehicle = 0.0;
+		heading_motion = 0.0;
+		heading_accuracy_estimate = 0.0;
+		speed_accuracy = 0.0;
 	}
 
 	double timestamp;
@@ -318,4 +324,10 @@ public:
 	double position_diluition_precision;
 	double horizontal_diluition_precision;
 	double vertical_diluition_precision;
+
+	bool heading_valid;
+	double heading_vehicle;
+	double heading_motion;
+	double heading_accuracy_estimate;
+	double speed_accuracy;
 };

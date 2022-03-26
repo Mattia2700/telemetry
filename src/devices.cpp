@@ -538,7 +538,13 @@ std::string Gps::get_header(std::string separator)
 	<< "mode" + separator
 	<< "position_diluition_precision" + separator
 	<< "horizontal_diluition_precision" + separator
-	<< "vertical_diluition_precision" + separator;
+	<< "vertical_diluition_precision" + separator
+
+	<< "heading_valid" + separator
+	<< "heading_vehicle" + separator
+	<< "heading_motion" + separator
+	<< "heading_accuracy_estimate" + separator
+	<< "speed_accuracy" + separator;
 	return ss.str();
 }
 std::string Gps::get_string(std::string separator)
@@ -561,7 +567,13 @@ std::string Gps::get_string(std::string separator)
 	<< mode + separator
 	<< position_diluition_precision << separator
 	<< horizontal_diluition_precision << separator
-	<< vertical_diluition_precision << separator;
+	<< vertical_diluition_precision << separator
+
+	<< heading_valid << separator
+	<< heading_vehicle << separator
+	<< heading_motion << separator
+	<< heading_accuracy_estimate << separator
+	<< speed_accuracy << separator;
 	return ss.str();
 }
 Document Gps::get_json()
@@ -587,6 +599,12 @@ Document Gps::get_json()
 	d.AddMember("horizontal_diluition_precision", horizontal_diluition_precision, alloc);
 	d.AddMember("vertical_diluition_precision", vertical_diluition_precision, alloc);
 
+	d.AddMember("heading_valid", heading_valid, alloc);
+	d.AddMember("heading_vehicle", heading_vehicle, alloc);
+	d.AddMember("heading_motion", heading_motion, alloc);
+	d.AddMember("heading_accuracy_estimate", heading_accuracy_estimate, alloc);
+	d.AddMember("speed_accuracy", speed_accuracy, alloc);
+
 	return d;
 }
 void Gps::serialize(devices::Gps* gps)
@@ -608,6 +626,13 @@ void Gps::serialize(devices::Gps* gps)
 	gps->set_position_diluition_precision(position_diluition_precision);
 	gps->set_horizontal_diluition_precision(horizontal_diluition_precision);
 	gps->set_vertical_diluition_precision(vertical_diluition_precision);
+
+	gps->set_heading_valid(heading_valid);
+	gps->set_heading_vehicle(heading_vehicle);
+	gps->set_heading_motion(heading_motion);
+	gps->set_heading_accuracy_estimate(heading_accuracy_estimate);
+	gps->set_speed_accuracy(speed_accuracy);
+
 }
 std::string Gps::get_readable()
 {
@@ -630,7 +655,13 @@ std::string Gps::get_readable()
 	<< "\tmode -> \t" << mode << "\n"
 	<< "\tposition_diluition_precision -> \t" << position_diluition_precision << "\n"
 	<< "\thorizontal_diluition_precision -> \t" << horizontal_diluition_precision << "\n"
-	<< "\tvertical_diluition_precision -> \t" << vertical_diluition_precision << "\n";
+	<< "\tvertical_diluition_precision -> \t" << vertical_diluition_precision << "\n"
+
+	<< "\theading_valid -> \t" << heading_valid << "\n"
+	<< "\theading_vehicle -> \t" << heading_vehicle << "\n"
+	<< "\theading_motion -> \t" << heading_motion << "\n"
+	<< "\theading_accuracy_estimate -> \t" << heading_accuracy_estimate << "\n"
+	<< "\tspeed_accuracy -> \t" << speed_accuracy << "\n";
 	return ss.str();
 }
 

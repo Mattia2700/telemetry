@@ -85,6 +85,12 @@ message Gps {
 	optional double position_diluition_precision = 15;
 	optional double horizontal_diluition_precision = 16;
 	optional double vertical_diluition_precision = 17;
+
+	optional bool heading_valid = 18;
+	optional double heading_vehicle = 19;
+	optional double heading_motion = 20;
+	optional double heading_accuracy_estimate = 21;
+	optional double speed_accuracy = 22;
 }
 
 
