@@ -39,7 +39,7 @@ struct GPS_Stat_t
 class GpsLogger
 {
 public:
-  GpsLogger(string device);
+  GpsLogger(int id, string device);
 
   void SetOutFName(const string& fname);
   void SetOutputFolder(const string& folder);
@@ -93,6 +93,4 @@ private:
 
   GPS_Stat_t stat;
   int id;
-
-  static int instance_id;
 };

@@ -25,6 +25,7 @@ TelemetrySM::TelemetrySM()
   ws_cli_thread = nullptr;
 
   kill_threads.store(false);
+  wsRequestState = ST_MAX_STATES;
 }
 
 TelemetrySM::~TelemetrySM()
@@ -89,11 +90,11 @@ STATE_DEFINE(TelemetrySM, UninitializedImpl, NoEventData)
 STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
 {
   CONSOLE.LogStatus("INIT");
+
+  kill_threads.store(false);
   // Loading json configurations
   CONSOLE.Log("Loading all config");
   LoadAllConfig();
-  for(int i = 0; i < tel_conf.gps_enabled.size(); i++)
-    CONSOLE.LogError(tel_conf.gps_enabled[i]);
   TEL_ERROR_CHECK
   CONSOLE.Log("Done");
 
@@ -119,9 +120,11 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   CONSOLE.Log("Done");
 
 
+  CONSOLE.Log("Chimera and WS instances");
   chimera = new Chimera();
   ws_cli = new WebSocketClient();
   ws_conn_thread = new thread(&TelemetrySM::ConnectToWS, this);
+  CONSOLE.Log("DONE");
   TEL_ERROR_CHECK
 
   SetupGps();
@@ -156,16 +159,25 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
   can_frame message;
   double timestamp;
   vector<Device *> modifiedDevices;
+
+  string dev = can->get_device();
   while (GetCurrentState() == ST_IDLE)
   {
     can->receive(&message);
     timestamp = get_timestamp();
-    msgs_counters["can"] ++;
+    msgs_counters[dev] ++;
+
+    if(wsRequestState == ST_UNINITIALIZED)
+    {
+      wsRequestState = ST_MAX_STATES;
+      InternalEvent(ST_UNINITIALIZED);
+      break;
+    }
 
     if(wsRequestState == ST_RUN || (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
       message.data[0] == 0x66 && message.data[1] == 0x01))
     {
-      wsRequestState = ST_UNINITIALIZED;
+      wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_RUN);
       break;
     }
@@ -265,12 +277,14 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
   static can_frame message;
   double timestamp;
   vector<Device *> modifiedDevices;
+
+  string dev = can->get_device();
   while(GetCurrentState() == ST_RUN)
   {
     timestamp = get_timestamp();
     can->receive(&message);
     can_stat.msg_count++;
-    msgs_counters["can"] ++;
+    msgs_counters[dev] ++;
 
 
     LogCan(timestamp, message);
@@ -310,7 +324,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     if (wsRequestState == ST_STOP || (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
         message.data[0] == 0x66 && message.data[1] == 0x00))
     {
-      wsRequestState = ST_UNINITIALIZED;
+      wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_STOP);
       break;
     }
@@ -376,43 +390,6 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
 
   kill_threads.store(true);
 
-  if(dump_file != nullptr)
-  {
-    if(dump_file->is_open())
-      dump_file->close();
-    delete dump_file;
-    dump_file = nullptr;
-  }
-  CONSOLE.Log("Closed dump file");
-
-  if(can != nullptr && can->is_open())
-  {
-    can->close_socket();
-    delete can;
-    can = nullptr;
-  }
-  CONSOLE.Log("Closed can socket");
-
-  if(chimera != nullptr)
-  {
-    chimera->clear_serialized();
-    chimera->close_all_files();
-    delete chimera;
-    chimera = nullptr;
-  }
-  CONSOLE.Log("Deleted vehicle");
-
-  for(int i = 0; i < gps_loggers.size(); i++)
-  {
-    if(gps_loggers[i] == nullptr)
-      continue;
-    gps_loggers[i]->Kill();
-    gps_loggers[i]->WaitForEnd();
-    delete gps_loggers[i];
-  }
-  gps_loggers.resize(0);
-  CONSOLE.Log("Closed gps loggers");
-
   if(data_thread != nullptr)
   {
     if(data_thread->joinable())
@@ -454,10 +431,48 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Stopped connection");
 
+  if(dump_file != nullptr)
+  {
+    if(dump_file->is_open())
+      dump_file->close();
+    delete dump_file;
+    dump_file = nullptr;
+  }
+  CONSOLE.Log("Closed dump file");
+
+  if(can != nullptr && can->is_open())
+  {
+    can->close_socket();
+    delete can;
+    can = nullptr;
+  }
+  CONSOLE.Log("Closed can socket");
+
+  for(int i = 0; i < gps_loggers.size(); i++)
+  {
+    if(gps_loggers[i] == nullptr)
+      continue;
+    gps_loggers[i]->Kill();
+    gps_loggers[i]->WaitForEnd();
+    delete gps_loggers[i];
+  }
+  gps_loggers.resize(0);
+  CONSOLE.Log("Closed gps loggers");
+
+  if(chimera != nullptr)
+  {
+    chimera->clear_serialized();
+    chimera->close_all_files();
+    delete chimera;
+    chimera = nullptr;
+  }
+  CONSOLE.Log("Deleted vehicle");
+
   msgs_counters.clear();
   msgs_per_second.clear();
   timers.clear();
 
+  ws_conn_state = ConnectionState_::NONE;
   currentError = TelemetryError::TEL_NONE;
 
   kill_threads.store(false);
@@ -678,10 +693,16 @@ void TelemetrySM::SetupGps()
 
     CONSOLE.Log("Initializing ", dev, mode, enabled);
 
-    GpsLogger* gps = new GpsLogger(dev);
+    int id;
+    if(i == 0)
+      id = chimera->gps1->get_id();
+    else if(i == 1)
+      id = chimera->gps2->get_id();
+
+    GpsLogger* gps = new GpsLogger(id, dev);
     gps->SetOutFName("gps_" + to_string(i));
-    msgs_counters["gps_" + to_string(i)] = 0;
-    msgs_per_second["gps_" + to_string(i)] = 0;
+    msgs_counters["gps_" + to_string(id)] = 0;
+    msgs_per_second["gps_" + to_string(id)] = 0;
     if(mode == "file")
       gps->SetMode(MODE_FILE);
     else
@@ -698,9 +719,9 @@ void TelemetrySM::OnGpsLine(int id, string line)
   Gps* gps = nullptr;
 
   // Selecting one of chimera GPS
-  if(id == 0)
+  if(id == chimera->gps1->get_id())
     gps = chimera->gps1;
-  else if(id == 1)
+  else if(id == chimera->gps2->get_id())
     gps = chimera->gps2;
 
   // Parsing GPS data
@@ -763,6 +784,7 @@ void TelemetrySM::ConnectToWS()
     ws_cli->set_data("{\"identifier\":\"telemetry\"}");
     ws_conn_state = ConnectionState_::CONNECTING;
   }
+  CONSOLE.LogError("KILLED");
 }
 
 void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, message_ptr msg)
@@ -848,6 +870,11 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
     CONSOLE.Log("Requested Kill (from ws)");
     exit(0);
   }
+  else if(req["type"] == "telemetry_reset")
+  {
+    CONSOLE.Log("Requested Reset (from ws)");
+    wsRequestState = ST_UNINITIALIZED;
+  }
   else if(req["type"] == "telemetry_start")
   {
     CONSOLE.Log("Requested Start (from ws)");
@@ -894,16 +921,14 @@ void TelemetrySM::SendStatus()
     msg_data[0] = is_in_run;
     can->send(0x99, msg_data, 1);
 
-    
-    msgs_per_second["can"] = msgs_counters["can"];
-    for(int i = 0; i < gps_loggers.size(); i++)
+    string str;
+    for(auto el : msgs_counters)
     {
-      msgs_per_second["gps_"+to_string(i)] = msgs_counters["gps_"+to_string(i)];
-      msgs_counters["gps_"+to_string(i)] = 0;
+      msgs_per_second[el.first] = msgs_counters[el.first];
+      msgs_counters[el.first] = 0;
+      str += el.first + " " + to_string(msgs_per_second[el.first]) + " ";
     }
-    msgs_counters["can"] = 0;
-    CONSOLE.Log("Status",StatesStr[GetCurrentState()],"MSGS per second: CAN", msgs_per_second["can"],
-            "gps_0", msgs_per_second["gps_0"], "gps_1", msgs_per_second["gps_1"]);
+    CONSOLE.Log("Status",StatesStr[GetCurrentState()],"MSGS per second: " + str);
 
     if(tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
     {
@@ -950,6 +975,8 @@ void TelemetrySM::SendWsData()
       usleep(500000);
     while(ws_conn_state == ConnectionState_::CONNECTED)
     {
+      if(kill_threads.load() == true)
+        break;
       usleep(1000 * tel_conf.ws_send_rate);
 
       if(!tel_conf.ws_send_sensor_data)

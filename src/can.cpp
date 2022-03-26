@@ -18,6 +18,11 @@ bool Can::is_open()
 	return opened;
 }
 
+const char* Can::get_device()
+{
+	return device;
+}
+
 int Can::open_socket(){
   int can_socket;
 	struct ifreq ifr;

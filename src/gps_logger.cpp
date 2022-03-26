@@ -1,8 +1,6 @@
 #include "gps_logger.h"
 
-int GpsLogger::instance_id = 0;
-
-GpsLogger::GpsLogger(string device)
+GpsLogger::GpsLogger(int id_, string device)
 {
   m_Device = device;
 
@@ -13,8 +11,7 @@ GpsLogger::GpsLogger(string device)
   m_Running = false;
   m_StateChanged = false;
 
-  id = instance_id;
-  GpsLogger::instance_id++;
+  id = id_;
 
   m_Thread = new thread(&GpsLogger::Run, this);
 }
@@ -150,12 +147,12 @@ void GpsLogger::Run()
   int line_fail_count = 0;
   int file_fail_count = 0;
 
-  CONSOLE.Log("GPS", id, "Run");
+  CONSOLE.Log("GPS", id, "Run thread");
 
   while(!m_Kill)
   {
     unique_lock<mutex> lck(mtx);
-    while(!m_Running)
+    while(!m_Running && !m_Kill)
       cv.wait(lck);
 
 
@@ -173,6 +170,7 @@ void GpsLogger::Run()
 
     m_StateChanged = false;
     int blank_lines_count = 0;
+    CONSOLE.Log("GPS",id,"Running");
     while(m_Running)
     {
       try
@@ -193,7 +191,7 @@ void GpsLogger::Run()
         continue;
       }
       // When receiving continuously blank lines, sleep a bit
-      if(line == ""){
+      if(line == "$"){
         blank_lines_count ++;
         if(blank_lines_count > 10)
           usleep(1000);

@@ -1,2 +1,6 @@
-matplotlib
-folium
+numpy
+scipy
+tqdm
+pandas
+getch
+termcolor

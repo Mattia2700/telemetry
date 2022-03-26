@@ -20,6 +20,8 @@
 #include <math.h>
 #include <sys/time.h> // gettimeofday
 
+#include <mutex>
+
 using namespace std;
 
 
@@ -203,24 +205,28 @@ namespace Debug
       template<typename... Args>
       void Log(Args... args)
       {
+        unique_lock<mutex> lck(mtx);
         DebugMessage(LogImpl(args...));
       }
 
       template<typename... Args>
       void LogStatus(Args... args)
       {
+        unique_lock<mutex> lck(mtx);
         StatMessage(LogImpl(args...));
       }
 
       template<typename... Args>
       void LogWarn(Args... args)
       {
+        unique_lock<mutex> lck(mtx);
         WarnMessage(LogImpl(args...));
       }
 
       template<typename... Args>
       void LogError(Args... args)
       {
+        unique_lock<mutex> lck(mtx);
         ErrorMessage(LogImpl(args...));
       }
 
@@ -233,6 +239,8 @@ namespace Debug
         bool save_all_console_messages { false };
         time_t start;
         bool is_first_time { true };
+
+        mutex mtx;
 
         std::ofstream console_messages; // Store all console messages
 

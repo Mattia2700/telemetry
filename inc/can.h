@@ -54,6 +54,11 @@ public:
   bool is_open();
 
   /**
+   * Returns device name
+  */
+  const char* get_device();
+
+  /**
   * Sends an array of bytes
   *
   * @param id message id
