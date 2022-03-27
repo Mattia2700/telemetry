@@ -900,13 +900,13 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
   {
     CONSOLE.Log("Requested action: telemetry_action_zip_logs");
     unique_lock<mutex> lck(mtx);
-    action_string = "cd /home/pi/telemetry/python && python3 zip_logs.py";
+    action_string = "cd /home/pi/telemetry/python && python3 zip_logs.py all";
   }
   else if(req["type"] == "telemetry_action_zip_and_move")
   {
     CONSOLE.Log("Requested action: telemetry_action_zip_and_move");
     unique_lock<mutex> lck(mtx);
-    action_string = "cd /home/pi/telemetry/python && python3 zip_and_move.py";
+    action_string = "cd /home/pi/telemetry/python && python3 zip_and_move.py all";
   }
   else if(req["type"] == "telemetry_action_raw")
   {
@@ -1054,18 +1054,21 @@ void TelemetrySM::ActionThread()
     try
     {
       CONSOLE.Log("Starting command:", cmd_copy);
+      string status = "Action: " + cmd_copy + " ----> started";
+      ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
+
       int ret = system(cmd_copy.c_str());
       if(ret == 0)
       {
-        string result = "Action: " + cmd_copy + " ----> successful";
-        CONSOLE.Log(result);
-        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+result+"\"}");
+        status = "Action: " + cmd_copy + " ----> successful";
+        CONSOLE.Log(status);
+        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
       }
       else
       {
-        string result = "Action: " + cmd_copy + " ----> failed with code: " + to_string(ret);
-        CONSOLE.LogError(result);
-        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+result+"\"}");
+        status = "Action: " + cmd_copy + " ----> failed with code: " + to_string(ret);
+        CONSOLE.LogError(status);
+        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
       }
     }
     catch(exception e)

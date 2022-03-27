@@ -1,4 +1,5 @@
 import os
+import sys
 import shutil
 from zipfile import *
 from tqdm import tqdm
@@ -30,20 +31,43 @@ def compressFolders(paths, zipPath):
 
 
 if __name__ == "__main__":
+    if(len(sys.argv) != 2):
+        print("HELP:\narguments accepted: \n all,\n csv,\n csv_json,\n csv_json_log,\n log,\n json,\n avi,\n log_avi,\n")
+        exit(0)
+
     home = os.path.expanduser("~")
     base_path = home + "/logs"
 
-    files = findAllFiles(base_path, ".csv")
-    files += findAllFiles(base_path, ".log")
-    files += findAllFiles(base_path, ".json")
+    usb_mount = ""
+    for i in range(10):
+        path = "/media/usb" + str(i)
+        if os.path.ismount(path):
+            usb_mount = path
+            break
+    if(usb_mount == ""):
+        print("No usb stick found")
+        exit(1)
+
+    if(os.path.isfile(os.path.join(base_path, "logs.zip"))):
+        os.remove(os.path.join(base_path, "logs.zip"))
+
+    files = []
+    arg = sys.argv[1]
+    if(arg == "all"):
+        arg = "csv_json_log_avi"
+    if("csv" in arg):
+        files += findAllFiles(base_path, ".csv")
+    if("log" in arg):
+        files += findAllFiles(base_path, ".log")
+    if("json" in arg):
+        files += findAllFiles(base_path, ".json")
+    if("avi" in arg):
+        files += findAllFiles(base_path, ".avi")
 
     print("Found {} files.".format(len(files)))
     print("Start zipping")
 
     compressFolders(files, base_path)
 
-    for i in range(10):
-        path = "/media/usb" + str(i)
-        if os.path.ismount(path):
-            shutil.copy(base_path + "/logs.zip", path + "/logs.zip")
-            break
+    shutil.copy(base_path + "/logs.zip", usb_mount + "/logs.zip")
+    exit(0)
