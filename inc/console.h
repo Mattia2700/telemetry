@@ -9,7 +9,7 @@
 * v2.0 - No more single header file. Added message system time.
          Fix class style.
 */
-
+#include <string.h>
 #include <iostream>
 #include <iomanip>
 #include <unistd.h>
@@ -334,3 +334,5 @@ namespace Debug
 }; // namespace debug
 
 #define CONSOLE Debug::Console::Get()
+
+#define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)

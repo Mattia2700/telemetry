@@ -82,20 +82,23 @@ int main(){
     message msg;
     vector<string> lines;
     get_lines(file, &lines);
-    double prev_timestamp = -1;
-    auto start_time = steady_clock::now();
-    for(int i = 20; i < lines.size(); i++){
-      if(!parse_message(lines [i], &msg))
-        continue;
+    while(true)
+    {
+      double prev_timestamp = -1;
+      auto start_time = steady_clock::now();
+      for(int i = 20; i < lines.size(); i++){
+        if(!parse_message(lines [i], &msg))
+          continue;
 
-      
-      can->send(msg.id, (char*)msg.data, msg.size);
+        
+        can->send(msg.id, (char*)msg.data, msg.size);
 
-      if(prev_timestamp > 0){
-        usleep((msg.timestamp - prev_timestamp)*1000000);
+        if(prev_timestamp > 0){
+          usleep((msg.timestamp - prev_timestamp)*100000);
+        }
+
+        prev_timestamp = msg.timestamp;
       }
-
-      prev_timestamp = msg.timestamp;
     }
   }
 

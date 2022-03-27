@@ -730,13 +730,15 @@ void TelemetrySM::SetupGps()
 // Callback, fires every time a line from a GPS is received
 void TelemetrySM::OnGpsLine(int id, string line)
 {
-  Gps* gps = nullptr;
+  Gps* gps;
 
   // Selecting one of chimera GPS
   if(id == chimera->gps1->get_id())
     gps = chimera->gps1;
   else if(id == chimera->gps2->get_id())
     gps = chimera->gps2;
+  else
+    return;
 
   // Parsing GPS data
   int ret = 0;
