@@ -829,9 +829,9 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
     {
       sesh_config.Configuration = req["data"]["Configuration"].GetString();
       sesh_config.Race = req["data"]["Race"].GetString();
-      if(req["data"]["Pilot"].GetString() != "")
+      if(string(req["data"]["Pilot"].GetString()) != "")
         sesh_config.Pilot = req["data"]["Pilot"].GetString();
-      if(req["data"]["Circuit"].GetString() != "")
+      if(string(req["data"]["Circuit"].GetString()) != "")
         sesh_config.Circuit = req["data"]["Circuit"].GetString();
 
       SaveAllConfig();
