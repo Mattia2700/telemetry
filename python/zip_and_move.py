@@ -67,7 +67,13 @@ if __name__ == "__main__":
     print("Found {} files.".format(len(files)))
     print("Start zipping")
 
+    if(os.path.isfile(os.path.join(usb_mount, "logs.zip"))):
+        os.remove(os.path.join(usb_mount, "logs.zip"))
+
+
     compressFolders(files, base_path)
+
+    print("Movind to stick")
 
     shutil.copy(base_path + "/logs.zip", usb_mount + "/logs.zip")
     exit(0)

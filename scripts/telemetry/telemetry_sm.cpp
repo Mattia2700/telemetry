@@ -92,6 +92,9 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
 {
   CONSOLE.LogStatus("INIT");
 
+  cpu_total_load_init();
+  cpu_process_load_init();
+
   kill_threads.store(false);
   // Loading json configurations
   CONSOLE.Log("Loading all config");
@@ -984,6 +987,11 @@ void TelemetrySM::SendStatus()
       auto cam_error = CamErrorStr[camera.GetError()];
       d.AddMember("camera_status", Value().SetString(cam_state.c_str(), cam_state.size(), alloc), alloc);
       d.AddMember("camera_error", Value().SetString(cam_error.c_str(), cam_error.size(), alloc), alloc);
+
+
+      d.AddMember("cpu_total_load", cpu_total_load_value(), alloc);
+      d.AddMember("cpu_process_load", cpu_process_load_value(), alloc);
+      d.AddMember("mem_process_load", mem_process_load_value(), alloc);
 
       d.Accept(w);
 

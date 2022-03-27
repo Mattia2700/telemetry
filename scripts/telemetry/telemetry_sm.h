@@ -17,6 +17,7 @@
 #include "serial.h"
 #include "vehicle.h"
 #include "gps_logger.h"
+#include "loads.h"
 
 #ifdef WITH_CAMERA
 #include "camera.h"

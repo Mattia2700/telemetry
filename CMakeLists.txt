@@ -79,6 +79,7 @@ add_library(
   src/browse.cpp
   src/serial.cpp
   src/console.cpp
+  src/loads.cpp
 
   src/wsclient.cpp
 )
