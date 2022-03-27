@@ -695,8 +695,12 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
     gps_->clear();
     gps_->timestamp = timestamp;
     gps_->msg_type = "UBX";
-    gps_->latitude = ((double)msg.lat) * 10e-8;
-    gps_->longitude = ((double)msg.lon) * 10e-8;
+    // gps_->latitude = ((double)msg.lat) * 10e-8;
+    // gps_->longitude = ((double)msg.lon) * 10e-8;
+    // From this message the coord are kinda different to check
+    gps_->latitude = 0.0;
+    gps_->longitude = 0.0;
+
     gps_->altitude = msg.hMSL * 10e-4;
     gps_->speed_kmh = msg.gSpeed * 3.6 * 10e-4;
     gps_->heading_motion = ((double)msg.headMot) * 10e-6;
@@ -780,6 +784,7 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
   }
   else if(s_line[0] == "GSA")
   {
+    cout << s_line.size() << endl;
     if(s_line.size() != 19)
       return -5;
 

@@ -106,6 +106,8 @@ private:
 	Camera camera;
 #endif
 
+	string action_string;
+
 	// Threads
 	mutex mtx;
 	atomic<bool> kill_threads;
@@ -114,6 +116,7 @@ private:
 	thread* status_thread;
 	thread* ws_conn_thread;
 	thread* ws_cli_thread;
+	thread* actions_thread;
 
 	// JSON
 	telemetry_config tel_conf;
@@ -159,6 +162,10 @@ private:
 	void SendWsData();
 	void SendStatus();
 	void OnMessage(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+
+
+	// Actions
+	void ActionThread();
 
 
 	// State Machine

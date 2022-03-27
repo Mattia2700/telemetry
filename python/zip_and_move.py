@@ -1,4 +1,5 @@
 import os
+import shutil
 from zipfile import *
 from tqdm import tqdm
 
@@ -40,3 +41,9 @@ if __name__ == "__main__":
     print("Start zipping")
 
     compressFolders(files, base_path)
+
+    for i in range(10):
+        path = "/media/usb" + str(i)
+        if os.path.ismount(path):
+            shutil.copy(base_path + "/logs.zip", path + "/logs.zip")
+            break

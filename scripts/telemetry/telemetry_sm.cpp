@@ -23,6 +23,7 @@ TelemetrySM::TelemetrySM()
   status_thread = nullptr;
   ws_conn_thread = nullptr;
   ws_cli_thread = nullptr;
+  actions_thread = nullptr;
 
   kill_threads.store(false);
   wsRequestState = ST_MAX_STATES;
@@ -124,6 +125,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   chimera = new Chimera();
   ws_cli = new WebSocketClient();
   ws_conn_thread = new thread(&TelemetrySM::ConnectToWS, this);
+  actions_thread = new thread(&TelemetrySM::ActionThread, this);
   CONSOLE.Log("DONE");
   TEL_ERROR_CHECK
 
@@ -389,6 +391,15 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   CONSOLE.LogStatus("DEINITIALIZE");
 
   kill_threads.store(true);
+
+  if(actions_thread != nullptr)
+  {
+    if(actions_thread->joinable())
+      actions_thread->join();
+    delete actions_thread;
+    actions_thread = nullptr;
+  }
+  CONSOLE.Log("Stopped actions thread");
 
   if(data_thread != nullptr)
   {
@@ -885,6 +896,27 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
     CONSOLE.Log("Requested Stop (from ws)");
     wsRequestState = ST_STOP;
   }
+  else if(req["type"] == "telemetry_action_zip_logs")
+  {
+    CONSOLE.Log("Requested action: telemetry_action_zip_logs");
+    unique_lock<mutex> lck(mtx);
+    action_string = "cd /home/pi/telemetry/python && python3 zip_logs.py";
+  }
+  else if(req["type"] == "telemetry_action_zip_and_move")
+  {
+    CONSOLE.Log("Requested action: telemetry_action_zip_and_move");
+    unique_lock<mutex> lck(mtx);
+    action_string = "cd /home/pi/telemetry/python && python3 zip_and_move.py";
+  }
+  else if(req["type"] == "telemetry_action_raw")
+  {
+    if(req.HasMember("data"))
+    {
+      CONSOLE.Log("Requested action:", req["data"].GetString());
+      unique_lock<mutex> lck(mtx);
+      action_string = req["data"].GetString();
+    }
+  }
   else if(req["type"] == "telemetry_send_can_message")
   {
     CONSOLE.Log("Requested to send a can message to car");
@@ -1003,6 +1035,45 @@ void TelemetrySM::SendWsData()
       ws_cli->set_data(sb.GetString());
       chimera->clear_serialized();
     }
+  }
+}
+
+void TelemetrySM::ActionThread()
+{
+  string cmd_copy = "";
+  while(kill_threads.load() == false)
+  {
+    usleep(1000);
+    {
+      unique_lock<mutex> lck(mtx);
+      if(action_string == "")
+        continue;
+      cmd_copy = action_string;
+    }
+
+    try
+    {
+      CONSOLE.Log("Starting command:", cmd_copy);
+      int ret = system(cmd_copy.c_str());
+      if(ret == 0)
+      {
+        string result = "Action: " + cmd_copy + " ----> successful";
+        CONSOLE.Log(result);
+        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+result+"\"}");
+      }
+      else
+      {
+        string result = "Action: " + cmd_copy + " ----> failed with code: " + to_string(ret);
+        CONSOLE.LogError(result);
+        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+result+"\"}");
+      }
+    }
+    catch(exception e)
+    {
+      CONSOLE.LogError("Actions exception:",e.what());
+    }
+
+    action_string = "";
   }
 }
 
