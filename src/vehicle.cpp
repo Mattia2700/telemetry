@@ -784,7 +784,6 @@ int Chimera::parse_gps(Gps* gps_, const double& timestamp, string& line)
   }
   else if(s_line[0] == "GSA")
   {
-    cout << s_line.size() << endl;
     if(s_line.size() != 19)
       return -5;
 

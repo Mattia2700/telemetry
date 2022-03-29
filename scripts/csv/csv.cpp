@@ -238,7 +238,7 @@ void parse_file(string fname)
     {
       Gps* current_gps;
       
-      if(fs::path(gps_file).filename().string().find("2") != string::npos)
+      if(fs::path(gps_file).filename().string().find("1") != string::npos)
         current_gps = chimera.gps2;
       else
         current_gps = chimera.gps1;

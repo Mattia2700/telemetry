@@ -114,7 +114,7 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     sensor_data["inverter_r"]["temperature"].push_back(inv->temperature);
     sensor_data["inverter_r"]["motor_temp"].push_back(inv->motor_temp);
     sensor_data["inverter_r"]["torque"].push_back(inv->torque);
-    sensor_data["inverter_r"]["speed"].push_back(inv->speed);
+    sensor_data["inverter_r"]["speed"].push_back(-inv->speed);
   }else if(device == chim->inverter_left){
     Inverter* inv = (Inverter*) device;
     if(first_timestamp == -1.0)
@@ -302,6 +302,165 @@ void Report::Clean(int count)
 }
 
 
+bool Report::CheckSize(const vector<MapElement>& sensors, size_t& minsize)
+{
+  bool ret = false;
+  minsize = sensor_data[sensors[0].primary][sensors[0].secondary].size();
+  for(auto el : sensors)
+  {
+    if(minsize != sensor_data[el.primary][el.secondary].size())
+    {
+      minsize = min(minsize, sensor_data[el.primary][el.secondary].size());
+      ret = true;
+    }
+  }
+  return ret;
+}
+
+
+string Report::_Odometers(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"rad/s\"\n";
+  gp << "show ylabel\n";
+
+  gp << "set xrange ["<< int(sensor_data["encoder_l"]["timestamp"][0]);
+  gp << ":" << int(sensor_data["encoder_l"]["timestamp"].back()) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'encoder left rad/s', ";
+  gp << "'-' with lines axis x1y1 title 'encoder right rad/s', ";
+  gp << "'-' with lines axis x1y1 title 'inverter left rad/s', ";
+  gp << "'-' with lines axis x1y1 title 'inverter right rad/s'\n";
+
+  size_t minsize;
+  bool to_shrink = CheckSize({
+    {"encoder_l", "rads"},
+    {"encoder_r", "rads"},
+    {"inverter_l", "speed"},
+    {"inverter_r", "speed"}
+  }, minsize);
+
+  if(to_shrink)
+  {
+    vector<double> to_plot_x1;
+    vector<double> to_plot_y1;
+    vector<double> to_plot_y2;
+    vector<double> to_plot_y3;
+    vector<double> to_plot_y4;
+    DownSample(sensor_data["encoder_l"]["timestamp"], &to_plot_x1, minsize);
+    DownSample(sensor_data["encoder_l"]["rads"],      &to_plot_y1, minsize);
+    DownSample(sensor_data["encoder_r"]["rads"],      &to_plot_y2, minsize);
+    DownSample(sensor_data["inverter_l"]["speed"],    &to_plot_y3, minsize);
+    DownSample(sensor_data["inverter_r"]["speed"],    &to_plot_y4, minsize);
+    gp.send1d(make_pair(to_plot_x1, to_plot_y1));
+    gp.send1d(make_pair(to_plot_x1, to_plot_y2));
+    gp.send1d(make_pair(to_plot_x1, to_plot_y3));
+    gp.send1d(make_pair(to_plot_x1, to_plot_y4));
+  }
+  else
+  {
+    gp.send1d(make_pair(sensor_data["encoder_l"]["timestamp"], sensor_data["encoder_l"]["rads"]));
+    gp.send1d(make_pair(sensor_data["encoder_r"]["timestamp"], sensor_data["encoder_r"]["rads"]));
+    gp.send1d(make_pair(sensor_data["inverter_l"]["timestamp"], sensor_data["inverter_l"]["speed"]));
+    gp.send1d(make_pair(sensor_data["inverter_r"]["timestamp"], sensor_data["inverter_r"]["speed"]));
+  }
+
+  return "graph"+fname+".png";
+}
+
+string Report::_Pedals(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set my2tics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"throttle %\"\n";
+  gp << "set y2label \"pressure bar\"\n";
+  gp << "set y2range [0:50]\n";
+  gp << "set y2tics nomirror\n";
+  gp << "show ylabel\n";
+  gp << "show y2label\n";
+
+  gp << "set xrange ["<< int(sensor_data["pedals"]["timestamp"][0]);
+  gp << ":" << int(sensor_data["pedals"]["timestamp"].back()) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'pedals throttle', ";
+  gp << "'-' with lines axis x1y2 title 'pedals brake front', ";
+  gp << "'-' with lines axis x1y2 title 'pedals brake rear'\n";
+
+  size_t minsize;
+  bool to_shrink = CheckSize({
+    {"pedals", "timestamp"},
+    {"pedals", "throttle1"},
+    {"pedals", "brake_front"},
+    {"pedals", "brake_rear"}
+  }, minsize);
+
+  if(to_shrink)
+  {
+    vector<double> to_plot_x1;
+    vector<double> to_plot_y1;
+    vector<double> to_plot_y2;
+    vector<double> to_plot_y3;
+    DownSample(sensor_data["pedals"]["timestamp"], &to_plot_x1, minsize);
+    DownSample(sensor_data["pedals"]["throttle1"],      &to_plot_y1, minsize);
+    DownSample(sensor_data["pedals"]["brake_front"],      &to_plot_y2, minsize);
+    DownSample(sensor_data["pedals"]["brake_rear"],    &to_plot_y3, minsize);
+    gp.send1d(make_pair(to_plot_x1, to_plot_y1));
+    gp.send1d(make_pair(to_plot_x1, to_plot_y2));
+    gp.send1d(make_pair(to_plot_x1, to_plot_y3));
+  }
+  else
+  {
+    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["throttle1"]));
+    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_front"]));
+    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_rear"]));
+  }
+
+  return "graph"+fname+".png";
+}
+
+void Report::PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname)
+{
+  /* load image file. */
+  auto image = HPDF_LoadPngImageFromFile (pdf, fname.c_str());
+
+  double iw = HPDF_Image_GetWidth (image);
+  double ih = HPDF_Image_GetHeight (image);
+  float ratio = iw / ih;
+  iw = HPDF_Page_GetWidth(page);
+  ih = iw/ratio;
+
+  double x = (HPDF_Page_GetWidth(page) - iw)/2;
+  if(x < 0)
+    x = 0;
+  double y = (HPDF_Page_GetHeight(page) - ih)/2.0;
+
+  /* Draw image to the canvas. (normal-mode with actual size.)*/
+  HPDF_Page_DrawImage (page, image, x, y, iw, ih);
+}
+
+
 void Report::Generate(const string& path, const can_stat_json& stat)
 {
   HPDF_Doc  pdf;
@@ -309,94 +468,6 @@ void Report::Generate(const string& path, const can_stat_json& stat)
   string fname = path;
   HPDF_Destination dst;
   HPDF_Image image;
-
-
-  // vectors of coupled graphs
-  // sub vector contains all the data to be plotted in the same image
-  // this means plot as X axis the accel timestamp and plot accel y and gyro z in the same plot
-  // {"accel", "timestamp"}
-  // {"accel", "x"}
-  // {"gyro", "z"}
-  vector<vector<MapElement>> coupled_graphs {
-    {
-      {"encoder_l", "timestamp"},
-      {"encoder_l", "rads"},
-      {"encoder_r", "rads"}
-    },
-    {
-      {"inverter_l", "timestamp"},
-      {"inverter_l", "speed"},
-      {"inverter_r", "speed"}
-    },
-    {
-      {"encoder_l", "timestamp"},
-      {"encoder_l", "rads"},
-      {"encoder_r", "rads"},
-      {"inverter_l", "speed"},
-      {"inverter_r", "speed"}
-    },
-    {
-      {"gps1", "speed_timestamp"},
-      {"gps1", "kmh"}
-    },
-    {
-      {"gps2", "speed_timestamp"},
-      {"gps2", "kmh"}
-    },
-    {
-      {"pedals", "timestamp"},
-      {"pedals", "throttle1"},
-      {"pedals", "brake_front"},
-      {"pedals", "brake_rear"},
-    },
-    {
-      {"encoder_l", "timestamp"},
-      {"encoder_l", "rads"},
-      {"pedals", "throttle1"},
-      {"pedals", "brake_front"},
-    },
-    {
-      {"gyro", "timestamp"},
-      {"gyro", "z"},
-      {"steer", "angle"}
-    },
-    {
-      {"accel", "timestamp"},
-      {"accel", "x"},
-      {"pedals", "throttle1"},
-      {"pedals", "brake_front"}
-    },
-    {
-      {"bms_hv", "timestamp"},
-      {"bms_hv", "voltage"}
-    },
-    {
-      {"bms_hv", "timestamp"},
-      {"bms_hv", "voltage"},
-      {"pedals", "throttle1"},
-      {"encoder_l", "rads"}
-    },
-    {
-      {"accel", "timestamp"},
-      {"accel", "x"},
-      {"accel", "y"},
-      {"accel", "z"}
-    },
-    {
-      {"gyro", "timestamp"},
-      {"gyro", "x"},
-      {"gyro", "y"},
-      {"gyro", "z"}
-    },
-    {
-      {"gps1", "latitude"},
-      {"gps1", "longitude"},
-    },
-    {
-      {"gps2", "latitude"},
-      {"gps2", "longitude"},
-    }
-  };
 
   double x;
   double y;
@@ -528,7 +599,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
     HPDF_Page_BeginText(page);
     HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 18);
     HPDF_Page_TextOut(page, 120, y, "Configuration: ");
-    HPDF_Page_TextOut(page, 120, y, stat.Configuration.c_str());
+    HPDF_Page_TextOut(page, 360, y, stat.Configuration.c_str());
     HPDF_Page_EndText(page);
 
     {
@@ -590,136 +661,23 @@ void Report::Generate(const string& path, const can_stat_json& stat)
   }
 
   HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 24);
-  for(int i = 0; i < coupled_graphs.size(); i++)
+
+  vector<string> image_names;
+
+  image_names.push_back(_Odometers(to_string(id)+"Odometers"));
+  image_names.push_back(_Pedals   (to_string(id)+"Pedals"   ));
+
+  for(auto fname : image_names)
   {
-    const std::vector<MapElement>& graph = coupled_graphs[i];
-
-    if(sensor_data[graph[0].primary][graph[0].secondary].size() < 100)
-      continue;
-
     HPDF_Page page = HPDF_AddPage (pdf);
-
     HPDF_Page_SetSize(page, HPDF_PAGE_SIZE_A4, HPDF_PAGE_LANDSCAPE);
-
     dst = HPDF_Page_CreateDestination (page);
     HPDF_Destination_SetXYZ (dst, 0, HPDF_Page_GetHeight (page), 1);
-
-    {
-      Gnuplot gp;
-      // Gnuplot gp("tee plot.gnu | gnuplot -persist");
-
-      gp << "set terminal png size 1920,1080\n";
-      gp << "set output 'graph_" << id << "_" << i << ".png'\n";
-      gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
-      gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
-      gp << "set grid\n";     // Enables grid
-
-      // gp << "set grid mxtics mytics\n"; // Sets grid line every x and y tick
-      
-      {
-        int idx = graph[0].secondary.find("lat");
-        if(idx == string::npos)
-        {
-          gp << "set xrange ["<< int(sensor_data[graph[0].primary][graph[0].secondary][0]);
-          gp << ":" << int(sensor_data[graph[0].primary][graph[0].secondary].back()) << "]\n";
-        }
-      }
-      // gp << "set yrange [-8:8]\n";
-
-
-      stringstream command;
-      command << "plot ";
-      for(int j = 1; j < graph.size(); j++)
-      {
-        
-        string title = graph[j].primary + " " + graph[j].secondary;
-        while(true)
-        {
-          int idx = title.find('_');
-          if(idx == string::npos)
-            break;
-          title[idx] = '-';
-        }
-        int is_gps = title.find("lat");
-        if(is_gps == string::npos)
-          is_gps = title.find("long");
-
-        if(is_gps == string::npos)
-          command << "'-' with lines title '" << title << "'";
-        else
-          command << "'-' with points pt 7 lc rgb \"black\" title '" << title << "'";
-        if(j == graph.size()-1)
-          command << "\n";
-        else
-          command << ", ";
-      }
-
-      
-      // cout << command.str() << endl;
-      gp << command.str();
-
-      // Check if every graph has the same lenght, if not save the minimum size.
-      int min_size = sensor_data[graph[0].primary][graph[0].secondary].size();
-      bool to_be_shrinked=false;
-      for(int j = 1; j < graph.size(); j++)
-      {
-        if(sensor_data[graph[j].primary][graph[j].secondary].size() != min_size)
-        {
-          if(sensor_data[graph[j].primary][graph[j].secondary].size() < min_size)
-            min_size = sensor_data[graph[j].primary][graph[j].secondary].size();
-          to_be_shrinked = true;
-        }
-      }
-
-      for(int j = 1; j < graph.size(); j++)
-      {
-        // cout << graph[0].primary << " " << graph[0].secondary << "\t";
-        // cout << graph[j].primary << " " << graph[j].secondary << endl;
-
-        if(to_be_shrinked)
-        {
-          vector<double> to_plot_x = sensor_data[graph[0].primary][graph[0].secondary];
-          vector<double> to_plot_y = sensor_data[graph[j].primary][graph[j].secondary];
-          DownSample(sensor_data[graph[0].primary][graph[0].secondary], &to_plot_x, min_size);
-          DownSample(sensor_data[graph[j].primary][graph[j].secondary], &to_plot_y, min_size);
-          gp.send1d(make_pair(
-            to_plot_x,
-            to_plot_y
-            ));
-        }
-        else
-        {
-          gp.send1d(make_pair(
-            sensor_data[graph[0].primary][graph[0].secondary],
-            sensor_data[graph[j].primary][graph[j].secondary]
-            ));
-        }
-
-      }
-    }
-
-    
-
-
-    /* load image file. */
-    image = HPDF_LoadPngImageFromFile (pdf, string("graph_"+to_string(id)+"_"+to_string(i)+".png").c_str());
-
-    iw = HPDF_Image_GetWidth (image);
-    ih = HPDF_Image_GetHeight (image);
-    float ratio = iw / ih;
-    iw = HPDF_Page_GetWidth(page);
-    ih = iw/ratio;
-
-    x = (HPDF_Page_GetWidth(page) - iw)/2;
-    if(x < 0)
-      x = 0;
-    y = (HPDF_Page_GetHeight(page) - ih)/2.0;
-
-    /* Draw image to the canvas. (normal-mode with actual size.)*/
-    HPDF_Page_DrawImage (page, image, x, y, iw, ih);
-
-    fs::remove("graph_"+to_string(id)+"_"+to_string(i)+".png");
+    PlaceImage(pdf, page, fname);
+    // fs::remove(fname);
   }
+
+
 
 
   /* save the document to a file */

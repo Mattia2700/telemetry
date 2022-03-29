@@ -32,9 +32,9 @@ def compressFolders(paths, zipPath):
 
 
 if __name__ == "__main__":
-    browser = terminalBrowser(startPath="/home/")
-    base_path = browser.browse()
-
+    # browser = terminalBrowser(startPath="/home/")
+    # base_path = browser.browse()
+    base_path = "/media/filippo/dataset_dv/Vadena Logs_da_sborare/logs/28_03_2022"
     files = findAllFiles(base_path, ".csv")
 
     print("Found {} csv files.".format(len(files)))

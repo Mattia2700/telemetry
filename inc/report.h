@@ -65,6 +65,13 @@ struct MapElement
   string secondary;
 };
 
+struct PlotElement
+{
+  MapElement sensor;
+  int y_id;
+  string y_scale;
+};
+
 struct CurrentFont
 {
   string font_name;
@@ -121,4 +128,11 @@ private:
   int id;
 private:
   void lla2xyz(const double& lat, const double& lng, const double& alt, const double& lat0, const double& lng0, double&, double&, double&);
+
+  string _Odometers(const string& fname);
+  string _Pedals(const string& fname);
+  string _IMU(const string& fname);
+
+  bool CheckSize(const vector<MapElement>& sensors, size_t& minsize);
+  void PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname);
 };
