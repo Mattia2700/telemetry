@@ -59,7 +59,7 @@ int main()
 
   // User select a folder
   Browse b;
-  b.SetMaxSelections(1);
+  b.SetMaxSelections(10);
   b.SetExtension("*");
   b.SetSelectionType(SelectionType::sel_folder);
   auto selected_paths = b.Start();
@@ -148,13 +148,14 @@ void parse_file(string fname)
   int lines_count = 0;
   Report report;
 
-  string folder = get_parent_dir(fname);
+  string out_folder;
+  string base_folder = get_parent_dir(fname);
 
-  auto files = get_all_files(folder, ".log");
+  auto files = get_all_files(base_folder, ".log");
   auto gps_files = get_gps_from_files(files);
 
   can_stat_json can_stat;
-  auto json_files = get_all_files(folder, ".json");
+  auto json_files = get_all_files(base_folder, ".json");
   auto can_stat_files = get_files_with_word(json_files, "CAN_Info");
 
   if(can_stat_files.size() != 0)
@@ -174,21 +175,21 @@ void parse_file(string fname)
   try
   {
     int n = stoi(remove_extension(fname));
-    folder += "/" + to_string(n);
+    out_folder = base_folder + "/" + to_string(n);
   }
   catch (std::exception &e)
   {
-    folder += "/" + config.subfolder_name;
+    out_folder = base_folder + "/" + config.subfolder_name;
   }
   
-  create_directory(folder);
+  create_directory(out_folder);
 
   Chimera chimera;
 
   // Add csv files for each device
   // Open them
   // Write CSV header (column name)
-  chimera.add_filenames(folder, ".csv");
+  chimera.add_filenames(out_folder, ".csv");
   chimera.open_all_files();
   chimera.write_all_headers(0);
 
@@ -208,8 +209,14 @@ void parse_file(string fname)
     for (uint32_t i = 20; i < lines.size(); i++)
     {
       // Try parsing the line
-      if (!parse_message(lines[i], &msg))
+      try{
+        if (!parse_message(lines[i], &msg))
+          continue;
+      }
+      catch(exception e)
+      {
         continue;
+      }
       // Fill the devices
       chimera.parse_message(msg.timestamp, msg.id, msg.data, msg.size, modifiedDevices);
 
@@ -247,8 +254,14 @@ void parse_file(string fname)
       gps_message msg;
       for(size_t i = 20; i < lines.size(); i++)
       {
-        if(!parse_gps_line(lines[i], &msg))
+        try{
+          if(!parse_gps_line(lines[i], &msg))
+            continue;
+        }catch(exception e)
+        {
+          cout << "failed parsing gps line: " << lines[i] << endl;
           continue;
+        }
 
         int ret = chimera.parse_gps(current_gps, msg.timestamp, msg.message);
         if (ret == 1)
@@ -275,8 +288,14 @@ void parse_file(string fname)
   {
     t_start = get_timestamp();
     report.Clean(1920*2);
-    report.Generate(folder + "/Report.pdf", can_stat);
-    cout << "Generating Report took: " << (get_timestamp() - t_start) << endl;
+    cout << "Generating: " << base_folder << endl;
+    try{
+      report.Generate(base_folder + "/Report.pdf", can_stat);
+    }catch(exception e)
+    {
+      cout << "Exception: " << e.what() << " failed generating report: " << base_folder << endl;
+    }
+    cout << "Generating Report took: " << (get_timestamp() - t_start) << " " << base_folder << endl;
   }
 
 }

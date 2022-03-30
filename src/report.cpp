@@ -55,26 +55,32 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
   static int discard_voltage_count = 0;
   if (device == chim->accel){
     Imu* accel = (Imu*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = accel->timestamp;
-    sensor_data["accel"]["timestamp"].push_back(accel->timestamp - first_timestamp);
+    auto tim = accel->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["accel"]["timestamp"].push_back(tim);
     sensor_data["accel"]["x"].push_back(accel->x);
     sensor_data["accel"]["y"].push_back(accel->y);
     sensor_data["accel"]["z"].push_back(accel->z);
     max_g = max(max_g, max(fabs(accel->x), fabs(accel->y)));
   }else if(device == chim->gyro){
     Imu* gyro = (Imu*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = gyro->timestamp;
-    sensor_data["gyro"]["timestamp"].push_back(gyro->timestamp - first_timestamp);
+    auto tim = gyro->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["gyro"]["timestamp"].push_back(tim);
     sensor_data["gyro"]["x"].push_back(gyro->x);
     sensor_data["gyro"]["y"].push_back(gyro->y);
     sensor_data["gyro"]["z"].push_back(gyro->z);
   }else if(device == chim->encoder_left){
     Encoder* enc = (Encoder*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = enc->timestamp;
-    sensor_data["encoder_l"]["timestamp"].push_back(enc->timestamp - first_timestamp);
+    auto tim = enc->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["encoder_l"]["timestamp"].push_back(tim);
     sensor_data["encoder_l"]["rads"].push_back(enc->rads);
     sensor_data["encoder_l"]["km"].push_back(enc->km);
     sensor_data["encoder_l"]["rotations"].push_back(enc->rotations);
@@ -98,9 +104,11 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     }
   }else if(device == chim->encoder_right){
     Encoder* enc = (Encoder*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = enc->timestamp;
-    sensor_data["encoder_r"]["timestamp"].push_back(enc->timestamp - first_timestamp);
+    auto tim = enc->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["encoder_r"]["timestamp"].push_back(tim);
     sensor_data["encoder_r"]["rads"].push_back(enc->rads);
     sensor_data["encoder_r"]["km"].push_back(enc->km);
     sensor_data["encoder_r"]["rotations"].push_back(enc->rotations);
@@ -108,35 +116,43 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     max_speed = max(max_speed, fabs(enc->rads));
   }else if(device == chim->inverter_right){
     Inverter* inv = (Inverter*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = inv->timestamp;
-    sensor_data["inverter_r"]["timestamp"].push_back(inv->timestamp - first_timestamp);
+    auto tim = inv->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["inverter_r"]["timestamp"].push_back(tim);
     sensor_data["inverter_r"]["temperature"].push_back(inv->temperature);
     sensor_data["inverter_r"]["motor_temp"].push_back(inv->motor_temp);
     sensor_data["inverter_r"]["torque"].push_back(inv->torque);
     sensor_data["inverter_r"]["speed"].push_back(-inv->speed);
   }else if(device == chim->inverter_left){
     Inverter* inv = (Inverter*) device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = inv->timestamp;
-    sensor_data["inverter_l"]["timestamp"].push_back(inv->timestamp - first_timestamp);
+    auto tim = inv->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["inverter_l"]["timestamp"].push_back(tim);
     sensor_data["inverter_l"]["temperature"].push_back(inv->temperature);
     sensor_data["inverter_l"]["motor_temp"].push_back(inv->motor_temp);
     sensor_data["inverter_l"]["torque"].push_back(inv->torque);
     sensor_data["inverter_l"]["speed"].push_back(inv->speed);
   }else if(device == chim->bms_lv){
     Bms* bms = (Bms*)device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = bms->timestamp;
-    sensor_data["bms_lv"]["timestamp"].push_back(bms->timestamp - first_timestamp);
+    auto tim = bms->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["bms_lv"]["timestamp"].push_back(tim);
     sensor_data["bms_lv"]["temperature"].push_back(bms->temperature);
     sensor_data["bms_lv"]["max_temperature"].push_back(bms->max_temperature);
     sensor_data["bms_lv"]["voltage"].push_back(bms->voltage);
   }else if(device == chim->bms_hv){
     Bms* bms = (Bms*)device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = bms->timestamp;
-    sensor_data["bms_hv"]["timestamp"].push_back(bms->timestamp - first_timestamp);
+    auto tim = bms->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["bms_hv"]["timestamp"].push_back(tim);
     sensor_data["bms_hv"]["temperature"].push_back(bms->temperature);
     sensor_data["bms_hv"]["max_temperature"].push_back(bms->max_temperature);
     sensor_data["bms_hv"]["min_temperature"].push_back(bms->min_temperature);
@@ -175,9 +191,11 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     }
   }else if(device == chim->pedal){
     Pedals* pedals = (Pedals*)device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = pedals->timestamp;
-    sensor_data["pedals"]["timestamp"].push_back(pedals->timestamp - first_timestamp);
+    auto tim = pedals->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["pedals"]["timestamp"].push_back(tim);
     sensor_data["pedals"]["throttle1"].push_back(pedals->throttle1);
     sensor_data["pedals"]["throttle2"].push_back(pedals->throttle2);
     sensor_data["pedals"]["brake_front"].push_back(pedals->brake_front);
@@ -185,9 +203,11 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     max_brake_pressure = max(max_brake_pressure, max(pedals->brake_front, pedals->brake_rear));
   }else if(device == chim->steer){
     Steer* steer = (Steer*)device;
-    if(first_timestamp == -1.0)
+    if(first_timestamp < 0.0)
       first_timestamp = steer->timestamp;
-    sensor_data["steer"]["timestamp"].push_back(steer->timestamp - first_timestamp);
+    auto tim = steer->timestamp - first_timestamp;
+    last_timestamp = max(last_timestamp, tim);
+    sensor_data["steer"]["timestamp"].push_back(tim);
     sensor_data["steer"]["angle"].push_back(steer->angle);
   }else if(device == chim->ecu_state){
     
@@ -204,12 +224,11 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
       last_alt = gps->altitude;
       sensor_data["gps1"]["alt"].push_back(gps->altitude);
     }
-
     if(gps->latitude != 0 && gps->longitude != 0)
     {
-      if(lat_0 == -1.0)
+      if(lat_0 < 0.0)
         lat_0 = gps->latitude;
-      if(long_0 == -1.0)
+      if(long_0 < 0.0)
         long_0 = gps->longitude;
 
       double x, y, z;
@@ -221,13 +240,17 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
               x,
               y,
               z);
-      sensor_data["gps1"]["latlong_timestamp"].push_back(gps->timestamp);
+      auto tim = gps->timestamp - first_timestamp;
+      last_timestamp = max(last_timestamp, tim);
+      sensor_data["gps1"]["latlong_timestamp"].push_back(tim);
       sensor_data["gps1"]["latitude"].push_back(x);
       sensor_data["gps1"]["longitude"].push_back(y);
     }
     if(gps->speed_kmh != 0.0)
     {
-      sensor_data["gps1"]["speed_timestamp"].push_back(gps->timestamp);
+      auto tim = gps->timestamp - first_timestamp;
+      last_timestamp = max(last_timestamp, tim);
+      sensor_data["gps1"]["speed_timestamp"].push_back(tim);
       sensor_data["gps1"]["kmh"].push_back(gps->speed_kmh);
     }
     
@@ -240,9 +263,9 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
     }
     if(gps->latitude != 0 && gps->longitude != 0 && last_alt != -1.0)
     {
-      if(lat_0 == -1.0)
+      if(lat_0 < 0.0)
         lat_0 = gps->latitude;
-      if(long_0 == -1.0)
+      if(long_0 < 0.0)
         long_0 = gps->longitude;
 
       double x, y, z;
@@ -254,12 +277,17 @@ void Report::AddDeviceSample(Chimera* chim, Device* device)
               x,
               y,
               z);
+      auto tim = gps->timestamp - first_timestamp;
+      last_timestamp = max(last_timestamp, tim);
+      sensor_data["gps2"]["latlong_timestamp"].push_back(tim);
       sensor_data["gps2"]["latitude"].push_back(x);
       sensor_data["gps2"]["longitude"].push_back(y);
     }
     if(gps->speed_kmh != 0.0)
     {
-      sensor_data["gps2"]["speed_timestamp"].push_back(gps->timestamp);
+      auto tim = gps->timestamp - first_timestamp;
+      last_timestamp = max(last_timestamp, tim);
+      sensor_data["gps2"]["speed_timestamp"].push_back(tim);
       sensor_data["gps2"]["kmh"].push_back(gps->speed_kmh);
     }
   }
@@ -285,18 +313,16 @@ void Report::Clean(int count)
   {
     for(const auto& subelement : sensor_data[element.first])
     {
-      if(sensor_data[element.first][subelement.first].size() > count)
-      {
-        int factor = sensor_data[element.first][subelement.first].size() / count;
-        vector<double> out;
-        out.reserve(count);
-        for(int k = 0; k < count; k++)
-        {
-          out.push_back(sensor_data[element.first][subelement.first][k*factor]);
-        }
-        sensor_data[element.first][subelement.first].clear();
-        Filter(out, &sensor_data[element.first][subelement.first]);
-      }
+      int pos = subelement.first.find("latitude");
+      if(pos != string::npos)
+        continue;
+      pos = subelement.first.find("longitude");
+      if(pos != string::npos)
+        continue;
+      vector<double> out;
+      DownSample(sensor_data[element.first][subelement.first], &out, count);
+      sensor_data[element.first][subelement.first].clear();
+      Filter(out, &sensor_data[element.first][subelement.first]);
     }
   }
 }
@@ -329,13 +355,16 @@ string Report::_Odometers(const string& fname)
   gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
   gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
   gp << "set grid\n";     // Enables grid
+  gp << "set title \"Odometers\"\n";
 
   gp << "set xlabel \"Seconds\"\n";
   gp << "set ylabel \"rad/s\"\n";
   gp << "show ylabel\n";
+  gp << "set y2label \"rad/s\"\n";
+  gp << "show y2label\n";
+  gp << "set y2tics nomirror\n";
 
-  gp << "set xrange ["<< int(sensor_data["encoder_l"]["timestamp"][0]);
-  gp << ":" << int(sensor_data["encoder_l"]["timestamp"].back()) << "]\n";
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
 
   gp << "plot ";
   gp << "'-' with lines axis x1y1 title 'encoder left rad/s', ";
@@ -343,38 +372,10 @@ string Report::_Odometers(const string& fname)
   gp << "'-' with lines axis x1y1 title 'inverter left rad/s', ";
   gp << "'-' with lines axis x1y1 title 'inverter right rad/s'\n";
 
-  size_t minsize;
-  bool to_shrink = CheckSize({
-    {"encoder_l", "rads"},
-    {"encoder_r", "rads"},
-    {"inverter_l", "speed"},
-    {"inverter_r", "speed"}
-  }, minsize);
-
-  if(to_shrink)
-  {
-    vector<double> to_plot_x1;
-    vector<double> to_plot_y1;
-    vector<double> to_plot_y2;
-    vector<double> to_plot_y3;
-    vector<double> to_plot_y4;
-    DownSample(sensor_data["encoder_l"]["timestamp"], &to_plot_x1, minsize);
-    DownSample(sensor_data["encoder_l"]["rads"],      &to_plot_y1, minsize);
-    DownSample(sensor_data["encoder_r"]["rads"],      &to_plot_y2, minsize);
-    DownSample(sensor_data["inverter_l"]["speed"],    &to_plot_y3, minsize);
-    DownSample(sensor_data["inverter_r"]["speed"],    &to_plot_y4, minsize);
-    gp.send1d(make_pair(to_plot_x1, to_plot_y1));
-    gp.send1d(make_pair(to_plot_x1, to_plot_y2));
-    gp.send1d(make_pair(to_plot_x1, to_plot_y3));
-    gp.send1d(make_pair(to_plot_x1, to_plot_y4));
-  }
-  else
-  {
-    gp.send1d(make_pair(sensor_data["encoder_l"]["timestamp"], sensor_data["encoder_l"]["rads"]));
-    gp.send1d(make_pair(sensor_data["encoder_r"]["timestamp"], sensor_data["encoder_r"]["rads"]));
-    gp.send1d(make_pair(sensor_data["inverter_l"]["timestamp"], sensor_data["inverter_l"]["speed"]));
-    gp.send1d(make_pair(sensor_data["inverter_r"]["timestamp"], sensor_data["inverter_r"]["speed"]));
-  }
+  gp.send1d(make_pair(sensor_data["encoder_l"]["timestamp"], sensor_data["encoder_l"]["rads"]));
+  gp.send1d(make_pair(sensor_data["encoder_r"]["timestamp"], sensor_data["encoder_r"]["rads"]));
+  gp.send1d(make_pair(sensor_data["inverter_l"]["timestamp"], sensor_data["inverter_l"]["speed"]));
+  gp.send1d(make_pair(sensor_data["inverter_r"]["timestamp"], sensor_data["inverter_r"]["speed"]));
 
   return "graph"+fname+".png";
 }
@@ -391,6 +392,8 @@ string Report::_Pedals(const string& fname)
   gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
   gp << "set my2tics 5\n"; // Sets a tick on y axis every 5 units
   gp << "set grid\n";     // Enables grid
+  gp << "set title \"Pedals\"\n";
+
 
   gp << "set xlabel \"Seconds\"\n";
   gp << "set ylabel \"throttle %\"\n";
@@ -400,45 +403,416 @@ string Report::_Pedals(const string& fname)
   gp << "show ylabel\n";
   gp << "show y2label\n";
 
-  gp << "set xrange ["<< int(sensor_data["pedals"]["timestamp"][0]);
-  gp << ":" << int(sensor_data["pedals"]["timestamp"].back()) << "]\n";
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
 
   gp << "plot ";
   gp << "'-' with lines axis x1y1 title 'pedals throttle', ";
   gp << "'-' with lines axis x1y2 title 'pedals brake front', ";
   gp << "'-' with lines axis x1y2 title 'pedals brake rear'\n";
 
-  size_t minsize;
-  bool to_shrink = CheckSize({
-    {"pedals", "timestamp"},
-    {"pedals", "throttle1"},
-    {"pedals", "brake_front"},
-    {"pedals", "brake_rear"}
-  }, minsize);
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["throttle1"]));
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_front"]));
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_rear"]));
 
-  if(to_shrink)
+  return "graph"+fname+".png";
+}
+
+string Report::_IMU(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set multiplot layout 2, 1 title \"IMU\" tc rgb \"red\"\n";
+
+
+  // Accel
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"g\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2tics nomirror\n";
+  gp << "set title \"Accel\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'accel x', ";
+  gp << "'-' with lines axis x1y1 title 'accel y', ";
+  gp << "'-' with lines axis x1y1 title 'accel z'\n";
+
+  gp.send1d(make_pair(sensor_data["accel"]["timestamp"], sensor_data["accel"]["x"]));
+  gp.send1d(make_pair(sensor_data["accel"]["timestamp"], sensor_data["accel"]["y"]));
+  gp.send1d(make_pair(sensor_data["accel"]["timestamp"], sensor_data["accel"]["z"]));
+
+
+  // Gyro
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"deg/s \"\n";
+  gp << "show ylabel\n";
+  gp << "set y2tics nomirror\n";
+  gp << "set title \"Gyro\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'gyro x', ";
+  gp << "'-' with lines axis x1y1 title 'gyro y', ";
+  gp << "'-' with lines axis x1y1 title 'gyro z'\n";
+
+  gp.send1d(make_pair(sensor_data["gyro"]["timestamp"], sensor_data["gyro"]["x"]));
+  gp.send1d(make_pair(sensor_data["gyro"]["timestamp"], sensor_data["gyro"]["y"]));
+  gp.send1d(make_pair(sensor_data["gyro"]["timestamp"], sensor_data["gyro"]["z"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_SteerAccelGyro(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set multiplot layout 2, 1 title \"Steer Accel Gyro\" tc rgb \"red\"\n";
+
+  // Steer
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"deg °\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \" \"\n";
+  gp << "set y2tics nomirror\n";
+  gp << "show y2label\n";
+  gp << "set title \"Steer\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'steer angle'\n";
+  
+  gp.send1d(make_pair(sensor_data["steer"]["timestamp"], sensor_data["steer"]["angle"]));
+
+
+  // Accel Gyro
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"g \"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"deg/s \"\n";
+  gp << "show y2label\n";
+  gp << "set title \"Accel Gyro\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'accel x', ";
+  gp << "'-' with lines axis x1y2 title 'gyro z'\n";
+
+  gp.send1d(make_pair(sensor_data["accel"]["timestamp"], sensor_data["accel"]["x"]));
+  gp.send1d(make_pair(sensor_data["gyro"]["timestamp"], sensor_data["gyro"]["z"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_PedalsSpeedAccel(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set multiplot layout 2, 1 title \"Throttle Brake Speed Accel\" tc rgb \"red\"\n";
+
+  // Steer
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Throttle [%]\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"Pressure [bar]\"\n";
+  gp << "set y2tics nomirror\n";
+  gp << "show y2label\n";
+  gp << "set title \"Throttle Brake\"\n";
+
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'throttle', ";
+  gp << "'-' with lines axis x1y2 title 'brake front'\n";
+  
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["throttle1"]));
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_front"]));
+
+
+  // Accel Gyro
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"g \"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"   \"\n";
+  gp << "show y2label\n";
+  gp << "set title \"Accel \"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'accel y'\n";
+
+  gp.send1d(make_pair(sensor_data["accel"]["timestamp"], sensor_data["accel"]["y"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_GPS(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set title \"GPS\"\n";
+
+
+  gp << "set xlabel \"meters\"\n";
+  gp << "set ylabel \"meters\"\n";
+  gp << "show ylabel\n";
+
+  gp << "plot ";
+  gp << "'-' with points ps 1 pt 7 lc rgb \"blue\" axis x1y1 title 'GPS 1', ";
+  gp << "'-' with points ps 1 pt 7 lc rgb \"red\" axis x1y1 title 'GPS 2'\n";
+
+  gp.send1d(make_pair(sensor_data["gps1"]["latitude"], sensor_data["gps1"]["longitude"]));
+  gp.send1d(make_pair(sensor_data["gps2"]["latitude"], sensor_data["gps2"]["longitude"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_GPSDirection(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  int num_points;
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set title \"GPS\"\n";
+
+
+  gp << "set xlabel \"meters\"\n";
+  gp << "set ylabel \"meters\"\n";
+  gp << "show ylabel\n";
+
+  gp << "plot ";
+  if(sensor_data["gps1"]["latitude"].size() > 0)
+    gp << "'-' with vectors lc rgb \"blue\" axis x1y1 title 'GPS 1'";
+  if(sensor_data["gps2"]["latitude"].size() > 0)
+    gp << ", '-' with vectors lc rgb \"red\" axis x1y1 title 'GPS 2'";
+  gp << "\n";
+
+  if(sensor_data["gps1"]["latitude"].size() > 0)
   {
-    vector<double> to_plot_x1;
-    vector<double> to_plot_y1;
-    vector<double> to_plot_y2;
-    vector<double> to_plot_y3;
-    DownSample(sensor_data["pedals"]["timestamp"], &to_plot_x1, minsize);
-    DownSample(sensor_data["pedals"]["throttle1"],      &to_plot_y1, minsize);
-    DownSample(sensor_data["pedals"]["brake_front"],      &to_plot_y2, minsize);
-    DownSample(sensor_data["pedals"]["brake_rear"],    &to_plot_y3, minsize);
-    gp.send1d(make_pair(to_plot_x1, to_plot_y1));
-    gp.send1d(make_pair(to_plot_x1, to_plot_y2));
-    gp.send1d(make_pair(to_plot_x1, to_plot_y3));
+    vector<double> lat1, long1, dx1, dy1;
+    num_points = sensor_data["gps1"]["latitude"].size()/2;
+    DownSample(sensor_data["gps1"]["latitude"], &lat1, num_points);
+    DownSample(sensor_data["gps1"]["longitude"],&long1, num_points);
+    dx1.reserve(num_points);
+    dy1.reserve(num_points);
+    dx1.push_back(0.0);
+    dy1.push_back(0.0);
+    for(int i = 1; i < lat1.size(); i++)
+    {
+      dx1.push_back((lat1[i] - lat1[i-1])/2.0 );
+      dy1.push_back((long1[i] - long1[i-1])/2.0);
+    }
+    gp.send1d(make_tuple(lat1, long1, dx1, dy1));
   }
-  else
+
+  if(sensor_data["gps2"]["latitude"].size() > 0)
   {
-    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["throttle1"]));
-    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_front"]));
-    gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["brake_rear"]));
+    vector<double> lat2, long2, dx2, dy2;
+    num_points = sensor_data["gps2"]["latitude"].size()/2;
+    DownSample(sensor_data["gps2"]["latitude"], &lat2, num_points);
+    DownSample(sensor_data["gps2"]["longitude"],&long2, num_points);
+
+    dx2.reserve(num_points);
+    dy2.reserve(num_points);
+    dx2.push_back(0.0);
+    dy2.push_back(0.0);
+    for(int i = 1; i < lat2.size(); i++)
+    {
+      dx2.push_back(lat2[i] - lat2[i-1]);
+      dy2.push_back(long2[i] - long2[i-1]);
+    }
+
+    gp.send1d(make_tuple(lat2, long2, dx2, dy2));
   }
 
   return "graph"+fname+".png";
 }
+
+string Report::_BMS_HV(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set multiplot layout 2, 1 title \"BMS HV\" tc rgb \"red\"\n";
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Volts [V]\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"Current [A]\"\n";
+  gp << "set y2tics nomirror\n";
+  gp << "show y2label\n";
+  gp << "set title \"Volt Current\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'voltage', ";
+  gp << "'-' with lines axis x1y2 title 'current'\n";
+  
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["voltage"]));
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["current"]));
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Voltage\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"  \"\n";
+  gp << "show y2label\n";
+  gp << "set title \"Min-Max cell voltages\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'min voltage', ";
+  gp << "'-' with lines axis x1y1 title 'max voltage'\n";
+
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["min_voltage"]));
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["max_voltage"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_VoltCurrentSpeed(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set multiplot layout 2, 1 title \"Throttle Speed Volts Current\" tc rgb \"red\"\n";
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Throttle %\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"Speed [rad/s]\"\n";
+  gp << "set y2tics nomirror\n";
+  gp << "show y2label\n";
+  gp << "set title \"Throttle Speed\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'Throttle', ";
+  gp << "'-' with lines axis x1y2 title 'Speed'\n";
+  
+  gp.send1d(make_pair(sensor_data["pedals"]["timestamp"], sensor_data["pedals"]["throttle1"]));
+  gp.send1d(make_pair(sensor_data["inverter_l"]["timestamp"], sensor_data["inverter_l"]["speed"]));
+
+
+  // Accel Gyro
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Voltage\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"Current\"\n";
+  gp << "show y2label\n";
+  gp << "set title \"Voltage Current\"\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  gp << "plot ";
+  gp << "'-' with lines axis x1y1 title 'Voltage', ";
+  gp << "'-' with lines axis x1y2 title 'Current'\n";
+
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["voltage"]));
+  gp.send1d(make_pair(sensor_data["bms_hv"]["timestamp"], sensor_data["bms_hv"]["current"]));
+
+  return "graph"+fname+".png";
+}
+
+string Report::_GpsEncoderSpeed(const string& fname)
+{
+  Gnuplot gp;
+  // Gnuplot gp("tee plot.gnu | gnuplot -persist");
+
+  // Plot setup
+  gp << "set terminal png size 1920,1080\n";
+  gp << "set output 'graph" << fname << ".png'\n";
+  gp << "set mxtics 5\n"; // Sets a tick on x axis every 5 units
+  gp << "set mytics 5\n"; // Sets a tick on y axis every 5 units
+  gp << "set grid\n";     // Enables grid
+  gp << "set title \"Gps Odometers speeds\"\n";
+
+  gp << "set xlabel \"Seconds\"\n";
+  gp << "set ylabel \"Km/h\"\n";
+  gp << "show ylabel\n";
+  gp << "set y2label \"  \"\n";
+  gp << "show y2label\n";
+  gp << "set y2tics nomirror\n";
+
+  gp << "set xrange [0:"<<int(last_timestamp) << "]\n";
+
+  stringstream ss;
+  ss << "plot ";
+  ss << "'-' with lines axis x1y1 title 'encoder left Km/h', ";
+  ss << "'-' with lines axis x1y1 title 'encoder right Km/h'";
+  if(sensor_data["gps1"]["kmh"].size() > 0)
+    ss << ", '-' with lines axis x1y1 title 'gps1 Km/h'";
+  if(sensor_data["gps2"]["kmh"].size() > 0)
+    ss << ", '-' with lines axis x1y1 title 'gps2 Km/h'";
+  ss << "\n";
+  gp << ss.str();
+
+  gp.send1d(make_pair(sensor_data["encoder_l"]["timestamp"], sensor_data["encoder_l"]["kmh"]));
+  gp.send1d(make_pair(sensor_data["encoder_r"]["timestamp"], sensor_data["encoder_r"]["kmh"]));
+  if(sensor_data["gps1"]["kmh"].size() > 0)
+    gp.send1d(make_pair(sensor_data["gps1"]["speed_timestamp"], sensor_data["gps1"]["kmh"]));
+  if(sensor_data["gps2"]["kmh"].size() > 0)
+    gp.send1d(make_pair(sensor_data["gps2"]["speed_timestamp"], sensor_data["gps2"]["kmh"]));
+
+  return "graph"+fname+".png";
+}
+
+
+
+
 
 void Report::PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname)
 {
@@ -646,7 +1020,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       ss << total_voltage_drop.val0 - total_voltage_drop.val1;
       HPDF_Page_BeginText(page);
       HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
-      HPDF_Page_TextOut(page, 120, y, "Voltage drop of total pack: ");
+      HPDF_Page_TextOut(page, 120, y, "Voltage drop of total pack [V]: ");
       HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
       HPDF_Page_EndText(page);
       y -= 32;
@@ -654,7 +1028,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
       ss << min_voltage_drop.val0 - min_voltage_drop.val1;
       HPDF_Page_BeginText(page);
       HPDF_Page_SetFontAndSize (page, c_fonts["main"].font, 15);
-      HPDF_Page_TextOut(page, 120, y, "Voltage drop of min cell: ");
+      HPDF_Page_TextOut(page, 120, y, "Voltage drop of min cell [V]: ");
       HPDF_Page_TextOut(page, 360, y, ss.str().c_str());
       HPDF_Page_EndText(page);
     }
@@ -664,8 +1038,17 @@ void Report::Generate(const string& path, const can_stat_json& stat)
 
   vector<string> image_names;
 
-  image_names.push_back(_Odometers(to_string(id)+"Odometers"));
-  image_names.push_back(_Pedals   (to_string(id)+"Pedals"   ));
+  image_names.push_back(_Odometers       (to_string(id)+"Odometers"       ));
+  image_names.push_back(_GpsEncoderSpeed (to_string(id)+"GpsEncoderSpeed" ));
+  image_names.push_back(_Pedals          (to_string(id)+"Pedals"          ));
+  image_names.push_back(_IMU             (to_string(id)+"IMU"             ));
+  image_names.push_back(_SteerAccelGyro  (to_string(id)+"SteerAccelGyro"  ));
+  image_names.push_back(_PedalsSpeedAccel(to_string(id)+"PedalsSpeedAccel"));
+  image_names.push_back(_BMS_HV          (to_string(id)+"BMS_HV"          ));
+  image_names.push_back(_VoltCurrentSpeed(to_string(id)+"VoltCurrentSpeed"));
+  image_names.push_back(_GPS             (to_string(id)+"GPS"             ));
+  // image_names.push_back(_GPSDirection    (to_string(id)+"GPSDirection"    ));
+
 
   for(auto fname : image_names)
   {
@@ -674,7 +1057,7 @@ void Report::Generate(const string& path, const can_stat_json& stat)
     dst = HPDF_Page_CreateDestination (page);
     HPDF_Destination_SetXYZ (dst, 0, HPDF_Page_GetHeight (page), 1);
     PlaceImage(pdf, page, fname);
-    // fs::remove(fname);
+    fs::remove(fname);
   }
 
 
@@ -692,14 +1075,28 @@ void Report::DownSample(const vector<double>& in, vector<double>* out, int count
 {
   if(in.size() > count)
   {
-    int factor = in.size() / count;
-    out->clear();
-    out->reserve(count);
-    for(int k = 0; k < count; k++)
+    float factor = float(in.size()) / float(count);
+    if(factor >= 2)
     {
-      out->push_back(in[k*factor]);
+      out->clear();
+      out->reserve(count);
+      for(int k = 0; k < count; k++)
+      {
+        out->push_back(in[k*factor]);
+      }
+    }
+    else
+    {
+      *out = in;
+      int diff = in.size() - count;
+      for(int k = 0; k < diff; k++)
+      {
+        out->erase(out->begin() + (out->size()/diff)*k);
+      }
     }
   }
+  else
+    *out = in;
 }
 
 void Report::lla2xyz(const double& lat,

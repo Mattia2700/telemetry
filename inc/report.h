@@ -112,6 +112,7 @@ private:
   unordered_map<string, CurrentFont> c_fonts;
 
   double first_timestamp = -1.0;
+  double last_timestamp = 0.0;
 
   double max_speed = 0.0;
   double max_g = 0.0;
@@ -132,6 +133,13 @@ private:
   string _Odometers(const string& fname);
   string _Pedals(const string& fname);
   string _IMU(const string& fname);
+  string _SteerAccelGyro(const string& fname);
+  string _PedalsSpeedAccel(const string& fname);
+  string _BMS_HV(const string& fname);
+  string _VoltCurrentSpeed(const string& fname);
+  string _GpsEncoderSpeed(const string& fname);
+  string _GPS(const string& fname);
+  string _GPSDirection(const string& fname);
 
   bool CheckSize(const vector<MapElement>& sensors, size_t& minsize);
   void PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname);

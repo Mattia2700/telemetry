@@ -263,8 +263,11 @@ void Chimera::parse_message(const double& timestamp, const int &id, const uint8_
       // error left data[6]
       // error right data[6]
 
-      modifiedDevices.push_back(encoder_left);
-      modifiedDevices.push_back(encoder_right);
+      encoder_left->timestamp = timestamp;
+      encoder_right->timestamp = timestamp;
+
+      // modifiedDevices.push_back(encoder_left);
+      // modifiedDevices.push_back(encoder_right);
       break;
     case 0xAA:
       if(data[0] == 0x01){
