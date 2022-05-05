@@ -8,50 +8,144 @@ Connection::Connection(char* address, char* port, int openMode) {
     this->address = address;
     this->port = port;
     this->openMode = openMode;
+}
 
-    if(openMode == 1) {
-        startPub();
-    } else if(openMode == 2) {
-        startSub();
+thread* Connection::start() {
+    thread* t;
+
+    if(openMode == ZMQ_PUB) {
+        t = startPub(); // start a thread for publishing
+    } else if(openMode == ZMQ_SUB) {
+        t = startSub(); // start a thread for subscribing
     }
+
+    return t;
 }
 
 thread* Connection::startPub() {
     context = new zmq::context_t(1);
-    publisher = new zmq::socket_t(*context, ZMQ_PUB);
+    socket = new zmq::socket_t(*context, ZMQ_PUB);
 
     stringstream server;
 
     server << "tcp://" << address << ":" << port;
     //cout << "Trying to connect at " << server.str() << endl;
 
-    (*publisher).bind(server.str());
-
+    try {
+        (*socket).bind(server.str());
+    } catch (zmq::error_t e) {
+        clbk_on_error(e.num());
+        clbk_on_close(e.num());
+    }
+    
     //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
 
-    //  Ensure subscriber connection has time to complete
+    // Ensure publisher connection has time to complete
     sleep(1);
 
-    thread* telemetry_thread = new thread(&Connection::loop, this);
+    open = true;
+
+    if(clbk_on_open) {
+        clbk_on_open();
+    }
+
+    thread* telemetry_thread = new thread(&Connection::pubLoop, this);
 
     return telemetry_thread;
 }
 
 thread* Connection::startSub() {
-    
+    context = new zmq::context_t(1);
+    socket = new zmq::socket_t(*context, ZMQ_SUB);
+
+    stringstream server;
+
+    server << "tcp://" << address << ":" << port;
+    //cout << "Trying to connect at " << server.str() << endl;
+
+    try {
+        (*socket).connect(server.str());
+    } catch(zmq::error_t& e) {
+        clbk_on_error(e.num());
+        clbk_on_close(e.num());
+    }
+
+    //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
+
+    // Ensure subscriber connection has time to complete
+    sleep(1);
+
+    open = true;
+
+    /*
+    select the topics to subscribe to
+    */
+    subscribe("name", 4); // da mettere nella telemetria
+
+    if(clbk_on_open) {
+        clbk_on_open();
+    }
+
+    thread* telemetry_thread = new thread(&Connection::subLoop, this);
+
+    return telemetry_thread;
+}
+
+void Connection::subscribe(string topic, int len) {
+    try {
+        (*socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), 4);
+    } catch(zmq::error_t& e) {
+        clbk_on_error(e.num());
+    }
+}
+
+void Connection::unsubscribe(string topic, int len) {
+    try {
+        (*socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), len);
+    } catch(zmq::error_t& e) {
+        clbk_on_error(e.num());
+    }
 }
 
 // before ending the program remember to close the connection
 void Connection::closeConnection() {
-    publisher->close();
+    socket->close();
     context->close();
+
+    if(clbk_on_close) {
+        clbk_on_close(0);   // 0 means no error
+    }
 
     done = true;
     cv.notify_all();
     //cout << "Connection closed." << endl;
 }
 
-void Connection::loop() {
+void Connection::subLoop() {
+    while(!open) usleep(10000);
+    while(!done) {
+
+        string topic, data;
+
+        topic = s_recv(*socket);
+        data = s_recv(*socket);
+
+        message msg;
+
+        {
+            unique_lock<mutex> lck(mtx);
+            
+            msg.topic = topic;
+            msg.payload = data;
+
+            if(clbk_on_message) {
+                clbk_on_message(socket, msg);
+            }
+        }
+    }
+}
+
+void Connection::pubLoop() {
     while(!open) usleep(10000);
     while(!done) {
         unique_lock<mutex> lck(mtx);
@@ -63,22 +157,12 @@ void Connection::loop() {
         if(done) break;
 
         message msg = buff_send.front();
-
-        // convert them to char*
-        char* topic = new char[4];
-        topic = (char*) &msg.topic;
-        this->sendMessage(topic, (char*)msg.payload);
-
-        delete topic; // è molto brutto cit. phil
+        
+        this->sendMessage(msg.topic, msg.payload);
 
         buff_send.pop();
 
         if(buff_send.empty()) new_data = false;
-
-        if(errorCode) {
-            // write a message
-            continue;
-        }
     }
 }
 
@@ -90,15 +174,13 @@ void Connection::clearData() {
     }
 }
 
-void Connection::setData(uint32_t id, uint8_t data[]) {
+void Connection::setData(string id, string data) {
     unique_lock<mutex> guard(mtx);
     
     message msg;
 
     msg.topic = id;
-    for(int i = 0; i < sizeof(data); i++) {
-        msg.payload[i] = data[i];
-    }
+    msg.payload = data;
 
     buff_send.push(msg);
 
@@ -106,22 +188,23 @@ void Connection::setData(uint32_t id, uint8_t data[]) {
         buff_send.pop();
     }
 
-    new_data = true;
+    if(!new_data) new_data = true;
+
     cv.notify_all();
 }
 
 // passing the topic and the message it will send it
-void Connection::sendMessage(char* topic, char* msg) {
+void Connection::sendMessage(string topic, string msg) {
     //cout << topic << ": " << msg << endl;
     int rc;
-    rc = s_sendmore(*publisher, string(topic)); // #id
+    rc = s_sendmore(*socket, topic); // #id
     if(rc < 0) {
         if(clbk_on_error) {
             clbk_on_error(rc);
         }
     }
 
-    rc = s_send(*publisher, string(msg)); // message
+    rc = s_send(*socket, msg); // message
 
     if(rc < 0) {
         if(clbk_on_error) {
@@ -168,26 +251,6 @@ void Connection::add_on_error(function<void(int)> clbk) {
 }
 
 
-void Connection::set_on_message(function<void(client*, websocketpp::connection_hdl, message_ptr)> clbk) {
-
-}
-
-void Connection::set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr)) {
-    
-}
-
-
-void Connection::on_open(websocketpp::connection_hdl) {
-
-}
-
-void Connection::on_close(websocketpp::connection_hdl) {
-
-}
-
-void Connection::on_fail(websocketpp::connection_hdl) {
-    cout << "Connection failed." << endl << "Stopping telemetry!" << endl;
-
-    stop();     // stop the telemetry
-    reset();    // reset the connection
+void Connection::add_on_message(function<void(zmq::socket_t*, message)> clbk) {
+    clbk_on_message = clbk;
 }

@@ -12,47 +12,58 @@
 class Connection {
     public:
         Connection(char* address, char* port, int openMode);
-        thread* startPub();
-        thread* startSub();
         void closeConnection();
-        void setData(uint32_t id, uint8_t data[]);
+        void setData(string id, string data);
+
+        thread* start();
+
+        void subscribe(string topic, int len);
+        void unsubscribe(string topic, int len);
+
+        enum {
+            NONE,
+            PUB,
+            SUB
+        };
+
+        struct message {
+            string topic;
+            string payload;
+        };
+        
+        void add_on_open(function<void()>);
+        void add_on_close(function<void(int code)>clbk);
+        void add_on_error(function<void(int code)>clbk);
+        void add_on_message(function<void(zmq::socket_t*, message)> clbk);
     private:
         char* address;
         char* port;
         int openMode;
 
         zmq::context_t *context;
-        zmq::socket_t  *publisher;
+        zmq::socket_t  *socket;
 
         bool open;
         bool done;
         bool new_data;
         int errorCode;
 
-        struct message {
-            uint32_t topic;
-            uint8_t payload[];
-        };
-
         std::mutex mtx;
         condition_variable cv;
         // should be a pair of topic and message (maybe also ID)
         std::queue<message> buff_send;
 
+        thread* startPub();
+        thread* startSub();
+
+        void subLoop();
+        void pubLoop();
+        
         void reset();
         void stop();
 
-        void loop();
-        void sendMessage(char* topic, char* msg);
+        void sendMessage(string topic, string msg);
         void clearData();
-
-        void add_on_open(std::function<void()>);
-        void add_on_close(std::function<void(int code)>clbk);
-        void add_on_error(std::function<void(int code)>clbk);
-
-        void set_on_message(std::function<void(client*, websocketpp::connection_hdl, message_ptr)>clbk);
-
-        void set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr));
 
         /*
         // The open handler will signal that we are ready to start sending telemetry
@@ -68,7 +79,7 @@ class Connection {
         std::function<void()> clbk_on_open;
         std::function<void(int code)> clbk_on_close;
         std::function<void(int code)> clbk_on_error;
-        function<void(string topic, string msg)> clbk_on_message;
+        function<void(zmq::socket_t* socket, message msg)> clbk_on_message;
 };
 
 #endif
