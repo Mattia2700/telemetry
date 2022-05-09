@@ -77,11 +77,6 @@ thread* Connection::startSub() {
 
     open = true;
 
-    /*
-    select the topics to subscribe to
-    */
-    subscribe("name", 4); // da mettere nella telemetria
-
     if(clbk_on_open) {
         clbk_on_open();
     }
@@ -97,6 +92,10 @@ void Connection::subscribe(string topic, int len) {
     } catch(zmq::error_t& e) {
         clbk_on_error(e.num());
     }
+
+    if(clbk_on_subscribe) {
+        clbk_on_subscribe(topic);
+    }
 }
 
 void Connection::unsubscribe(string topic, int len) {
@@ -104,6 +103,10 @@ void Connection::unsubscribe(string topic, int len) {
         (*socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), len);
     } catch(zmq::error_t& e) {
         clbk_on_error(e.num());
+    }
+
+    if(clbk_on_unsubscribe) {
+        clbk_on_unsubscribe(topic);
     }
 }
 
@@ -119,30 +122,6 @@ void Connection::closeConnection() {
     done = true;
     cv.notify_all();
     //cout << "Connection closed." << endl;
-}
-
-void Connection::subLoop() {
-    while(!open) usleep(10000);
-    while(!done) {
-
-        string topic, data;
-
-        topic = s_recv(*socket);
-        data = s_recv(*socket);
-
-        message msg;
-
-        {
-            unique_lock<mutex> lck(mtx);
-            
-            msg.topic = topic;
-            msg.payload = data;
-
-            if(clbk_on_message) {
-                clbk_on_message(socket, msg);
-            }
-        }
-    }
 }
 
 void Connection::pubLoop() {
@@ -166,11 +145,39 @@ void Connection::pubLoop() {
     }
 }
 
+void Connection::subLoop() {
+    while(!open) usleep(10000);
+    while(!done) {
+        string topic, data;
+
+        try {
+            topic = s_recv(*socket);
+            data = s_recv(*socket);
+        } catch(zmq::error_t& e) {
+            clbk_on_error(e.num());
+        }
+
+        message msg;
+
+        {
+            unique_lock<mutex> lck(mtx);
+            
+            msg.topic = topic;
+            msg.payload = data;
+
+            if(clbk_on_message) {
+                clbk_on_message(socket, msg);
+            }
+        }
+    }
+}
+
 void Connection::clearData() {
     unique_lock<mutex> guard(mtx);
 
     while(!buff_send.empty()) {
         buff_send.pop();
+        new_data = false;
     }
 }
 
@@ -253,4 +260,12 @@ void Connection::add_on_error(function<void(int)> clbk) {
 
 void Connection::add_on_message(function<void(zmq::socket_t*, message)> clbk) {
     clbk_on_message = clbk;
+}
+
+void Connection::add_on_subscribe(function<void(string)> clbk) {
+    clbk_on_subscribe = clbk;
+}
+
+void Connection::add_on_unsubscribe(function<void(string)> clbk) {
+    clbk_on_unsubscribe = clbk;
 }

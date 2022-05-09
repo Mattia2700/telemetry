@@ -35,6 +35,8 @@ class Connection {
         void add_on_close(function<void(int code)>clbk);
         void add_on_error(function<void(int code)>clbk);
         void add_on_message(function<void(zmq::socket_t*, message)> clbk);
+        void add_on_subscribe(function<void(string)> clbk);
+        void add_on_unsubscribe(function<void(string)> clbk);
     private:
         char* address;
         char* port;
@@ -43,10 +45,10 @@ class Connection {
         zmq::context_t *context;
         zmq::socket_t  *socket;
 
-        bool open;
-        bool done;
-        bool new_data;
-        int errorCode;
+        bool open = false;
+        bool done = false;
+        bool new_data = false;
+        int errorCode = NULL;
 
         std::mutex mtx;
         condition_variable cv;
@@ -65,21 +67,12 @@ class Connection {
         void sendMessage(string topic, string msg);
         void clearData();
 
-        /*
-        // The open handler will signal that we are ready to start sending telemetry
-        void on_open(websocketpp::connection_hdl);
-
-        // The close handler will signal that we should stop sending telemetry
-        void on_close(websocketpp::connection_hdl);
-
-        // The fail handler will signal that we should stop sending telemetry
-        void on_fail(websocketpp::connection_hdl);
-        */
-
-        std::function<void()> clbk_on_open;
-        std::function<void(int code)> clbk_on_close;
-        std::function<void(int code)> clbk_on_error;
+        function<void()> clbk_on_open;
+        function<void(int code)> clbk_on_close;
+        function<void(int code)> clbk_on_error;
         function<void(zmq::socket_t* socket, message msg)> clbk_on_message;
+        function<void(string topic)> clbk_on_subscribe;
+        function<void(string topic)> clbk_on_unsubscribe;
 };
 
 #endif
