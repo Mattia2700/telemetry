@@ -10,14 +10,13 @@ using namespace std;
 #include <condition_variable>
 #include <string>
 #include <queue>
+#include <functional>
+#include <unistd.h>
 
-// should not be here, should be generic
-#include "zhelpers.hpp"
+class GeneralSocket {};
 
 class Connection {
-    protected:
-        Connection(char* address, char* port, int openMode);
-        
+    public:
         enum {
             NONE,
             PUB,
@@ -29,14 +28,31 @@ class Connection {
             string payload;
         };
 
-        // all private attributes and functions should be protected
-        char* address;
-        char* port;
+        void init(const string& address, const string& port, const int& openMode);
+
+        virtual void closeConnection() = 0;
+        virtual void subscribe(const string& topic, const int& len) = 0;
+        virtual void unsubscribe(const string& topic, const int& len) = 0;
+
+        void setData(string id, string data);
+
+        thread* start();
+
+        void add_on_open(function<void()>);
+        void add_on_close(function<void(const int& code)>);
+        void add_on_error(function<void(const int& code)>);
+        void add_on_message(function<void(const message&)>);
+        void add_on_subscribe(function<void(const string&)>);
+        void add_on_unsubscribe(function<void(const string&)>);
+
+    protected:
+        Connection();
+
+        string address;
+        string port;
         int openMode;
 
-        // what should it be?
-        zmq::context_t *context;
-        zmq::socket_t  *socket;
+        GeneralSocket* socket;
 
         bool open = false;
         bool done = false;
@@ -57,31 +73,15 @@ class Connection {
         void stop();
         void clearData();
 
-        virtual void sendMessage(string topic, string payload) = 0;
-        virtual void receiveMessage(string& topic, string& msg) = 0;
+        virtual void sendMessage(const message& msg) = 0;
+        virtual void receiveMessage(message& msg) = 0;
 
         function<void()> clbk_on_open;
-        function<void(int code)> clbk_on_close;
-        function<void(int code)> clbk_on_error;
-        function<void(zmq::socket_t* socket, message msg)> clbk_on_message;
-        function<void(string topic)> clbk_on_subscribe;
-        function<void(string topic)> clbk_on_unsubscribe;
-
-    public:
-        virtual void closeConnection() = 0;
-        virtual void subscribe(string topic, int len) = 0;
-        virtual void unsubscribe(string topic, int len) = 0;
-
-        void setData(string id, string data);
-
-        thread* start();
-
-        virtual void add_on_open(function<void()>) = 0;
-        virtual void add_on_close(function<void(int code)>) = 0;
-        virtual void add_on_error(function<void(int code)>) = 0;
-        virtual void add_on_message(function<void(zmq::socket_t*, message)>) = 0;
-        virtual void add_on_subscribe(function<void(string)>) = 0;
-        virtual void add_on_unsubscribe(function<void(string)>) = 0;
+        function<void(const int& code)> clbk_on_close;
+        function<void(const int& code)> clbk_on_error;
+        function<void(const message& msg)> clbk_on_message;
+        function<void(const string& topic)> clbk_on_subscribe;
+        function<void(const string& topic)> clbk_on_unsubscribe;
 };
 
 #endif

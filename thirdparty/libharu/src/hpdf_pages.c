@@ -1261,6 +1261,8 @@ HPDF_Page_GetTextRise  (HPDF_Page   page)
 HPDF_EXPORT(HPDF_RGBColor)
 HPDF_Page_GetRGBFill  (HPDF_Page   page)
 {
+    HPDF_RGBColor DEF_RGB_COLOR = {0, 0, 0};
+
     HPDF_PTRACE((" HPDF_Page_GetRGBFill\n"));
 
     if (HPDF_Page_Validate (page)) {
@@ -1277,6 +1279,8 @@ HPDF_Page_GetRGBFill  (HPDF_Page   page)
 HPDF_EXPORT(HPDF_RGBColor)
 HPDF_Page_GetRGBStroke  (HPDF_Page   page)
 {
+    HPDF_RGBColor DEF_RGB_COLOR = {0, 0, 0};
+
     HPDF_PTRACE((" HPDF_Page_GetRGBStroke\n"));
 
     if (HPDF_Page_Validate (page)) {
@@ -1292,6 +1296,8 @@ HPDF_Page_GetRGBStroke  (HPDF_Page   page)
 HPDF_EXPORT(HPDF_CMYKColor)
 HPDF_Page_GetCMYKFill  (HPDF_Page   page)
 {
+    HPDF_CMYKColor DEF_CMYK_COLOR = {0, 0, 0, 0};
+
     HPDF_PTRACE((" HPDF_Page_GetCMYKFill\n"));
 
     if (HPDF_Page_Validate (page)) {
@@ -1308,6 +1314,8 @@ HPDF_Page_GetCMYKFill  (HPDF_Page   page)
 HPDF_EXPORT(HPDF_CMYKColor)
 HPDF_Page_GetCMYKStroke  (HPDF_Page   page)
 {
+    HPDF_CMYKColor DEF_CMYK_COLOR = {0, 0, 0, 0};
+
     HPDF_PTRACE((" HPDF_Page_GetCMYKStroke\n"));
 
     if (HPDF_Page_Validate (page)) {
@@ -2313,3 +2321,4 @@ HPDF_Page_SetFilter  (HPDF_Page    page,
     attr = (HPDF_PageAttr)page->attr;
     attr->contents->filter = filter;
 }
+

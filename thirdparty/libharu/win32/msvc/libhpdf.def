@@ -259,5 +259,3 @@ EXPORTS
     HPDF_Page_CreateCircleAnnot
     HPDF_Page_CreateSquareAnnot
     HPDF_Annotation_SetBorderStyle
-    HPDF_PDFA_SetPDFAConformance
-    HPDF_UseUTFEncodings

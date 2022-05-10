@@ -10,43 +10,29 @@
 #include "connection.h"
 #include "zhelpers.hpp"
 
+class custom_zmq_socket : GeneralSocket {
+    public:
+        zmq::context_t* context;
+        zmq::socket_t* socket;
+};
+
 class ZMQ: public Connection {
     public:
-        ZMQ(char* address, char* port, int openMode);
+        ZMQ();
         
         void closeConnection();
 
-        void subscribe(string topic, int len);
-        void unsubscribe(string topic, int len);
-        
-        // to be deleted
-        //
-        
-        void add_on_open(function<void()>);
-        void add_on_close(function<void(int code)>clbk);
-        void add_on_error(function<void(int code)>clbk);
-        void add_on_message(function<void(zmq::socket_t*, message)> clbk);
-        void add_on_subscribe(function<void(string)> clbk);
-        void add_on_unsubscribe(function<void(string)> clbk);
+        void subscribe(const string& topic, const int& len);
+        void unsubscribe(const string& topic, const int& len);
+
     private:
-        // to be deleted
-        //
+        custom_zmq_socket* socket;
 
         thread* startPub();
         thread* startSub();
 
-        // to be deleted
-        //
-
-        void sendMessage(string topic, string msg);
-        void receiveMessage(string& topic, string& payload);
-
-        function<void()> clbk_on_open;
-        function<void(int code)> clbk_on_close;
-        function<void(int code)> clbk_on_error;
-        function<void(zmq::socket_t* socket, message msg)> clbk_on_message;
-        function<void(string topic)> clbk_on_subscribe;
-        function<void(string topic)> clbk_on_unsubscribe;
+        void sendMessage(const message& msg);
+        void receiveMessage(message& msg);
 };
 
 #endif

@@ -4,7 +4,7 @@ using namespace std;
 #include <string>
 #include "zmqConn.h"
 
-void onMessage(zmq::socket_t* s, ZMQ::message msg) {
+void onMessage(ZMQ::message msg) {
     // serve davvero la socket?
     cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
 }

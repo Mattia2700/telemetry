@@ -1,10 +1,16 @@
 using namespace std;
 
 #include "connection.h"
-#include "zhelpers.hpp"
+
+Connection::Connection() {
+    open = false;
+    done = false;
+    new_data = false;
+    errorCode = NULL;
+}
 
 // passing address, port and mode it will save it in the class
-Connection::Connection(char* address, char* port, int openMode) {
+void Connection::init(const string& address, const string& port, const int& openMode) {
     this->address = address;
     this->port = port;
     this->openMode = openMode;
@@ -14,9 +20,9 @@ Connection::Connection(char* address, char* port, int openMode) {
 thread* Connection::start() {
     thread* t;
 
-    if(openMode == ZMQ_PUB) {
+    if(openMode == PUB) {
         t = startPub(); // start a thread for publishing
-    } else if(openMode == ZMQ_SUB) {
+    } else if(openMode == SUB) {
         t = startSub(); // start a thread for subscribing
     }
 
@@ -37,7 +43,7 @@ void Connection::pubLoop() {
 
         message msg = buff_send.front();
         
-        this->sendMessage(msg.topic, msg.payload);
+        this->sendMessage(msg);
 
         buff_send.pop();
 
@@ -50,30 +56,12 @@ void Connection::pubLoop() {
 void Connection::subLoop() {
     while(!open) usleep(10000);
     while(!done) {
-        string topic, data;
-
-        //this->receiveMessage(topic, data);
-        // should delete the try/catch block
-        try {
-            topic = s_recv(*socket);
-            data = s_recv(*socket);
-        } catch(zmq::error_t& e) {
-            if(clbk_on_error) {
-                clbk_on_error(e.num());
-            }
-        }
-        
         message msg;
 
-        {
-            unique_lock<mutex> lck(mtx);
-            
-            msg.topic = topic;
-            msg.payload = data;
+        this->receiveMessage(msg);
 
-            if(clbk_on_message) {
-                clbk_on_message(socket, msg);
-            }
+        if(clbk_on_message) {
+            clbk_on_message(msg);
         }
     }
 }
@@ -135,23 +123,23 @@ void Connection::add_on_open(function<void()> clbk) {
     clbk_on_open = clbk;
 }
 
-void Connection::add_on_close(function<void(int)> clbk) {
+void Connection::add_on_close(function<void(const int&)> clbk) {
     clbk_on_close = clbk;
 }
 
-void Connection::add_on_error(function<void(int)> clbk) {
+void Connection::add_on_error(function<void(const int&)> clbk) {
     clbk_on_error = clbk;
 }
 
 
-void Connection::add_on_message(function<void(zmq::socket_t*, message)> clbk) {
+void Connection::add_on_message(function<void(const message&)> clbk) {
     clbk_on_message = clbk;
 }
 
-void Connection::add_on_subscribe(function<void(string)> clbk) {
+void Connection::add_on_subscribe(function<void(const string&)> clbk) {
     clbk_on_subscribe = clbk;
 }
 
-void Connection::add_on_unsubscribe(function<void(string)> clbk) {
+void Connection::add_on_unsubscribe(function<void(const string&)> clbk) {
     clbk_on_unsubscribe = clbk;
 }

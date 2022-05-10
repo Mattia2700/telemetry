@@ -4,7 +4,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "sys/times.h"
-#include "sys/vtimes.h"
+//#include "sys/vtimes.h"
 
 void cpu_process_load_init();
 void cpu_total_load_init();

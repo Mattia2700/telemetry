@@ -48,16 +48,16 @@ find_library(ZeroMQ_LIBRARY
 #########################
 ## RaspiCam and OpenCV ##
 #########################
-find_package(raspicam PATHS /usr/local/lib/cmake/)
-if(raspicam_FOUND)
-  message(STATUS "____ Raspicam FOUND")
-  find_package( OpenCV )
-  if(OpenCV_FOUND)
-    message(STATUS "____ OpenCV FOUND")
-    set(WITH_CAMERA 1)
-    add_definitions(-DWITH_CAMERA)
-  endif()
-endif()
+#find_package(raspicam PATHS /usr/local/lib/cmake/)
+#if(raspicam_FOUND)
+#  message(STATUS "____ Raspicam FOUND")
+#  find_package( OpenCV )
+#  if(OpenCV_FOUND)
+#    message(STATUS "____ OpenCV FOUND")
+#    set(WITH_CAMERA 1)
+#    add_definitions(-DWITH_CAMERA)
+#  endif()
+#endif()
 
 
 include_directories(
@@ -78,7 +78,7 @@ include_directories(
 #############
 # add_definitions(-DLIBHPDF_DEBUG_TRACE)
 # add_definitions(-DHPDF_PTRACE_ON)
-add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
+# add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
@@ -94,7 +94,7 @@ add_library(
   src/loads.cpp
 
   src/wsclient.cpp
-    src/zmqpub.cpp
+  src/zmqConn.cpp
 )
 target_link_libraries(libBase
   stdc++fs
@@ -111,13 +111,13 @@ add_library(
   src/vehicle.cpp
   src/ubxparser.cpp
   src/gps_logger.cpp
-  src/report.cpp
+  #src/report.cpp
 
   # PROTO
   Protobuffer/cpp/devices.pb.cc
 )
 target_link_libraries(libVehicle
-  hpdf
+  #hpdf
   stdc++fs
   ${Protobuf_LIBRARIES}
   Boost::iostreams
@@ -196,15 +196,19 @@ add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
 add_executable(read scripts/port/reader.cpp src/serial.cpp)
 
 ## CSV CONVERTER
-add_executable(csv scripts/csv/csv.cpp)
-target_link_libraries(csv
-  libBase
-  libVehicle
-  libJsonModels
-)
+#add_executable(csv scripts/csv/csv.cpp)
+#target_link_libraries(csv
+#  libBase
+#  libVehicle
+#  libJsonModels
+#)
 
 ## LOG PLAYERS
 add_executable(log_player scripts/log_player/log_player.cpp)
 target_link_libraries(log_player libBase)
 add_executable(gps_log_player scripts/log_player/gps_log_player.cpp)
 target_link_libraries(gps_log_player libBase)
+
+# ZMQ TEST
+add_executable(test_zmq scripts/testZMQ/test.cpp)
+target_link_libraries(test_zmq libBase)
