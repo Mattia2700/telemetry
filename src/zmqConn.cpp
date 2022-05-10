@@ -1,16 +1,17 @@
 using namespace std;
 
-#include "zmqpub.h"
+#include "zmqConn.h"
 #include "zhelpers.hpp"
 
 // passing address (string) and port (int) it will enstablish a connection
-Connection::Connection(char* address, char* port, int openMode) {
+ZMQ::ZMQ(char* address, char* port, int openMode) {
+    //Connection(address, port, openMode);
     this->address = address;
     this->port = port;
     this->openMode = openMode;
 }
 
-thread* Connection::start() {
+thread* ZMQ::start() {
     thread* t;
 
     if(openMode == ZMQ_PUB) {
@@ -22,7 +23,7 @@ thread* Connection::start() {
     return t;
 }
 
-thread* Connection::startPub() {
+thread* ZMQ::startPub() {
     context = new zmq::context_t(1);
     socket = new zmq::socket_t(*context, ZMQ_PUB);
 
@@ -49,12 +50,12 @@ thread* Connection::startPub() {
         clbk_on_open();
     }
 
-    thread* telemetry_thread = new thread(&Connection::pubLoop, this);
+    thread* telemetry_thread = new thread(&ZMQ::pubLoop, this);
 
     return telemetry_thread;
 }
 
-thread* Connection::startSub() {
+thread* ZMQ::startSub() {
     context = new zmq::context_t(1);
     socket = new zmq::socket_t(*context, ZMQ_SUB);
 
@@ -66,8 +67,13 @@ thread* Connection::startSub() {
     try {
         (*socket).connect(server.str());
     } catch(zmq::error_t& e) {
-        clbk_on_error(e.num());
-        clbk_on_close(e.num());
+        if(clbk_on_error) {
+            clbk_on_error(e.num());
+        }
+
+        if(clbk_on_close) {
+            clbk_on_close(e.num());
+        }
     }
 
     //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
@@ -81,12 +87,12 @@ thread* Connection::startSub() {
         clbk_on_open();
     }
 
-    thread* telemetry_thread = new thread(&Connection::subLoop, this);
+    thread* telemetry_thread = new thread(&ZMQ::subLoop, this);
 
     return telemetry_thread;
 }
 
-void Connection::subscribe(string topic, int len) {
+void ZMQ::subscribe(string topic, int len) {
     try {
         (*socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), 4);
     } catch(zmq::error_t& e) {
@@ -98,7 +104,7 @@ void Connection::subscribe(string topic, int len) {
     }
 }
 
-void Connection::unsubscribe(string topic, int len) {
+void ZMQ::unsubscribe(string topic, int len) {
     try {
         (*socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), len);
     } catch(zmq::error_t& e) {
@@ -111,7 +117,7 @@ void Connection::unsubscribe(string topic, int len) {
 }
 
 // before ending the program remember to close the connection
-void Connection::closeConnection() {
+void ZMQ::closeConnection() {
     socket->close();
     context->close();
 
@@ -124,7 +130,7 @@ void Connection::closeConnection() {
     //cout << "Connection closed." << endl;
 }
 
-void Connection::pubLoop() {
+void ZMQ::pubLoop() {
     while(!open) usleep(10000);
     while(!done) {
         unique_lock<mutex> lck(mtx);
@@ -145,7 +151,7 @@ void Connection::pubLoop() {
     }
 }
 
-void Connection::subLoop() {
+void ZMQ::subLoop() {
     while(!open) usleep(10000);
     while(!done) {
         string topic, data;
@@ -172,7 +178,7 @@ void Connection::subLoop() {
     }
 }
 
-void Connection::clearData() {
+void ZMQ::clearData() {
     unique_lock<mutex> guard(mtx);
 
     while(!buff_send.empty()) {
@@ -181,7 +187,7 @@ void Connection::clearData() {
     }
 }
 
-void Connection::setData(string id, string data) {
+void ZMQ::setData(string id, string data) {
     unique_lock<mutex> guard(mtx);
     
     message msg;
@@ -201,7 +207,7 @@ void Connection::setData(string id, string data) {
 }
 
 // passing the topic and the message it will send it
-void Connection::sendMessage(string topic, string msg) {
+void ZMQ::sendMessage(string topic, string msg) {
     //cout << topic << ": " << msg << endl;
     int rc;
     rc = s_sendmore(*socket, topic); // #id
@@ -220,7 +226,24 @@ void Connection::sendMessage(string topic, string msg) {
     }
 }
 
-void Connection::stop() {
+void ZMQ::receiveMessage(string& topic, string& payload) {
+    try {
+        topic = s_recv(*socket);
+        payload = s_recv(*socket);
+    } catch(zmq::error_t& e) {
+        if(clbk_on_error) {
+            clbk_on_error(e.num());
+        }
+
+        /* does it make sense to close the connection here?
+        if(clbk_on_close) {
+            clbk_on_close(e.num());
+        }
+        */
+    }
+}
+
+void ZMQ::stop() {
     scoped_lock guard(mtx);
     done = true;
     open = false;
@@ -232,7 +255,7 @@ void Connection::stop() {
     }
 }
 
-void Connection::reset() {
+void ZMQ::reset() {
     scoped_lock guard(mtx);
     done = false;
     open = false;
@@ -245,27 +268,27 @@ void Connection::reset() {
 //////////////////////////    CALLBACKS   //////////////////////////
 ////////////////////////////////////////////////////////////////////
 
-void Connection::add_on_open(function<void()> clbk) {
+void ZMQ::add_on_open(function<void()> clbk) {
     clbk_on_open = clbk;
 }
 
-void Connection::add_on_close(function<void(int)> clbk) {
+void ZMQ::add_on_close(function<void(int)> clbk) {
     clbk_on_close = clbk;
 }
 
-void Connection::add_on_error(function<void(int)> clbk) {
+void ZMQ::add_on_error(function<void(int)> clbk) {
     clbk_on_error = clbk;
 }
 
 
-void Connection::add_on_message(function<void(zmq::socket_t*, message)> clbk) {
+void ZMQ::add_on_message(function<void(zmq::socket_t*, message)> clbk) {
     clbk_on_message = clbk;
 }
 
-void Connection::add_on_subscribe(function<void(string)> clbk) {
+void ZMQ::add_on_subscribe(function<void(string)> clbk) {
     clbk_on_subscribe = clbk;
 }
 
-void Connection::add_on_unsubscribe(function<void(string)> clbk) {
+void ZMQ::add_on_unsubscribe(function<void(string)> clbk) {
     clbk_on_unsubscribe = clbk;
 }

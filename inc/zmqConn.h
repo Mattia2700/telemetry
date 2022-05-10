@@ -7,11 +7,12 @@
 #include <string>
 #include <queue>
 
+#include "connection.h"
 #include "zhelpers.hpp"
 
-class Connection {
+class ZMQ: public Connection {
     public:
-        Connection(char* address, char* port, int openMode);
+        ZMQ(char* address, char* port, int openMode);
         void closeConnection();
         void setData(string id, string data);
 
@@ -52,7 +53,6 @@ class Connection {
 
         std::mutex mtx;
         condition_variable cv;
-        // should be a pair of topic and message (maybe also ID)
         std::queue<message> buff_send;
 
         thread* startPub();
@@ -65,6 +65,7 @@ class Connection {
         void stop();
 
         void sendMessage(string topic, string msg);
+        void receiveMessage(string& topic, string& payload);
         void clearData();
 
         function<void()> clbk_on_open;

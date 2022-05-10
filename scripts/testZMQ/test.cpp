@@ -2,9 +2,9 @@ using namespace std;
 
 #include <iostream>
 #include <string>
-#include "zmqpub.h"
+#include "zmqConn.h"
 
-void onMessage(zmq::socket_t* s, Connection::message msg) {
+void onMessage(zmq::socket_t* s, ZMQ::message msg) {
     cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
 }
 
@@ -29,8 +29,8 @@ void onUnsubscribe(string topic) {
 }
 
 int main() {
-    Connection pub("127.0.0.1", "5555", Connection::PUB);
-    Connection sub("127.0.0.1", "5555", Connection::SUB);
+    ZMQ pub("127.0.0.1", "5555", ZMQ::PUB);
+    ZMQ sub("127.0.0.1", "5555", ZMQ::SUB);
 
     //pub.add_on_message(onMessage);
     pub.add_on_error(onError);
