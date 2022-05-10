@@ -4,7 +4,7 @@ using namespace std;
 #include "zhelpers.hpp"
 
 // passing address (string) and port (int) it will enstablish a connection
-ZMQ::ZMQ() : Connection {/*arguments*/} {
+ZMQ::ZMQ() : Connection() {
     /*code*/
 }
 

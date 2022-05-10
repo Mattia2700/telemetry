@@ -5,7 +5,6 @@ using namespace std;
 #include "zmqConn.h"
 
 void onMessage(ZMQ::message msg) {
-    // serve davvero la socket?
     cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
 }
 
@@ -30,8 +29,10 @@ void onUnsubscribe(string topic) {
 }
 
 int main() {
-    ZMQ pub("127.0.0.1", "5555", ZMQ::PUB);
-    ZMQ sub("127.0.0.1", "5555", ZMQ::SUB);
+    ZMQ pub();
+    pub.init("127.0.0.1", "5555", ZMQ::PUB);
+    /*pub.init("127.0.0.1", "5555", ZMQ::PUB);
+    ZMQ sub("127.0.0.1", "5555", ZMQ::SUB);*/
 
     //pub.add_on_message(onMessage);
     pub.add_on_error(onError);
