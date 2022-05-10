@@ -22,8 +22,8 @@ class ZMQ: public Connection {
         
         void closeConnection();
 
-        void subscribe(const string& topic, const int& len);
-        void unsubscribe(const string& topic, const int& len);
+        void subscribe(const string& topic);
+        void unsubscribe(const string& topic);
 
     private:
         custom_zmq_socket* socket;

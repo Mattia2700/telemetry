@@ -6,7 +6,10 @@ Connection::Connection() {
     open = false;
     done = false;
     new_data = false;
-    errorCode = NULL;
+}
+
+Connection::~Connection() {
+    delete socket;
 }
 
 // passing address, port and mode it will save it in the class
@@ -111,7 +114,6 @@ void Connection::reset() {
     done = false;
     open = false;
     new_data = false;
-    errorCode = NULL;
     clearData();
 }
 
@@ -127,7 +129,7 @@ void Connection::add_on_close(function<void(const int&)> clbk) {
     clbk_on_close = clbk;
 }
 
-void Connection::add_on_error(function<void(const int&)> clbk) {
+void Connection::add_on_error(function<void(const int&, const string& msg)> clbk) {
     clbk_on_error = clbk;
 }
 

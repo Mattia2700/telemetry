@@ -17,6 +17,8 @@ class GeneralSocket {};
 
 class Connection {
     public:
+        void init(const string& address, const string& port, const int& openMode);
+
         enum {
             NONE,
             PUB,
@@ -28,11 +30,9 @@ class Connection {
             string payload;
         };
 
-        void init(const string& address, const string& port, const int& openMode);
-
         virtual void closeConnection() = 0;
-        virtual void subscribe(const string& topic, const int& len) = 0;
-        virtual void unsubscribe(const string& topic, const int& len) = 0;
+        virtual void subscribe(const string& topic) = 0;
+        virtual void unsubscribe(const string& topic) = 0;
 
         void setData(string id, string data);
 
@@ -40,13 +40,14 @@ class Connection {
 
         void add_on_open(function<void()>);
         void add_on_close(function<void(const int& code)>);
-        void add_on_error(function<void(const int& code)>);
+        void add_on_error(function<void(const int& code, const string& msg)>);
         void add_on_message(function<void(const message&)>);
         void add_on_subscribe(function<void(const string&)>);
         void add_on_unsubscribe(function<void(const string&)>);
 
     protected:
         Connection();
+        ~Connection();
 
         string address;
         string port;
@@ -57,7 +58,6 @@ class Connection {
         bool open = false;
         bool done = false;
         bool new_data = false;
-        int errorCode = NULL;
 
         std::mutex mtx;
         condition_variable cv;
@@ -78,7 +78,7 @@ class Connection {
 
         function<void()> clbk_on_open;
         function<void(const int& code)> clbk_on_close;
-        function<void(const int& code)> clbk_on_error;
+        function<void(const int& code, const string& msg)> clbk_on_error;
         function<void(const message& msg)> clbk_on_message;
         function<void(const string& topic)> clbk_on_subscribe;
         function<void(const string& topic)> clbk_on_unsubscribe;

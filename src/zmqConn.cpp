@@ -8,6 +8,11 @@ ZMQ::ZMQ() : Connection() {
     /*code*/
 }
 
+ZMQ::~ZMQ() {
+    delete socket->socket;
+    delete socket->context;
+}
+
 thread* ZMQ::startPub() {
     socket = new custom_zmq_socket();
     socket->context = new zmq::context_t(1);
@@ -21,8 +26,13 @@ thread* ZMQ::startPub() {
     try {
         (*socket->socket).bind(server.str());
     } catch (zmq::error_t e) {
-        clbk_on_error(e.num());
-        clbk_on_close(e.num());
+        if(clbk_on_error) {
+            clbk_on_error(e.num(), e.what());
+        }
+
+        if(clbk_on_close) {
+            clbk_on_close(e.num());
+        }
     }
     
     //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
@@ -44,7 +54,7 @@ thread* ZMQ::startPub() {
 thread* ZMQ::startSub() {
     socket = new custom_zmq_socket();
     socket->context = new zmq::context_t(1);
-    socket->socket = new zmq::socket_t(*socket->context, ZMQ_PUB);
+    socket->socket = new zmq::socket_t(*socket->context, ZMQ_SUB);
 
     stringstream server;
 
@@ -55,7 +65,7 @@ thread* ZMQ::startSub() {
         (*socket->socket).connect(server.str());
     } catch(zmq::error_t& e) {
         if(clbk_on_error) {
-            clbk_on_error(e.num());
+            clbk_on_error(e.num(), e.what());
         }
 
         if(clbk_on_close) {
@@ -79,11 +89,11 @@ thread* ZMQ::startSub() {
     return telemetry_thread;
 }
 
-void ZMQ::subscribe(const string& topic, const int& len) {
+void ZMQ::subscribe(const string& topic) {
     try {
-        (*socket->socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), 4);
+        (*socket->socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size());
     } catch(zmq::error_t& e) {
-        clbk_on_error(e.num());
+        clbk_on_error(e.num(), e.what());
     }
 
     if(clbk_on_subscribe) {
@@ -91,11 +101,11 @@ void ZMQ::subscribe(const string& topic, const int& len) {
     }
 }
 
-void ZMQ::unsubscribe(const string& topic, const int& len) {
+void ZMQ::unsubscribe(const string& topic) {
     try {
-        (*socket->socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), len);
+        (*socket->socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), topic.size());
     } catch(zmq::error_t& e) {
-        clbk_on_error(e.num());
+        clbk_on_error(e.num(), e.what());
     }
 
     if(clbk_on_unsubscribe) {
@@ -124,7 +134,7 @@ void ZMQ::sendMessage(const message& msg) {
     rc = s_sendmore(*(socket->socket), msg.topic); // #id
     if(rc < 0) {
         if(clbk_on_error) {
-            clbk_on_error(rc);
+            clbk_on_error(rc, "Error seding topic");
         }
     }
 
@@ -132,7 +142,7 @@ void ZMQ::sendMessage(const message& msg) {
 
     if(rc < 0) {
         if(clbk_on_error) {
-            clbk_on_error(rc);
+            clbk_on_error(rc, "Error sending payload");
         }
     }
 }
@@ -143,7 +153,7 @@ void ZMQ::receiveMessage(message& msg) {
         msg.payload = s_recv(*(socket->socket));
     } catch(zmq::error_t& e) {
         if(clbk_on_error) {
-            clbk_on_error(e.num());
+            clbk_on_error(e.num(), e.what());
         }
     }
 }

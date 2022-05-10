@@ -2,17 +2,19 @@ using namespace std;
 
 #include <iostream>
 #include <string>
+#include <unistd.h>
+
 #include "zmqConn.h"
 
-void onMessage(ZMQ::message msg) {
+void onMessage(const ZMQ::message& msg) {
     cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
 }
 
-void onError(int code) {
-    cout << "Error: " << code << endl;
+void onError(const int& code, const string& message) {
+    cout << "Error: " << code << " - " << message << endl;
 }
 
-void onClose(int code) {
+void onClose(const int& code) {
     cout << "Connection closed: " << code << endl;
 }
 
@@ -29,10 +31,10 @@ void onUnsubscribe(string topic) {
 }
 
 int main() {
-    ZMQ pub();
+    ZMQ pub;
     pub.init("127.0.0.1", "5555", ZMQ::PUB);
-    /*pub.init("127.0.0.1", "5555", ZMQ::PUB);
-    ZMQ sub("127.0.0.1", "5555", ZMQ::SUB);*/
+    ZMQ sub;
+    sub.init("127.0.0.1", "5555", ZMQ::SUB);
 
     //pub.add_on_message(onMessage);
     pub.add_on_error(onError);
@@ -49,7 +51,7 @@ int main() {
     thread *pub_thread = pub.start();
     thread *sub_thread = sub.start();
 
-    sub.subscribe("test", 5);
+    sub.subscribe("test");
 
     while(true) {
         sleep(1);

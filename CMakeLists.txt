@@ -95,35 +95,37 @@ add_library(
 
   src/wsclient.cpp
   src/zmqConn.cpp
+  src/connection.cpp
 )
 target_link_libraries(libBase
   stdc++fs
   websocketpp::websocketpp
+  ${ZeroMQ_LIBRARY}
 )
 
 
 
-add_library(
-  libVehicle
-  SHARED
-
-  src/devices.cpp
-  src/vehicle.cpp
-  src/ubxparser.cpp
-  src/gps_logger.cpp
-  #src/report.cpp
-
-  # PROTO
-  Protobuffer/cpp/devices.pb.cc
-)
-target_link_libraries(libVehicle
-  #hpdf
-  stdc++fs
-  ${Protobuf_LIBRARIES}
-  Boost::iostreams
-  Boost::system
-  Boost::filesystem
-)
+#add_library(
+#  libVehicle
+#  SHARED
+#
+#  src/devices.cpp
+#  src/vehicle.cpp
+#  src/ubxparser.cpp
+#  src/gps_logger.cpp
+#  #src/report.cpp
+#
+#  # PROTO
+#  Protobuffer/cpp/devices.pb.cc
+#)
+#target_link_libraries(libVehicle
+#  #hpdf
+#  stdc++fs
+#  ${Protobuf_LIBRARIES}
+#  Boost::iostreams
+#  Boost::system
+#  Boost::filesystem
+#)
 
 
 
@@ -135,21 +137,21 @@ add_library(
   src/StateMachine/StateMachine.cpp
   src/StateMachine/Fault.cpp
 )
-add_library(
-  libSMImpl
-  SHARED
-  scripts/telemetry/telemetry_sm.cpp
-)
-target_link_libraries(libSMImpl
-  stdc++fs
-  ${Protobuf_LIBRARIES}
-  websocketpp::websocketpp
-
-  libBase
-  libVehicle
-  libJsonModels
-  libStateMachine
-)
+#add_library(
+#  libSMImpl
+#  SHARED
+#  scripts/telemetry/telemetry_sm.cpp
+#)
+#target_link_libraries(libSMImpl
+#  stdc++fs
+#  ${Protobuf_LIBRARIES}
+#  websocketpp::websocketpp
+#
+#  libBase
+#  libVehicle
+#  libJsonModels
+#  libStateMachine
+#)
 
 
 
@@ -187,8 +189,8 @@ endif()
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ## TELEMETRY
-add_executable(telemetry scripts/telemetry/main.cpp)
-target_link_libraries(telemetry libSMImpl libCamera)
+# add_executable(telemetry scripts/telemetry/main.cpp)
+# target_link_libraries(telemetry libSMImpl libCamera)
 
 ## PORT SHARE
 add_executable(share scripts/port/share.cpp src/serial.cpp)
