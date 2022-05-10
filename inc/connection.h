@@ -1,7 +1,7 @@
 // Abstact class to know which function to implement for different connection types
 
-#ifndef __CLIENT_LIB_H__
-#define __CLIENT_LIB_H__
+#ifndef __CONNECTION_H__
+#define __CONNECTION_H__
 
 using namespace std;
 
@@ -17,15 +17,7 @@ using namespace std;
 class Connection {
     protected:
         Connection(char* address, char* port, int openMode);
-    public:
-        virtual void closeConnection() = 0;
-        virtual void subscribe(string topic, int len) = 0;
-        virtual void unsubscribe(string topic, int len) = 0;
-
-        void setData(string id, string data);
-
-        thread* start();
-
+        
         enum {
             NONE,
             PUB,
@@ -37,13 +29,6 @@ class Connection {
             string payload;
         };
 
-        virtual void add_on_open(function<void()>) = 0;
-        virtual void add_on_close(function<void(int code)>) = 0;
-        virtual void add_on_error(function<void(int code)>) = 0;
-        virtual void add_on_message(function<void(zmq::socket_t*, message)>) = 0;
-        virtual void add_on_subscribe(function<void(string)>) = 0;
-        virtual void add_on_unsubscribe(function<void(string)>) = 0;
-    private:
         // all private attributes and functions should be protected
         char* address;
         char* port;
@@ -81,6 +66,22 @@ class Connection {
         function<void(zmq::socket_t* socket, message msg)> clbk_on_message;
         function<void(string topic)> clbk_on_subscribe;
         function<void(string topic)> clbk_on_unsubscribe;
+
+    public:
+        virtual void closeConnection() = 0;
+        virtual void subscribe(string topic, int len) = 0;
+        virtual void unsubscribe(string topic, int len) = 0;
+
+        void setData(string id, string data);
+
+        thread* start();
+
+        virtual void add_on_open(function<void()>) = 0;
+        virtual void add_on_close(function<void(int code)>) = 0;
+        virtual void add_on_error(function<void(int code)>) = 0;
+        virtual void add_on_message(function<void(zmq::socket_t*, message)>) = 0;
+        virtual void add_on_subscribe(function<void(string)>) = 0;
+        virtual void add_on_unsubscribe(function<void(string)>) = 0;
 };
 
 #endif

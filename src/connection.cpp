@@ -58,7 +58,9 @@ void Connection::subLoop() {
             topic = s_recv(*socket);
             data = s_recv(*socket);
         } catch(zmq::error_t& e) {
-            clbk_on_error(e.num());
+            if(clbk_on_error) {
+                clbk_on_error(e.num());
+            }
         }
         
         message msg;

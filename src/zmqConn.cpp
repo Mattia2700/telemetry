@@ -4,23 +4,13 @@ using namespace std;
 #include "zhelpers.hpp"
 
 // passing address (string) and port (int) it will enstablish a connection
-ZMQ::ZMQ(char* address, char* port, int openMode) {
+ZMQ::ZMQ(char* address, char* port, int openMode)
+: Connection {address, port, openMode} {
     //Connection(address, port, openMode);
-    this->address = address;
+    
+    /*this->address = address;
     this->port = port;
-    this->openMode = openMode;
-}
-
-thread* ZMQ::start() {
-    thread* t;
-
-    if(openMode == ZMQ_PUB) {
-        t = startPub(); // start a thread for publishing
-    } else if(openMode == ZMQ_SUB) {
-        t = startSub(); // start a thread for subscribing
-    }
-
-    return t;
+    this->openMode = openMode;*/
 }
 
 thread* ZMQ::startPub() {
@@ -130,82 +120,6 @@ void ZMQ::closeConnection() {
     //cout << "Connection closed." << endl;
 }
 
-void ZMQ::pubLoop() {
-    while(!open) usleep(10000);
-    while(!done) {
-        unique_lock<mutex> lck(mtx);
-
-        while(!new_data && !done) cv.wait(lck);
-
-        // Adding this because code can be stuck waiting for cv
-        // when actually the socket is being closed
-        if(done) break;
-
-        message msg = buff_send.front();
-        
-        this->sendMessage(msg.topic, msg.payload);
-
-        buff_send.pop();
-
-        if(buff_send.empty()) new_data = false;
-    }
-}
-
-void ZMQ::subLoop() {
-    while(!open) usleep(10000);
-    while(!done) {
-        string topic, data;
-
-        try {
-            topic = s_recv(*socket);
-            data = s_recv(*socket);
-        } catch(zmq::error_t& e) {
-            clbk_on_error(e.num());
-        }
-
-        message msg;
-
-        {
-            unique_lock<mutex> lck(mtx);
-            
-            msg.topic = topic;
-            msg.payload = data;
-
-            if(clbk_on_message) {
-                clbk_on_message(socket, msg);
-            }
-        }
-    }
-}
-
-void ZMQ::clearData() {
-    unique_lock<mutex> guard(mtx);
-
-    while(!buff_send.empty()) {
-        buff_send.pop();
-        new_data = false;
-    }
-}
-
-void ZMQ::setData(string id, string data) {
-    unique_lock<mutex> guard(mtx);
-    
-    message msg;
-
-    msg.topic = id;
-    msg.payload = data;
-
-    buff_send.push(msg);
-
-    if(buff_send.size() > 20) {
-        buff_send.pop();
-    }
-
-    if(!new_data) new_data = true;
-
-    cv.notify_all();
-}
-
 // passing the topic and the message it will send it
 void ZMQ::sendMessage(string topic, string msg) {
     //cout << topic << ": " << msg << endl;
@@ -241,27 +155,6 @@ void ZMQ::receiveMessage(string& topic, string& payload) {
         }
         */
     }
-}
-
-void ZMQ::stop() {
-    scoped_lock guard(mtx);
-    done = true;
-    open = false;
-
-    cv.notify_all();
-
-    if(clbk_on_close) {
-        clbk_on_close(1000);
-    }
-}
-
-void ZMQ::reset() {
-    scoped_lock guard(mtx);
-    done = false;
-    open = false;
-    new_data = false;
-    errorCode = NULL;
-    clearData();
 }
 
 ////////////////////////////////////////////////////////////////////
