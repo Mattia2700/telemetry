@@ -59,9 +59,9 @@ class Connection {
         bool done = false;
         bool new_data = false;
 
-        std::mutex mtx;
+        mutex mtx;
         condition_variable cv;
-        std::queue<message> buff_send;
+        queue<message> buff_send;
 
         virtual thread* startPub() = 0;
         virtual thread* startSub() = 0;

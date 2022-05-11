@@ -21,7 +21,6 @@ thread* ZMQ::startPub() {
     stringstream server;
 
     server << "tcp://" << address << ":" << port;
-    //cout << "Trying to connect at " << server.str() << endl;
 
     try {
         (*socket->socket).bind(server.str());
@@ -34,8 +33,6 @@ thread* ZMQ::startPub() {
             clbk_on_close(e.num());
         }
     }
-    
-    //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
 
     // Ensure publisher connection has time to complete
     sleep(1);
@@ -59,7 +56,6 @@ thread* ZMQ::startSub() {
     stringstream server;
 
     server << "tcp://" << address << ":" << port;
-    //cout << "Trying to connect at " << server.str() << endl;
 
     try {
         (*socket->socket).connect(server.str());
@@ -72,8 +68,6 @@ thread* ZMQ::startSub() {
             clbk_on_close(e.num());
         }
     }
-
-    //cout << "Connection enstablished." << endl << "Wait a second..." << endl;
 
     // Ensure subscriber connection has time to complete
     sleep(1);
@@ -124,12 +118,10 @@ void ZMQ::closeConnection() {
 
     done = true;
     cv.notify_all();
-    //cout << "Connection closed." << endl;
 }
 
 // passing the topic and the message it will send it
 void ZMQ::sendMessage(const message& msg) {
-    //cout << topic << ": " << msg << endl;
     int rc;
     rc = s_sendmore(*(socket->socket), msg.topic); // #id
     if(rc < 0) {
