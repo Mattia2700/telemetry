@@ -2,10 +2,7 @@
 #define __ZMQ_LIB_H__
 
 #include <thread>
-#include <mutex>
-#include <condition_variable>
 #include <string>
-#include <queue>
 
 #include "connection.h"
 #include "zhelpers.hpp"

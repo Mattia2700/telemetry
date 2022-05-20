@@ -1,12 +1,10 @@
-#include <string>
-#include <atomic>
 #include <mutex>
-#include <condition_variable>
-#include <functional>
-
-#include <websocketpp/config/asio_no_tls_client.hpp>
-#include <websocketpp/common/thread.hpp>
+#include <string>
 #include <websocketpp/client.hpp>
+#include <websocketpp/common/thread.hpp>
+#include <websocketpp/config/asio_no_tls_client.hpp>
+
+#include "connection.h"
 
 using namespace std;
 
@@ -16,73 +14,46 @@ using websocketpp::lib::placeholders::_2;
 typedef websocketpp::config::asio_client::message_type::ptr message_ptr;
 typedef websocketpp::client<websocketpp::config::asio_client> client;
 
-enum ConnectionState_
-{
-  NONE,
-  CONNECTING,
-  CONNECTED,
-  FAIL,
-  CLOSED
+enum ConnectionState_ {
+	NONE,
+	CONNECTING,
+	CONNECTED,
+	FAIL,
+	CLOSED
 };
 
-class WebSocketClient {
-public:
-    typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
+class custom_ws_socket : GeneralSocket {
+	public:
+		client m_client;
+		client::connection_ptr m_conn;
+		websocketpp::connection_hdl m_hdl;
+		websocketpp::lib::error_code ec;
+};
 
-    WebSocketClient();
+class WebSocketClient: public Connection {
+	public:
+		typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
-    void close();
-    
-    void clear_data();
-    void set_data(string data);
+		WebSocketClient();
 
-    void add_on_open(std::function<void()>);
-    void add_on_close(std::function<void(int code)>clbk);
-    void add_on_error(std::function<void(int code)>clbk);
-    void set_on_message(std::function<void(client*, websocketpp::connection_hdl, message_ptr)>clbk);
+		void closeConnection();
 
-    void set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr));
+		void subscribe(const string& topic);
+		void unsubscribe(const string& topic);
 
-    // This method will block until the connection is complete
-    websocketpp::lib::thread* run(const std::string & uri);
+	private:
+		custom_ws_socket* socket;
 
-private:
-    // The open handler will signal that we are ready to start sending telemetry
-    void on_open(websocketpp::connection_hdl);
+		unordered_map<string, bool> topic;	// to be improved
 
-    // The close handler will signal that we should stop sending telemetry
-    void on_close(websocketpp::connection_hdl);
+		websocketpp::lib::mutex m_lock;
 
-    // The fail handler will signal that we should stop sending telemetry
-    void on_fail(websocketpp::connection_hdl);
+		websocketpp::lib::thread* asio_thread;
+		websocketpp::lib::thread* telemetry_thread;
 
-    void stop();
-    void reset();
+		thread* startPub();
+		thread* startSub();
 
-
-    void loop();
-    client m_client;
-    client::connection_ptr m_conn;
-    websocketpp::connection_hdl m_hdl;
-    websocketpp::lib::mutex m_lock;
-
-    websocketpp::lib::thread* asio_thread;
-    websocketpp::lib::thread* telemetry_thread;
-
-
-    atomic<bool> m_open;
-    atomic<bool> m_done;
-    websocketpp::lib::error_code ec;
-
-    std::mutex m_worker_mtx;
-    std::queue<string> m_to_send_data;
-    atomic<bool> m_new_data;
-    condition_variable m_cv;
-
-
-    ///
-    
-    std::function<void()> clbk_on_open;
-    std::function<void(int code)> clbk_on_close;
-    std::function<void(int code)> clbk_on_error;
+		void sendMessage(const message& msg);
+		void receiveMessage(message& msg);
 };

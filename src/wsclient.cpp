@@ -1,36 +1,142 @@
+using namespace std;
+
 #include "wsclient.h"
 
-WebSocketClient::WebSocketClient() : m_open(false),m_done(false) {
-      // set up access channels to only log interesting things
-    m_client.clear_access_channels(websocketpp::log::alevel::all);
-    m_client.set_access_channels(websocketpp::log::alevel::connect);
-    m_client.set_access_channels(websocketpp::log::alevel::disconnect);
-    m_client.set_access_channels(websocketpp::log::alevel::app);
+WebSocketClient::WebSocketClient() : Connection() {
+	socket = new custom_ws_socket();
+
+    // set up access channels to only log interesting things
+    socket->m_client.clear_access_channels(websocketpp::log::alevel::all);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::connect);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::disconnect);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::app);
 
     // Initialize the Asio transport policy
-    m_client.init_asio();
+    socket->m_client.init_asio();
 
     // Bind the handlers we are using
-    m_client.set_open_handler(bind(&WebSocketClient::on_open,this,_1));
-    m_client.set_close_handler(bind(&WebSocketClient::on_close,this,_1));
-    m_client.set_fail_handler(bind(&WebSocketClient::on_fail,this,_1));
-    m_new_data.store(false);
+    socket->m_client.set_open_handler(bind(&Connection::on_open, this, _1));
+    socket->m_client.set_close_handler(bind(&Connection::on_close, this, _1));
+    socket->m_client.set_fail_handler(bind(&Connection::on_fail, this, _1));
+    //m_new_data.store(false);
 }
 
-void WebSocketClient::close()
-{
-  if(m_open)
-    m_client.close(m_hdl, 1000, "Closed by user");
-  m_done.store(true);
-  m_cv.notify_all();
+WebSocketClient::~WebSocketClient() {
+	delete &socket->m_client;
+	delete &socket->m_conn;
+	delete &socket->m_hdl;
+	delete &socket->ec;
 }
 
-websocketpp::lib::thread* WebSocketClient::run(const std::string & uri) {
+void WebSocketClient::closeConnection() {
+    if(open) {
+		// the code was 1000
+		socket->m_client.close(socket->m_hdl, 0, "Closed by user");
+	}
+
+    done = true;
+    cv.notify_all();
+}
+
+void WebSocketClient::subscribe(const string& topic) {
+    /*try {
+        (*socket->socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size());
+    } catch(zmq::error_t& e) {
+        clbk_on_error(e.num(), e.what());
+    }*/
+	// create a subscription at the topic
+	this->topic[topic] = true;
+
+    if(clbk_on_subscribe) {
+        clbk_on_subscribe(topic);
+    }
+}
+
+void WebSocketClient::unsubscribe(const string& topic) {
+    /*try {
+        (*socket->socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), topic.size());
+    } catch(zmq::error_t& e) {
+        clbk_on_error(e.num(), e.what());
+    }*/
+
+	if(this->topic.find(topic) != this->topic.end()) {
+		this->topic[topic] = false;
+	}
+
+    if(clbk_on_unsubscribe) {
+        clbk_on_unsubscribe(topic);
+    }
+}
+
+thread* WebSocketClient::startPub() {
+    stringstream server;
+
+    server << "tcp://" << address << ":" << port;
+
+	socket->m_conn = socket->m_client.get_connection(server.str(), socket->ec);
+
+    if(socket->ec) {
+        socket->m_client.get_alog().write(websocketpp::log::alevel::app, "Get Connection Error: " + socket->ec.message());
+        return nullptr;
+    }
+
+	socket->m_hdl = socket->m_conn->get_handle();
+
+	socket->m_client.connect(socket->m_conn);
+
+    // Ensure publisher connection has time to complete
+    sleep(1);
+
+	// PHIL
+    // socket->m_client.get_io_service().reset();
+
+    open = true;
+
+    if(clbk_on_open) {
+        clbk_on_open();
+    }
+
+    thread* telemetry_thread = new thread(&WebSocketClient::pubLoop, this);
+
+    return telemetry_thread;
+}
+
+thread* WebSocketClient::startSub() {
+    stringstream server;
+
+    server << "tcp://" << address << ":" << port;
+
+	socket->m_conn = socket->m_client.get_connection(server.str(), socket->ec);
+
+    if(socket->ec) {
+        socket->m_client.get_alog().write(websocketpp::log::alevel::app, "Get Connection Error: " + socket->ec.message());
+        return nullptr;
+    }
+
+	socket->m_hdl = socket->m_conn->get_handle();
+
+	socket->m_client.connect(socket->m_conn);
+
+    // Ensure subscriber connection has time to complete
+    sleep(1);
+
+    open = true;
+
+    if(clbk_on_open) {
+        clbk_on_open();
+    }
+
+    thread* telemetry_thread = new thread(&WebSocketClient::subLoop, this);
+
+    return telemetry_thread;
+}
+
+/*websocketpp::lib::thread* WebSocketClient::run(const std::string& uri) {
     m_done = false;
     // Create a new connection to the given URI
     m_conn = m_client.get_connection(uri, ec);
-    if (ec) {
-        m_client.get_alog().write(websocketpp::log::alevel::app, "Get Connection Error: "+ec.message());
+    if(ec) {
+        m_client.get_alog().write(websocketpp::log::alevel::app, "Get Connection Error: " + ec.message());
         return nullptr;
     }
 
@@ -41,121 +147,54 @@ websocketpp::lib::thread* WebSocketClient::run(const std::string & uri) {
     // Queue the connection. No DNS queries or network connections will be
     // made until the io_service event loop is run.
     m_client.connect(m_conn);
-    
+
     m_client.get_io_service().reset();
     asio_thread = new websocketpp::lib::thread(&client::run, &m_client);
-    telemetry_thread = new websocketpp::lib::thread(&WebSocketClient::loop,this);
+    telemetry_thread = new websocketpp::lib::thread(&WebSocketClient::loop, this);
 
     return telemetry_thread;
-}
+}*/
 
+/*void WebSocketClient::loop() {
+    while (!m_open) usleep(10000);
+    while (!m_done) {
+        unique_lock<mutex> lck(m_worker_mtx);
 
-void WebSocketClient::loop(){
-    while(!m_open)
-      usleep(10000);
-    while(!m_done){
-      unique_lock<mutex> lck(m_worker_mtx);
+        while (!m_new_data && !m_done) m_cv.wait(lck);
 
-      while (!m_new_data && !m_done)
-        m_cv.wait(lck);
+        // Adding this because code can be stuck waiting for m_cv
+        // when actually the socket is being closed
+        if (m_done) break;
 
-      // Adding this because code can be stuck waiting for m_cv
-      // when actually the socket is being closed
-      if(m_done)
-        break;
+        // m_client.get_alog().write(websocketpp::log::alevel::app, "Seding");
+        m_client.send(m_hdl, m_to_send_data.front(), websocketpp::frame::opcode::binary, ec);
+        // std::cout << "Sent" << std::endl;
 
-      // m_client.get_alog().write(websocketpp::log::alevel::app, "Seding");
-      m_client.send(m_hdl,m_to_send_data.front(),websocketpp::frame::opcode::binary,ec);
-      // std::cout << "Sent" << std::endl;
+        m_to_send_data.pop();
 
-      m_to_send_data.pop();
+        if (m_to_send_data.empty()) m_new_data.store(false);
 
-      if(m_to_send_data.empty())
-        m_new_data.store(false);
-
-      if (ec) {
-        m_client.get_alog().write(websocketpp::log::alevel::app,"Send Error: "+ec.message());
-        continue;
-      }
+        if (ec) {
+            m_client.get_alog().write(websocketpp::log::alevel::app, "Send Error: " + ec.message());
+            continue;
+        }
     }
+}*/
+
+void WebSocketClient::sendMessage(const message& msg) {
+	string message = msg.topic + ": " + msg.payload;
+	// find a way to send both topic and payload
+	socket->m_client.send(
+		socket->m_hdl, message,
+		websocketpp::frame::opcode::binary, socket->ec);
 }
 
-//////// CALLBACKS ////////
-void WebSocketClient::set_on_message(void (*clbk)(client*, websocketpp::connection_hdl, message_ptr)){
-    m_client.set_message_handler(bind(clbk,&m_client,::_1,::_2));
-}
-void WebSocketClient::set_on_message(std::function<void(client*, websocketpp::connection_hdl, message_ptr)>clbk){
-    m_client.set_message_handler(bind(clbk,&m_client,::_1,::_2));
-}
+void WebSocketClient::receiveMessage(message& msg) {
+	string topic;	// received strings must be
+	string payload;	// saved here
 
-void WebSocketClient::on_open(websocketpp::connection_hdl) {
-    scoped_lock guard(m_lock);
-    m_open = true;
-    
-    if(clbk_on_open)
-      clbk_on_open();
-}
-
-void WebSocketClient::on_close(websocketpp::connection_hdl conn) {
-    m_client.get_alog().write(websocketpp::log::alevel::app,
-        "Connection closed, stopping telemetry!");
-    stop();
-    reset();
-}
-
-void WebSocketClient::stop()
-{
-    scoped_lock guard(m_lock);
-    m_done = true;
-    m_open = false;
-    m_cv.notify_all();
-
-    if(clbk_on_close)
-      clbk_on_close(1000);
-}
-
-void WebSocketClient::reset()
-{
-    m_hdl.reset();
-    m_client.reset();
-}
-
-void WebSocketClient::on_fail(websocketpp::connection_hdl) {
-    m_client.get_alog().write(websocketpp::log::alevel::app,
-        "Connection failed, stopping telemetry!");
-
-    stop();
-    reset();
-}
-
-void WebSocketClient::add_on_open(std::function<void()> clbk)
-{
-  clbk_on_open = clbk;
-}
-
-void WebSocketClient::add_on_close(std::function<void(int)> clbk)
-{
-  clbk_on_close = clbk;
-}
-
-void WebSocketClient::add_on_error(std::function<void(int)> clbk)
-{
-  clbk_on_error = clbk;
-}
-//////// END CALLBACKS ////////
-
-
-void WebSocketClient::clear_data()
-{
-  unique_lock<mutex> guard(m_worker_mtx);
-  while(!m_to_send_data.empty())
-    m_to_send_data.pop();
-}
-void WebSocketClient::set_data(string data){
-  unique_lock<mutex> guard(m_worker_mtx);
-  m_to_send_data.push(data);
-  if(m_to_send_data.size() > 20)
-    m_to_send_data.pop();
-  m_new_data.store(true);
-  m_cv.notify_all();
+	if(this->topic.find(topic) != this->topic.end()) {
+		msg.topic = topic;
+		msg.payload = payload;
+	}
 }
