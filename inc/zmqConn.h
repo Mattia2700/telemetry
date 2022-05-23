@@ -16,6 +16,7 @@ class custom_zmq_socket : GeneralSocket {
 class ZMQ: public Connection {
     public:
         ZMQ();
+        ~ZMQ();
         
         void closeConnection();
 

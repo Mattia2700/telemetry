@@ -1,10 +1,10 @@
-using namespace std;
-using namespace rapidjson;
-
 #include "wsclient.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
+
+using namespace std;
+using namespace rapidjson;
 
 WebSocketClient::WebSocketClient() : Connection() {
 	socket = new custom_ws_socket();
@@ -122,7 +122,13 @@ thread* WebSocketClient::startSub() {
     server << "ws://" << address;
 
     // bind with the on_message
-    socket->m_client.set_message_handler(bind(&WebSocketClient::on_message, &socket->m_client, ::_1, ::_2));
+    socket->m_client.set_message_handler(
+        bind(
+            bind(&WebSocketClient::on_message, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3),
+
+            &socket->m_client,
+            ::_1,
+            ::_2));
 
     // Ensure subscriber connection has time to complete
     sleep(1);
