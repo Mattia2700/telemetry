@@ -33,6 +33,9 @@ find_package(Boost REQUIRED COMPONENTS
     iostreams system filesystem
 )
 
+#########
+## ZMQ ##
+#########
 find_package(PkgConfig)
 pkg_check_modules(PC_ZeroMQ QUIET zmq)
 

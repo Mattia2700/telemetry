@@ -1,5 +1,6 @@
 #include <mutex>
 #include <string>
+#include <unordered_set>
 #include <websocketpp/client.hpp>
 #include <websocketpp/common/thread.hpp>
 #include <websocketpp/config/asio_no_tls_client.hpp>
@@ -44,9 +45,12 @@ class WebSocketClient: public Connection {
 	private:
 		custom_ws_socket* socket;
 
-		unordered_map<string, bool> topic;	// to be improved
+		void on_open(websocketpp::connection_hdl);
+		void on_close(websocketpp::connection_hdl conn);
+		void on_fail(websocketpp::connection_hdl);
+		void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
 
-		websocketpp::lib::mutex m_lock;
+		unordered_set<string> topic;
 
 		websocketpp::lib::thread* asio_thread;
 		websocketpp::lib::thread* telemetry_thread;

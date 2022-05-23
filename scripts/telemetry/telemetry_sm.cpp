@@ -1,4 +1,5 @@
 #include "telemetry_sm.h"
+#include "../src/lapcounter.h"
 
 TelemetrySM::TelemetrySM()
 : StateMachine(ST_MAX_STATES)
@@ -755,6 +756,8 @@ void TelemetrySM::OnGpsLine(int id, string line)
   // save parsed data into gps file
   if(ret == 1)
   {
+    // lapCounter
+
     msgs_counters["gps_" + to_string(id)] ++;
 
     unique_lock<mutex> lck(mtx);

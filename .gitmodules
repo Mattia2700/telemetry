@@ -1,3 +1,6 @@
 [submodule "thirdparty/gnuplot-iostream"]
 	path = thirdparty/gnuplot-iostream
 	url = https://github.com/dstahlke/gnuplot-iostream
+[submodule "thirdparty/lapcounter"]
+	path = thirdparty/lapcounter
+	url = https://github.com/eagletrt/lapcounter
