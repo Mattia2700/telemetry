@@ -90,6 +90,16 @@ private:
 	};
 	string StatesStr[ST_MAX_STATES];
 
+	/////////////////
+	// LAP COUNTER //
+	/////////////////
+	lc_point_t point;	// to pass to evaluation
+    lc_counter_t* lp;	// initialization with default settings
+    lc_counter_t* lp_inclination;
+    double previousX;
+    double previousY;
+
+	/////////////////
 
 	string HOME_PATH;
 	string CAN_DEVICE;

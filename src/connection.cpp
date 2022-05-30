@@ -1,6 +1,7 @@
 using namespace std;
 
 #include "connection.h"
+#include <iostream>
 
 Connection::Connection() {
     open = false;

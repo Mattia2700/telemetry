@@ -32,6 +32,14 @@ TelemetrySM::TelemetrySM()
 
 TelemetrySM::~TelemetrySM()
 {
+	/////////////////////////
+	// LAP COUNTER DESTROY //
+	/////////////////////////
+	lc_reset(lp); // reset object (removes everything but thresholds)
+    lc_destroy(lp);
+    lc_reset(lp_inclination);
+    lc_destroy(lp_inclination);
+
   EN_Deinitialize(nullptr);
 }
 
@@ -722,6 +730,15 @@ void TelemetrySM::SetupGps()
       gps->SetMode(MODE_FILE);
     else
       gps->SetMode(MODE_PORT);
+
+    /////////////////
+    // LAP COUNTER //
+    /////////////////
+    lp = lc_init(NULL);  // initialization with default settings
+    lp_inclination = lc_init(NULL);
+    previousX = -1;
+    previousY = -1;
+
     gps->SetCallback(bind(&TelemetrySM::OnGpsLine, this, std::placeholders::_1, std::placeholders::_2));
 
     gps_loggers.push_back(gps);
@@ -757,6 +774,22 @@ void TelemetrySM::OnGpsLine(int id, string line)
   if(ret == 1)
   {
     // lapCounter
+    point.x = gps->latitude;
+    point.y = gps->longitude;
+
+    if(!(point.x == previousX && point.y == previousY)) {
+        previousX = point.x;
+        previousY = point.y;
+
+		if (point.x == 0 && point.y == 0) {
+			// return
+		}
+
+		if(lc_eval_point(lp, &point, lp_inclination)) {
+			// è passato un giro
+			// PHIL: arriva al volante?
+		}
+	}
 
     msgs_counters["gps_" + to_string(id)] ++;
 

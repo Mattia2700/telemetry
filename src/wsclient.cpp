@@ -1,5 +1,4 @@
 using namespace std;
-using namespace rapidjson;
 
 #include "wsclient.h"
 
@@ -122,20 +121,27 @@ thread* WebSocketClient::startSub() {
     server << "ws://" << address;
 
     // bind with the on_message
-    socket->m_client.set_message_handler(bind(&WebSocketClient::on_message, &socket->m_client, ::_1, ::_2));
+    socket->m_client.set_message_handler(bind(&WebSocketClient::on_message, this, &socket->m_client, ::_1, ::_2));
 
     // Ensure subscriber connection has time to complete
     sleep(1);
+
+    open = true;
+
+    if(clbk_on_open) {
+        clbk_on_open();
+    }
 
     return nullptr;
 }
 
 void WebSocketClient::on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg) {
+    cout << "asd" << endl;
     if(clbk_on_message) {
         message m;
 
-        Document doc;
-        ParseResult ok = doc.Parse(msg->get_payload().c_str(), msg->get_payload().size());
+        rapidjson::Document doc;
+        rapidjson::ParseResult ok = doc.Parse(msg->get_payload().c_str(), msg->get_payload().size());
 
         if(!ok || !doc.HasMember("topic")) {
             return;
@@ -156,6 +162,9 @@ void WebSocketClient::on_message(client* cli, websocketpp::connection_hdl hdl, m
 
 void WebSocketClient::sendMessage(const message& msg) {
     stringstream message;
+
+    cout << message.str() << endl;
+    
     message << "{" <<
                     "\"topic\": \"" << msg.topic << "\", " <<
                     "\"data\": \"" << msg.payload << "\"" <<

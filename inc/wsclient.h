@@ -36,6 +36,7 @@ class WebSocketClient: public Connection {
 		typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
 
 		WebSocketClient();
+		~WebSocketClient();
 
 		void closeConnection();
 

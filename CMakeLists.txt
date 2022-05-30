@@ -217,3 +217,7 @@ target_link_libraries(gps_log_player libBase)
 # ZMQ TEST
 add_executable(test_zmq scripts/testZMQ/test.cpp)
 target_link_libraries(test_zmq libBase)
+
+# WS TEST
+add_executable(test_ws scripts/testWS/test.cpp)
+target_link_libraries(test_ws libBase)
