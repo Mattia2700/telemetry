@@ -3,20 +3,37 @@
 #ifndef __CONNECTION_H__
 #define __CONNECTION_H__
 
+#include <queue>
+#include <mutex>
+#include <thread>
+#include <string>
+#include <unistd.h>
+#include <functional>
+#include <condition_variable>
+
 using namespace std;
 
-#include <thread>
-#include <mutex>
-#include <condition_variable>
-#include <string>
-#include <queue>
-#include <functional>
-#include <unistd.h>
+class GenericSocket {};
+class GenericMessage {
+public:
+    GenericMessage(){};
+    GenericMessage(const string& data_): data(data_){};
+    GenericMessage(const string& topic_, const string& payload_):
+                   topic(topic_), payload(payload_){};
 
-class GeneralSocket {};
+    
+    // use these if in subsub
+    string topic;
+    string payload;
+
+    // use this if in raw
+    string data;
+};
 
 class Connection {
     public:
+        int getId();
+
         void init(const string& address, const string& port, const int& openMode);
 
         enum {
@@ -31,29 +48,25 @@ class Connection {
         };
 
         virtual void closeConnection() = 0;
-        virtual void subscribe(const string& topic) = 0;
-        virtual void unsubscribe(const string& topic) = 0;
+        virtual thread* start() = 0;
 
-        void setData(string id, string data);
+        void clearData();
+        void setData(const GenericMessage& message);
 
-        thread* start();
-
-        void add_on_open(function<void()>);
-        void add_on_close(function<void(const int& code)>);
-        void add_on_error(function<void(const int& code, const string& msg)>);
-        void add_on_message(function<void(const message&)>);
-        void add_on_subscribe(function<void(const string&)>);
-        void add_on_unsubscribe(function<void(const string&)>);
+        void addOnOpen(function<void(const int& id)>);
+        void addOnClose(function<void(const int& id, const int& code)>);
+        void addOnError(function<void(const int& id, const int& code, const string& msg)>);
+        void addOnMessage(function<void(const int& id, const GenericMessage&)>);
 
     protected:
         Connection();
         ~Connection();
 
-        string address;
-        string port;
-        int openMode;
+        int id;
 
-        GeneralSocket* socket;
+        string port;
+        string address;
+        int openMode;
 
         bool open = false;
         bool done = false;
@@ -61,27 +74,25 @@ class Connection {
 
         mutex mtx;
         condition_variable cv;
-        queue<message> buff_send;
+        queue<GenericMessage> buff_send;
 
-        virtual thread* startPub() = 0;
-        virtual thread* startSub() = 0;
+    protected:
 
-        void pubLoop();
-        void subLoop();
-        
-        void reset();
         void stop();
-        void clearData();
+        void reset();
 
-        virtual void sendMessage(const message& msg) = 0;
-        virtual void receiveMessage(message& msg) = 0;
+        void sendLoop();
+        void receiveLoop();
 
-        function<void()> clbk_on_open;
-        function<void(const int& code)> clbk_on_close;
-        function<void(const int& code, const string& msg)> clbk_on_error;
-        function<void(const message& msg)> clbk_on_message;
-        function<void(const string& topic)> clbk_on_subscribe;
-        function<void(const string& topic)> clbk_on_unsubscribe;
+        virtual void sendMessage(const GenericMessage& msg) = 0;
+        virtual void receiveMessage(GenericMessage& msg) = 0;
+
+        function<void(const int& id)> onOpen;
+        function<void(const int& id, const int& code)> onClose;
+        function<void(const int& id, const int& code, const string& msg)> onError;
+        function<void(const int& id, const GenericMessage& msg)> onMessage;
+    private:
+        static int instance_count;
 };
 
 #endif

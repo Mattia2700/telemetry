@@ -6,60 +6,64 @@ using namespace std;
 
 #include "zmqConn.h"
 
-void onMessage(const ZMQ::message& msg) {
-    cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
+mutex mtx;
+
+void onMessage(const int& id, const GenericMessage& msg) {
+    unique_lock<mutex> lck(mtx);
+    cout << id << " RECV topic{" << msg.topic << "} payload: " << msg.payload << endl;
 }
 
-void onError(const int& code, const string& message) {
-    cout << "Error: " << code << " - " << message << endl;
+void onError(const int& id, const int& code, const string& message) {
+    cout << id << " Error: " << code << " - " << message << endl;
 }
 
-void onClose(const int& code) {
-    cout << "Connection closed: " << code << endl;
+void onClose(const int& id, const int& code) {
+    cout << id << " Connection closed: " << code << endl;
 }
 
-void onOpen() {
-    cout << "Connection opened" << endl;
-}
-
-void onSubscribe(string topic) {
-    cout << "Subscribed at " << topic << endl;
-}
-
-void onUnsubscribe(string topic) {
-    cout << "Unsubscribed from " << topic << endl;
+void onOpen(const int& id) {
+    cout << id << " Connection opened" << endl;
 }
 
 int main() {
     ZMQ pub;
     pub.init("127.0.0.1", "5555", ZMQ::PUB);
-    ZMQ sub;
-    sub.init("127.0.0.1", "5555", ZMQ::SUB);
+    ZMQ sub1;
+    sub1.init("127.0.0.1", "5555", ZMQ::SUB);
+    ZMQ sub2;
+    sub2.init("127.0.0.1", "5555", ZMQ::SUB);
 
     //pub.add_on_message(onMessage);
-    pub.add_on_error(onError);
-    pub.add_on_close(onClose);
-    pub.add_on_open(onOpen);
+    pub.addOnError(onError);
+    pub.addOnClose(onClose);
+    pub.addOnOpen(onOpen);
 
-    sub.add_on_message(onMessage);
-    sub.add_on_error(onError);
-    sub.add_on_close(onClose);
-    sub.add_on_open(onOpen);
-    sub.add_on_subscribe(onSubscribe);
-    sub.add_on_unsubscribe(onUnsubscribe);
+    sub1.addOnMessage(onMessage);
+    sub1.addOnError(onError);
+    sub1.addOnClose(onClose);
+    sub1.addOnOpen(onOpen);
+    sub2.addOnMessage(onMessage);
+    sub2.addOnError(onError);
+    sub2.addOnClose(onClose);
+    sub2.addOnOpen(onOpen);
 
     thread *pub_thread = pub.start();
-    thread *sub_thread = sub.start();
+    thread *sub_thread1 = sub1.start();
+    thread *sub_thread2 = sub2.start();
 
-    sub.subscribe("test");
+    sub1.subscribe("test1");
+    sub2.subscribe("test1");
+    sub2.subscribe("test2");
 
     while(true) {
         sleep(1);
-        pub.setData("test", "Hello World");
+        pub.setData(GenericMessage("test1", "Hello World"));
+        pub.setData(GenericMessage("test2", "Secret"));
     }
 
-    sub.closeConnection();
     pub.closeConnection();
+    sub1.closeConnection();
+    sub2.closeConnection();
 
     return 0;
 }

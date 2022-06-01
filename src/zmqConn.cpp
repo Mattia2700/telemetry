@@ -13,6 +13,19 @@ ZMQ::~ZMQ() {
     delete socket->context;
 }
 
+// it will connect to the server using the selected mode
+thread* ZMQ::start() {
+    thread* t;
+
+    if(openMode == PUB) {
+        t = startPub(); // start a thread for publishing
+    } else if(openMode == SUB) {
+        t = startSub(); // start a thread for subscribing
+    }
+
+    return t;
+}
+
 thread* ZMQ::startPub() {
     socket = new custom_zmq_socket();
     socket->context = new zmq::context_t(1);
@@ -25,25 +38,22 @@ thread* ZMQ::startPub() {
     try {
         (*socket->socket).bind(server.str());
     } catch (zmq::error_t e) {
-        if(clbk_on_error) {
-            clbk_on_error(e.num(), e.what());
+        if(onError) {
+            onError(id, e.num(), e.what());
         }
 
-        if(clbk_on_close) {
-            clbk_on_close(e.num());
+        if(onClose) {
+            onClose(id, e.num());
         }
     }
-
-    // Ensure publisher connection has time to complete
-    sleep(1);
 
     open = true;
 
-    if(clbk_on_open) {
-        clbk_on_open();
+    if(onOpen) {
+        onOpen(id);
     }
 
-    thread* telemetry_thread = new thread(&ZMQ::pubLoop, this);
+    thread* telemetry_thread = new thread(&ZMQ::sendLoop, this);
 
     return telemetry_thread;
 }
@@ -60,51 +70,47 @@ thread* ZMQ::startSub() {
     try {
         (*socket->socket).connect(server.str());
     } catch(zmq::error_t& e) {
-        if(clbk_on_error) {
-            clbk_on_error(e.num(), e.what());
+        if(onError) {
+            onError(id, e.num(), e.what());
         }
 
-        if(clbk_on_close) {
-            clbk_on_close(e.num());
+        if(onClose) {
+            onClose(id, e.num());
         }
     }
-
-    // Ensure subscriber connection has time to complete
-    sleep(1);
 
     open = true;
 
-    if(clbk_on_open) {
-        clbk_on_open();
+    if(onOpen) {
+        onOpen(id);
     }
 
-    thread* telemetry_thread = new thread(&ZMQ::subLoop, this);
+    thread* telemetry_thread = new thread(&ZMQ::receiveLoop, this);
 
     return telemetry_thread;
 }
 
-void ZMQ::subscribe(const string& topic) {
+int ZMQ::subscribe(const string& topic) {
     try {
         (*socket->socket).setsockopt(ZMQ_SUBSCRIBE, topic.c_str(), topic.size());
     } catch(zmq::error_t& e) {
-        clbk_on_error(e.num(), e.what());
+        if(onError)
+            onError(id, e.num(), e.what());
+        return -1;
     }
-
-    if(clbk_on_subscribe) {
-        clbk_on_subscribe(topic);
-    }
+    return 0;
 }
 
-void ZMQ::unsubscribe(const string& topic) {
+int ZMQ::unsubscribe(const string& topic) {
     try {
         (*socket->socket).setsockopt(ZMQ_UNSUBSCRIBE, topic.c_str(), topic.size());
     } catch(zmq::error_t& e) {
-        clbk_on_error(e.num(), e.what());
+        if(onError)
+            onError(id, e.num(), e.what());
+        return -1;
     }
+    return 0;
 
-    if(clbk_on_unsubscribe) {
-        clbk_on_unsubscribe(topic);
-    }
 }
 
 // before ending the program remember to close the connection
@@ -112,8 +118,8 @@ void ZMQ::closeConnection() {
     socket->socket->close();
     socket->context->close();
 
-    if(clbk_on_close) {
-        clbk_on_close(0);   // 0 means no error
+    if(onClose) {
+        onClose(id, 0);   // 0 means no error
     }
 
     done = true;
@@ -121,31 +127,31 @@ void ZMQ::closeConnection() {
 }
 
 // passing the topic and the message it will send it
-void ZMQ::sendMessage(const message& msg) {
+void ZMQ::sendMessage(const GenericMessage& msg) {
     int rc;
     rc = s_sendmore(*(socket->socket), msg.topic); // #id
     if(rc < 0) {
-        if(clbk_on_error) {
-            clbk_on_error(rc, "Error seding topic");
+        if(onError) {
+            onError(id, rc, "Error seding topic");
         }
     }
 
     rc = s_send(*(socket->socket), msg.payload); // message
 
     if(rc < 0) {
-        if(clbk_on_error) {
-            clbk_on_error(rc, "Error sending payload");
+        if(onError) {
+            onError(id, rc, "Error sending payload");
         }
     }
 }
 
-void ZMQ::receiveMessage(message& msg) {
+void ZMQ::receiveMessage(GenericMessage& msg) {
     try {
         msg.topic = s_recv(*(socket->socket));
         msg.payload = s_recv(*(socket->socket));
     } catch(zmq::error_t& e) {
-        if(clbk_on_error) {
-            clbk_on_error(e.num(), e.what());
+        if(onError) {
+            onError(id, e.num(), e.what());
         }
     }
 }

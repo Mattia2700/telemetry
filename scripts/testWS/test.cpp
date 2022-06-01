@@ -6,61 +6,49 @@ using namespace std;
 
 #include "wsclient.h"
 
-void onMessage(const WebSocketClient::message& msg) {
-    cout << "Message received: " << msg.topic << ": " << msg.payload << endl;
+void onMessage(const int& id, const GenericMessage& msg) {
+    cout << id << " RECV: " << msg.data << endl;
 }
 
-void onError(const int& code, const string& message) {
-    cout << "Error: " << code << " - " << message << endl;
+void onError(const int& id, const int& code, const string& message) {
+    cout << id << " Error: " << code << " - " << message << endl;
 }
 
-void onClose(const int& code) {
-    cout << "Connection closed: " << code << endl;
+void onClose(const int& id, const int& code) {
+    cout << id << " Connection closed: " << code << endl;
 }
 
-void onOpen() {
-    cout << "Connection opened" << endl;
-}
-
-void onSubscribe(string topic) {
-    cout << "Subscribed at " << topic << endl;
-}
-
-void onUnsubscribe(string topic) {
-    cout << "Unsubscribed from " << topic << endl;
+void onOpen(const int& id) {
+    cout << id << " Connection opened" << endl;
 }
 
 int main() {
-    WebSocketClient pub;
-    pub.init("127.0.0.1", "5555", WebSocketClient::PUB);
-    WebSocketClient sub;
-    pub.init("127.0.0.1", "5555", WebSocketClient::SUB);
+    WebSocketClient cli1;
+    cli1.init("192.168.43.207", "3000", 0);
+    WebSocketClient cli2;
+    cli2.init("192.168.43.207", "3000", 0);
 
-    //pub.add_on_message(onMessage);
-    pub.add_on_error(onError);
-    pub.add_on_close(onClose);
-    pub.add_on_open(onOpen);
+    //cli1.add_on_message(onMessage);
+    cli1.addOnOpen(onOpen);
+    cli1.addOnClose(onClose);
+    cli1.addOnError(onError);
 
-    sub.add_on_message(onMessage);
-    sub.add_on_error(onError);
-    sub.add_on_close(onClose);
-    sub.add_on_open(onOpen);
-    sub.add_on_subscribe(onSubscribe);
-    sub.add_on_unsubscribe(onUnsubscribe);
+    cli2.addOnOpen(onOpen);
+    cli2.addOnClose(onClose);
+    cli2.addOnError(onError);
+    cli2.addOnMessage(onMessage);
 
-    thread *pub_thread = pub.start();
+    thread *cli1_thread = cli1.start();
+    thread *cli2_thread = cli2.start();
 
-    thread *sub_thread = sub.start();
-
-    sub.subscribe("test");
 
     while(true) {
         sleep(1);
-        pub.setData("test", "Hello World");
+        cli1.setData(GenericMessage("Test Message"));
     }
 
-    sub.closeConnection();
-    pub.closeConnection();
+    cli1.closeConnection();
+    cli2.closeConnection();
 
     return 0;
 }

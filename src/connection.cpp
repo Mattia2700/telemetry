@@ -3,14 +3,23 @@ using namespace std;
 #include "connection.h"
 #include <iostream>
 
+
+int Connection::instance_count = 0;
+
 Connection::Connection() {
+    id = instance_count;
+    instance_count ++;
     open = false;
     done = false;
     new_data = false;
 }
 
 Connection::~Connection() {
-    delete socket;
+}
+
+int Connection::getId()
+{
+    return id;
 }
 
 // passing address, port and mode it will save it in the class
@@ -20,21 +29,8 @@ void Connection::init(const string& address, const string& port, const int& open
     this->openMode = openMode;
 }
 
-// it will connect to the server using the selected mode
-thread* Connection::start() {
-    thread* t;
-
-    if(openMode == PUB) {
-        t = startPub(); // start a thread for publishing
-    } else if(openMode == SUB) {
-        t = startSub(); // start a thread for subscribing
-    }
-
-    return t;
-}
-
 // this loop check if there are new data to send
-void Connection::pubLoop() {
+void Connection::sendLoop() {
     while(!open) usleep(10000);
     while(!done) {
         unique_lock<mutex> lck(mtx);
@@ -45,9 +41,7 @@ void Connection::pubLoop() {
         // when actually the socket is being closed
         if(done) break;
 
-        message msg = buff_send.front();
-        
-        this->sendMessage(msg);
+        this->sendMessage(buff_send.front());
 
         buff_send.pop();
 
@@ -57,15 +51,15 @@ void Connection::pubLoop() {
 
 // this loop check if there are new data to receive
 // the receive function is blocking, so it will wait for new data
-void Connection::subLoop() {
+void Connection::receiveLoop() {
     while(!open) usleep(10000);
     while(!done) {
-        message msg;
+        GenericMessage msg;
 
         this->receiveMessage(msg);
 
-        if(clbk_on_message) {
-            clbk_on_message(msg);
+        if(onMessage) {
+            onMessage(id, msg);
         }
     }
 }
@@ -79,18 +73,15 @@ void Connection::clearData() {
     }
 }
 
-void Connection::setData(string id, string data) {
+void Connection::setData(const GenericMessage& msg) {
     unique_lock<mutex> guard(mtx);
-    
-    message msg;
-
-    msg.topic = id;
-    msg.payload = data;
 
     buff_send.push(msg);
 
     if(buff_send.size() > 20) {
         buff_send.pop();
+        if(onError)
+            onError(id, 0, "Queue is full");
     }
 
     if(!new_data) new_data = true;
@@ -99,19 +90,19 @@ void Connection::setData(string id, string data) {
 }
 
 void Connection::stop() {
-    scoped_lock guard(mtx);
+    unique_lock<mutex> guard(mtx);
     done = true;
     open = false;
 
     cv.notify_all();
 
-    if(clbk_on_close) {
-        clbk_on_close(1000);
+    if(onClose) {
+        onClose(id, 1000);
     }
 }
 
 void Connection::reset() {
-    scoped_lock guard(mtx);
+    unique_lock<mutex> guard(mtx);
     done = false;
     open = false;
     new_data = false;
@@ -122,27 +113,15 @@ void Connection::reset() {
 //////////////////////////    CALLBACKS   //////////////////////////
 ////////////////////////////////////////////////////////////////////
 
-void Connection::add_on_open(function<void()> clbk) {
-    clbk_on_open = clbk;
+void Connection::addOnOpen(function<void(const int& id)> clbk) {
+    onOpen = clbk;
 }
-
-void Connection::add_on_close(function<void(const int&)> clbk) {
-    clbk_on_close = clbk;
+void Connection::addOnClose(function<void(const int& id, const int&)> clbk) {
+    onClose = clbk;
 }
-
-void Connection::add_on_error(function<void(const int&, const string& msg)> clbk) {
-    clbk_on_error = clbk;
+void Connection::addOnError(function<void(const int& id, const int&, const string& msg)> clbk) {
+    onError = clbk;
 }
-
-
-void Connection::add_on_message(function<void(const message&)> clbk) {
-    clbk_on_message = clbk;
-}
-
-void Connection::add_on_subscribe(function<void(const string&)> clbk) {
-    clbk_on_subscribe = clbk;
-}
-
-void Connection::add_on_unsubscribe(function<void(const string&)> clbk) {
-    clbk_on_unsubscribe = clbk;
+void Connection::addOnMessage(function<void(const int& id, const GenericMessage&)> clbk) {
+    onMessage = clbk;
 }

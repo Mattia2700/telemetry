@@ -23,7 +23,7 @@ enum ConnectionState_ {
 	CLOSED
 };
 
-class custom_ws_socket : GeneralSocket {
+class custom_ws_socket {
 	public:
 		client m_client;
 		client::connection_ptr m_conn;
@@ -33,32 +33,23 @@ class custom_ws_socket : GeneralSocket {
 
 class WebSocketClient: public Connection {
 	public:
-		typedef websocketpp::lib::lock_guard<websocketpp::lib::mutex> scoped_lock;
-
 		WebSocketClient();
 		~WebSocketClient();
 
-		void closeConnection();
-
-		void subscribe(const string& topic);
-		void unsubscribe(const string& topic);
+		virtual void closeConnection();
+        virtual thread* start();
 
 	private:
 		custom_ws_socket* socket;
 
-		void on_open(websocketpp::connection_hdl);
-		void on_close(websocketpp::connection_hdl conn);
-		void on_fail(websocketpp::connection_hdl);
-		void on_message(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+		void m_onOpen(websocketpp::connection_hdl);
+		void m_onClose(websocketpp::connection_hdl conn);
+		void m_onFail(websocketpp::connection_hdl);
+		void m_onMessage(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
 
-		unordered_set<string> topic;
+		websocketpp::lib::thread* asio_thread = nullptr;
+		websocketpp::lib::thread* telemetry_thread = nullptr;
 
-		websocketpp::lib::thread* asio_thread;
-		websocketpp::lib::thread* telemetry_thread;
-
-		thread* startPub();
-		thread* startSub();
-
-		void sendMessage(const message& msg);
-		void receiveMessage(message& msg);
+		virtual void sendMessage(const GenericMessage& msg);
+		virtual void receiveMessage(GenericMessage& msg);
 };

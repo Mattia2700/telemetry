@@ -94,20 +94,21 @@ inline static char* s_recv(void *socket, int flags = 0) {
 inline static std::string s_recv(zmq::socket_t & socket, int flags = 0) {
 
     zmq::message_t message;
-    socket.recv(&message, flags);
+    zmq::recv_result_t res = socket.recv(message, (zmq::recv_flags)flags);
 
     return std::string(static_cast<char*>(message.data()), message.size());
 }
 
 inline static bool s_recv(zmq::socket_t & socket, std::string & ostring, int flags = 0) {
 	zmq::message_t message;
-	bool rc = socket.recv(&message, flags);
+	zmq::recv_result_t res = socket.recv(message, (zmq::recv_flags)flags);
 
-	if (rc) {
+	if (res.has_value()) {
 		ostring = std::string(static_cast<char*>(message.data()), message.size());
+	    return true;
 	}
 	
-	return (rc);
+	return false;
 }
 
 //  Convert C string to 0MQ string and send to socket
@@ -127,8 +128,8 @@ inline static bool s_send (zmq::socket_t & socket, const std::string & string, i
     zmq::message_t message(string.size());
     memcpy(message.data(), string.data(), string.size());
 
-    bool rc = socket.send (message, flags);
-    return (rc);
+    zmq::send_result_t res = socket.send (message, (zmq::send_flags)flags);
+    return res.has_value();
 }
 
 //  Sends string as 0MQ string, as multipart non-terminal
@@ -148,9 +149,8 @@ inline static int s_sendmore(void *socket, char *string) {
 inline static bool s_sendmore (zmq::socket_t & socket, const std::string & string) {
     zmq::message_t message(string.size());
     memcpy (message.data(), string.data(), string.size());
-
-    bool rc = socket.send (message, ZMQ_SNDMORE);
-    return (rc);
+    zmq::send_result_t res = socket.send (message, (zmq::send_flags)ZMQ_SNDMORE);
+    return res.has_value();
 }
 
 //  Receives all message parts from socket, prints neatly
@@ -161,7 +161,7 @@ inline static void s_dump (zmq::socket_t & socket) {
     while (1) {
         //  Process all parts of the message
         zmq::message_t message;
-        socket.recv(&message);
+	    zmq::recv_result_t res = socket.recv(message, zmq::recv_flags::none);
 
         //  Dump the message as text or binary
         size_t size = message.size();
