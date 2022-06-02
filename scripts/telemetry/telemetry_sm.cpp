@@ -1,5 +1,4 @@
 #include "telemetry_sm.h"
-#include "../src/lapcounter.h"
 
 TelemetrySM::TelemetrySM()
 : StateMachine(ST_MAX_STATES)
@@ -440,8 +439,8 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
 
   if(ws_cli != nullptr)
   {
-    ws_cli->clear_data();
-    ws_cli->close();
+    ws_cli->clearData();
+    ws_cli->closeConnection();
     if(ws_cli_thread != nullptr)
     {
       if(ws_cli_thread->joinable())
@@ -811,9 +810,9 @@ void TelemetrySM::OnGpsLine(int id, string line)
 
 void TelemetrySM::ConnectToWS()
 {
-  ws_cli->add_on_open(bind(&TelemetrySM::OnOpen, this));
-  ws_cli->add_on_close(bind(&TelemetrySM::OnClose, this, std::placeholders::_1));
-  ws_cli->add_on_error(bind(&TelemetrySM::OnError, this, std::placeholders::_1));
+  ws_cli->addOnOpen(bind(&TelemetrySM::OnOpen, this,  std::placeholders::_1));
+  ws_cli->addOnClose(bind(&TelemetrySM::OnClose, this, std::placeholders::_1, std::placeholders::_2));
+  ws_cli->addOnError(bind(&TelemetrySM::OnError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   // sends sensors data only if connected
   data_thread = new thread(&TelemetrySM::SendWsData, this);
@@ -826,20 +825,22 @@ void TelemetrySM::ConnectToWS()
     if(ws_conn_state == ConnectionState_::CONNECTED || ws_conn_state == ConnectionState_::CONNECTING)
       continue;
     
-    ws_cli->set_on_message(bind(&TelemetrySM::OnMessage, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
-    ws_cli_thread = ws_cli->run(tel_conf.ws_server_url);
+    ws_cli->init(tel_conf.ws_server_url, "", 0);
+    // ws_cli->init("192.168.42.88", "3000", 0);
+    ws_cli->addOnMessage(bind(&TelemetrySM::OnMessage, this, std::placeholders::_1, std::placeholders::_2));
+    ws_cli_thread = ws_cli->start();
     if(ws_cli_thread == nullptr){
       CONSOLE.ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
     }
     // Login as telemetry
-    ws_cli->clear_data();
-    ws_cli->set_data("{\"identifier\":\"telemetry\"}");
+    ws_cli->clearData();
+    ws_cli->setData(GenericMessage("{\"identifier\":\"telemetry\"}"));
     ws_conn_state = ConnectionState_::CONNECTING;
   }
   CONSOLE.LogError("KILLED");
 }
 
-void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, message_ptr msg)
+void TelemetrySM::OnMessage(const int& id, const GenericMessage& msg)
 {
   Document req;
   StringBuffer sb;
@@ -852,7 +853,7 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
   rapidjson::Document::AllocatorType &alloc2 = ret.GetAllocator();
 
 
-  ParseResult ok = req.Parse(msg->get_payload().c_str(), msg->get_payload().size());
+  ParseResult ok = req.Parse(msg.data.c_str(), msg.data.size());
   if(!ok || !req.HasMember("type"))
   {
     return;
@@ -879,14 +880,14 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
   if(req["type"] == "telemetry_set_tel_config")
   {
     telemetry_config buffer;
-    auto j = json::parse(msg->get_payload());
+    auto j = json::parse(msg.data);
     try
     {
       Deserialize(buffer, j["data"]);
     }
     catch(const std::exception& e)
     {
-      CONSOLE.LogWarn("Failed parsing telemetry config (from ws) ", msg->get_payload());
+      CONSOLE.LogWarn("Failed parsing telemetry config (from ws) ", msg.data);
     }
     tel_conf = buffer;
 
@@ -900,7 +901,7 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
     ret.AddMember("time", (get_timestamp() - req["time"].GetDouble()), alloc2);
     ret.Accept(w2);
     
-    ws_cli->set_data(sb2.GetString());
+    ws_cli->setData(GenericMessage(sb2.GetString()));
   } else if(req["type"] == "telemetry_get_config")
   {
     CONSOLE.DebugMessage("Requested configs");
@@ -914,7 +915,7 @@ void TelemetrySM::OnMessage(client* cli, websocketpp::connection_hdl hdl, messag
     ret.AddMember("session_config", Value().SetString(conf2.c_str(), conf2.size(), alloc2), alloc2);
     ret.Accept(w2);
     
-    ws_cli->set_data(sb2.GetString());
+    ws_cli->setData(GenericMessage(sb2.GetString()));
     CONSOLE.Log("Done config");
   } 
   else if(req["type"] == "telemetry_kill")
@@ -1021,10 +1022,12 @@ void TelemetrySM::SendStatus()
         val.AddMember(Value().SetString(el.first.c_str(), alloc), el.second, alloc);
       }
       d.AddMember("msgs_per_second", val, alloc);
+#ifdef WITH_CAMERA
       auto cam_state = camera.StatesStr[camera.GetCurrentState()];
       auto cam_error = CamErrorStr[camera.GetError()];
       d.AddMember("camera_status", Value().SetString(cam_state.c_str(), cam_state.size(), alloc), alloc);
       d.AddMember("camera_error", Value().SetString(cam_error.c_str(), cam_error.size(), alloc), alloc);
+#endif // WITH_CAMERA
 
 
       d.AddMember("cpu_total_load", cpu_total_load_value(), alloc);
@@ -1033,7 +1036,7 @@ void TelemetrySM::SendStatus()
 
       d.Accept(w);
 
-      ws_cli->set_data(sb.GetString());
+      ws_cli->setData(GenericMessage(sb.GetString()));
     }
 
 
@@ -1078,7 +1081,7 @@ void TelemetrySM::SendWsData()
       d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
       d.Accept(w);
 
-      ws_cli->set_data(sb.GetString());
+      ws_cli->setData(GenericMessage(sb.GetString()));
       chimera->clear_serialized();
     }
   }
@@ -1101,20 +1104,20 @@ void TelemetrySM::ActionThread()
     {
       CONSOLE.Log("Starting command:", cmd_copy);
       string status = "Action: " + cmd_copy + " ----> started";
-      ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
+      ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
 
       int ret = system(cmd_copy.c_str());
       if(ret == 0)
       {
         status = "Action: " + cmd_copy + " ----> successful";
         CONSOLE.Log(status);
-        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
+        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
       }
       else
       {
         status = "Action: " + cmd_copy + " ----> failed with code: " + to_string(ret);
         CONSOLE.LogError(status);
-        ws_cli->set_data("{\"type\":\"action_result\",\"data\":\""+status+"\"}");
+        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
       }
     }
     catch(exception e)
@@ -1145,18 +1148,18 @@ void TelemetrySM::ProtoSerialize(const double& timestamp, Device* device)
   }
 }
 
-void TelemetrySM::OnOpen()
+void TelemetrySM::OnOpen(const int& id)
 {
   CONSOLE.Log("WS opened");
   ws_conn_state = ConnectionState_::CONNECTED;
 }
-void TelemetrySM::OnClose(int code)
+void TelemetrySM::OnClose(const int& id, const int& num)
 {
-  CONSOLE.LogError("WS Closed");
+  CONSOLE.LogError("WS Closed <", num, ">");
   ws_conn_state = ConnectionState_::CLOSED;
 }
-void TelemetrySM::OnError(int code)
+void TelemetrySM::OnError(const int& id, const int& num, const string& err)
 {
-  CONSOLE.LogError("WS Error");
+  CONSOLE.LogError("WS Error <", num, ">", "message: ", err);
   ws_conn_state = ConnectionState_::FAIL;
 }

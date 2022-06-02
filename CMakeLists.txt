@@ -51,16 +51,16 @@ find_library(ZeroMQ_LIBRARY
 #########################
 ## RaspiCam and OpenCV ##
 #########################
-#find_package(raspicam PATHS /usr/local/lib/cmake/)
-#if(raspicam_FOUND)
-#  message(STATUS "____ Raspicam FOUND")
-#  find_package( OpenCV )
-#  if(OpenCV_FOUND)
-#    message(STATUS "____ OpenCV FOUND")
-#    set(WITH_CAMERA 1)
-#    add_definitions(-DWITH_CAMERA)
-#  endif()
-#endif()
+find_package(raspicam PATHS /usr/local/lib/cmake/)
+if(raspicam_FOUND)
+ message(STATUS "____ Raspicam FOUND")
+ find_package( OpenCV )
+ if(OpenCV_FOUND)
+   message(STATUS "____ OpenCV FOUND")
+   set(WITH_CAMERA 1)
+   add_definitions(-DWITH_CAMERA)
+ endif()
+endif()
 
 
 include_directories(
@@ -71,17 +71,24 @@ include_directories(
   ${CMAKE_CURRENT_SOURCE_DIR}/Protobuffer/cpp
   
   # haru
-  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libharu
-  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/libharu/include
+  ${PROJECT_SOURCE_DIR}/thirdparty/libharu
+  ${PROJECT_SOURCE_DIR}/thirdparty/libharu/include
 
+  # Gnuplot
   ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/gnuplot-iostream
+
+  # Lap Counter
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/lapcounter
+
+  # Can generated structs
+  ${CMAKE_CURRENT_SOURCE_DIR}/thirdparty/can
   )
 #############
 ## LIBHARU ##
 #############
 # add_definitions(-DLIBHPDF_DEBUG_TRACE)
 # add_definitions(-DHPDF_PTRACE_ON)
-# add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
+add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
@@ -99,6 +106,10 @@ add_library(
   src/wsclient.cpp
   src/zmqConn.cpp
   src/connection.cpp
+
+  thirdparty/lapcounter/src/lapcounter.c
+  thirdparty/lapcounter/src/utils/vector/point/point.c
+  thirdparty/lapcounter/src/utils/vector/vector.c
 )
 target_link_libraries(libBase
   stdc++fs
@@ -108,27 +119,27 @@ target_link_libraries(libBase
 
 
 
-#add_library(
-#  libVehicle
-#  SHARED
-#
-#  src/devices.cpp
-#  src/vehicle.cpp
-#  src/ubxparser.cpp
-#  src/gps_logger.cpp
-#  #src/report.cpp
-#
-#  # PROTO
-#  Protobuffer/cpp/devices.pb.cc
-#)
-#target_link_libraries(libVehicle
-#  #hpdf
-#  stdc++fs
-#  ${Protobuf_LIBRARIES}
-#  Boost::iostreams
-#  Boost::system
-#  Boost::filesystem
-#)
+add_library(
+ libVehicle
+ SHARED
+
+ src/devices.cpp
+ src/vehicle.cpp
+ src/ubxparser.cpp
+ src/gps_logger.cpp
+ src/report.cpp
+
+ # PROTO
+ Protobuffer/cpp/devices.pb.cc
+)
+target_link_libraries(libVehicle
+ hpdf
+ stdc++fs
+ ${Protobuf_LIBRARIES}
+ Boost::iostreams
+ Boost::system
+ Boost::filesystem
+)
 
 
 
@@ -140,21 +151,21 @@ add_library(
   src/StateMachine/StateMachine.cpp
   src/StateMachine/Fault.cpp
 )
-#add_library(
-#  libSMImpl
-#  SHARED
-#  scripts/telemetry/telemetry_sm.cpp
-#)
-#target_link_libraries(libSMImpl
-#  stdc++fs
-#  ${Protobuf_LIBRARIES}
-#  websocketpp::websocketpp
-#
-#  libBase
-#  libVehicle
-#  libJsonModels
-#  libStateMachine
-#)
+add_library(
+ libSMImpl
+ SHARED
+ scripts/telemetry/telemetry_sm.cpp
+)
+target_link_libraries(libSMImpl
+ stdc++fs
+ ${Protobuf_LIBRARIES}
+ websocketpp::websocketpp
+
+ libBase
+ libVehicle
+ libJsonModels
+ libStateMachine
+)
 
 
 

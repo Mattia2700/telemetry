@@ -36,6 +36,8 @@
 #include "rapidjson/prettywriter.h"
 using namespace rapidjson;
 
+#include "thirdparty/lapcounter/src/lapcounter.h"
+
 
 
 using namespace std;
@@ -70,9 +72,9 @@ public:
 	TelemetrySM();
 	~TelemetrySM();
 
-  void Init();
-  void Run();
-  void Stop();
+	void Init();
+	void Run();
+	void Stop();
 	void Reset();
 
 	TelemetryError GetError();
@@ -167,12 +169,12 @@ private:
 
 	// WebSocket
 	void ConnectToWS();
-	void OnOpen();
-	void OnClose(int);
-	void OnError(int);
+	void OnOpen	(const int& id);
+	void OnClose(const int& id, const int& num);
+	void OnError(const int& id, const int& num, const string& message);
 	void SendWsData();
 	void SendStatus();
-	void OnMessage(client* cli, websocketpp::connection_hdl hdl, message_ptr msg);
+	void OnMessage(const int& id, const GenericMessage& msg);
 
 
 	// Actions

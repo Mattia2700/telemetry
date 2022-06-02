@@ -11,6 +11,10 @@ WebSocketClient::WebSocketClient() : Connection() {
 
     // set up access channels to only log interesting things
     socket->m_client.clear_access_channels(websocketpp::log::alevel::all);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::connect);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::disconnect);
+    socket->m_client.set_access_channels(websocketpp::log::alevel::app);
+
 
     // Initialize the Asio transport policy
     socket->m_client.init_asio();
@@ -28,11 +32,23 @@ WebSocketClient::WebSocketClient() : Connection() {
 
 // it will connect to the server using the selected mode
 thread* WebSocketClient::start() {
+    done = false;
+    
     stringstream server;
+    if (address.size() <= 4){
+        if(onError)
+            onError(id, 0, "Missing socket address");
+        return nullptr;
+    }
 
-    server << "ws://" << address;
+    if(address[0] == 'w' && address[1] == 's')
+        server << address;
+    else
+        server << "ws://" << address;
     if(port != "")
         server << ":" << port;
+
+    cout << server.str() << endl;
 
 	socket->m_conn = socket->m_client.get_connection(server.str(), socket->ec);
 
@@ -43,12 +59,8 @@ thread* WebSocketClient::start() {
 	socket->m_client.connect(socket->m_conn);
 
     socket->m_client.get_io_service().reset();
-
-    open = true;
-    done = false;
-
     asio_thread = new websocketpp::lib::thread(&client::run, &socket->m_client);
-    telemetry_thread = new thread(&WebSocketClient::sendLoop, this);
+    telemetry_thread = new websocketpp::lib::thread(&WebSocketClient::sendLoop, this);
 
     return telemetry_thread;
 }
@@ -57,9 +69,8 @@ void WebSocketClient::m_onOpen(websocketpp::connection_hdl) {
     unique_lock<mutex> guard(mtx);
     open = true;
     
-    if(onOpen) {
+    if(onOpen)
         onOpen(id);
-    }
 }
 
 void WebSocketClient::m_onClose(websocketpp::connection_hdl conn) {
@@ -77,10 +88,7 @@ void WebSocketClient::m_onFail(websocketpp::connection_hdl) {
 }
 
 WebSocketClient::~WebSocketClient() {
-	delete &socket->m_client;
-	delete &socket->m_conn;
-	delete &socket->m_hdl;
-	delete &socket->ec;
+	delete socket;
 }
 
 void WebSocketClient::closeConnection() {
@@ -103,6 +111,9 @@ void WebSocketClient::m_onMessage(client* cli, websocketpp::connection_hdl hdl, 
 
 void WebSocketClient::sendMessage(const GenericMessage& msg) {
 	socket->m_client.send(socket->m_hdl, msg.data, websocketpp::frame::opcode::binary, socket->ec);
+    if (socket->ec && onError) {
+        onError(id, socket->ec.value(), socket->ec.message());
+    }
 }
 
 void WebSocketClient::receiveMessage(GenericMessage& msg_) {

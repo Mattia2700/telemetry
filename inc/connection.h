@@ -58,6 +58,7 @@ class Connection {
         void addOnError(function<void(const int& id, const int& code, const string& msg)>);
         void addOnMessage(function<void(const int& id, const GenericMessage&)>);
 
+        void sendLoop();
     protected:
         Connection();
         ~Connection();
@@ -81,7 +82,6 @@ class Connection {
         void stop();
         void reset();
 
-        void sendLoop();
         void receiveLoop();
 
         virtual void sendMessage(const GenericMessage& msg) = 0;
