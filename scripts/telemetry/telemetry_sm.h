@@ -36,7 +36,24 @@
 #include "rapidjson/prettywriter.h"
 using namespace rapidjson;
 
-#include "thirdparty/lapcounter/src/lapcounter.h"
+extern "C"{
+	#include "thirdparty/lapcounter/src/lapcounter.h"
+}
+
+#define  CANLIB_TIMESTAMP
+#define  primary_IMPLEMENTATION
+#define  primary_IDS_IMPLEMENTATION
+#include "thirdparty/can/lib/primary/c/network.h"
+#include "thirdparty/can/lib/primary/c/ids.h"
+#define  secondary_IMPLEMENTATION
+#define  secondary_IDS_IMPLEMENTATION
+#include "thirdparty/can/lib/secondary/c/network.h"
+#include "thirdparty/can/lib/secondary/c/ids.h"
+
+#define  primary_MAPPING_IMPLEMENTATION
+#define  secondary_MAPPING_IMPLEMENTATION
+#include "thirdparty/can/proto/primary/cpp/mapping.h"
+#include "thirdparty/can/proto/secondary/cpp/mapping.h"
 
 
 
@@ -108,13 +125,24 @@ private:
 	string FOLDER_PATH;
 	string CURRENT_LOG_FOLDER;
 
-	std::fstream* dump_file;
+	// std::fstream* dump_file;
+	FILE* dump_file;
+
 
 	Can* can;
 	sockaddr_can addr;
-	Chimera* chimera;
+	// Chimera* chimera;
 	WebSocketClient* ws_cli;
 	vector<GpsLogger*> gps_loggers;
+
+	primary_devices primary_devs;
+	secondary_devices secondary_devs;
+
+	primary::Pack primary_pack;
+	secondary::Pack secondary_pack;
+
+	FILE* primary_files[primary_NUMBER_OF_MESSAGES];
+	FILE* secondary_files[secondary_NUMBER_OF_MESSAGES];
 #ifdef WITH_CAMERA
 	Camera camera;
 #endif

@@ -177,7 +177,12 @@ int empty_fields(const vector<string>& vec, const vector<int>& indeces)
   return -1;
 }
 
-
+uint64_t get_timestamp_u()
+{
+  static struct timeval tv;
+  gettimeofday(&tv,NULL);
+  return 1000000 * tv.tv_sec + tv.tv_usec;
+}
 double get_timestamp()
 {
   return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;

@@ -114,6 +114,7 @@ void GpsLogger::Kill()
 
 void GpsLogger::WaitForEnd()
 {
+  cv.notify_all();
   m_Thread->join();
 }
 

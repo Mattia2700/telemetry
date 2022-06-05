@@ -39,7 +39,7 @@ public:
   *
   * return socket fd
   */
-  int open_socket();
+  int open_socket(bool liste_all_sockets=false);
 
   /**
    * Closes the can socket

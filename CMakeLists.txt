@@ -6,7 +6,7 @@ SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -O3")
 
 ###########
 ## PROTO ##
@@ -155,6 +155,10 @@ add_library(
  libSMImpl
  SHARED
  scripts/telemetry/telemetry_sm.cpp
+
+ #thirdparty/can/proto/bms/cpp/network.pb.cc
+ thirdparty/can/proto/primary/cpp/primary.pb.cc
+ thirdparty/can/proto/secondary/cpp/secondary.pb.cc
 )
 target_link_libraries(libSMImpl
  stdc++fs

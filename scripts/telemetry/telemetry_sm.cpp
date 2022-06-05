@@ -3,7 +3,8 @@
 TelemetrySM::TelemetrySM()
 : StateMachine(ST_MAX_STATES)
 {
-  HOME_PATH = getenv("HOME");
+  // HOME_PATH = getenv("HOME");
+  HOME_PATH = "/home/filippo";
   CONSOLE.SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
   currentError = TelemetryError::TEL_NONE;
@@ -16,8 +17,8 @@ TelemetrySM::TelemetrySM()
 	StatesStr[ST_ERROR]           = "ST_ERROR";
 
   can = nullptr;
-  dump_file = nullptr;
-  chimera = nullptr;
+  dump_file = NULL;
+  // chimera = nullptr;
   ws_cli = nullptr;
   data_thread = nullptr;
   status_thread = nullptr;
@@ -27,6 +28,13 @@ TelemetrySM::TelemetrySM()
 
   kill_threads.store(false);
   wsRequestState = ST_MAX_STATES;
+
+  primary_devices_new(&primary_devs);
+  secondary_devices_new(&secondary_devs);
+  for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    primary_files[i] = NULL;
+  for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    secondary_files[i] = NULL;
 }
 
 TelemetrySM::~TelemetrySM()
@@ -133,7 +141,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
 
 
   CONSOLE.Log("Chimera and WS instances");
-  chimera = new Chimera();
+  // chimera = new Chimera();
   ws_cli = new WebSocketClient();
   ws_conn_thread = new thread(&TelemetrySM::ConnectToWS, this);
   actions_thread = new thread(&TelemetrySM::ActionThread, this);
@@ -142,11 +150,6 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
 
   SetupGps();
   TEL_ERROR_CHECK
-  usleep(100000);
-  CONSOLE.Log("Starting gps loggers");
-  for(auto logger : gps_loggers)
-    logger->Start();
-  CONSOLE.Log("Done");
 
   if(tel_conf.camera_enable)
   {
@@ -169,16 +172,38 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
 {
   CONSOLE.LogStatus("IDLE");
 
+  CONSOLE.Log("Starting gps loggers");
+  for(size_t i = 0; i < gps_loggers.size(); i++)
+    if(tel_conf.gps_enabled[i])
+      gps_loggers[i]->Start();
+  CONSOLE.Log("Done");
+
   can_frame message;
   double timestamp;
   vector<Device *> modifiedDevices;
 
   string dev = can->get_device();
+
+  static FILE* fout;
+  static int   dev_idx;
   while (GetCurrentState() == ST_IDLE)
   {
     can->receive(&message);
     timestamp = get_timestamp();
     msgs_counters[dev] ++;
+
+    if(primary_is_message_id(message.can_id))
+    {
+      dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
+      primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
+      primary_proto_serialize_from_id(message.can_id, &primary_pack, &primary_devs);
+    }
+    if(secondary_is_message_id(message.can_id))
+    {
+      dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
+      secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
+      secondary_proto_serialize_from_id(message.can_id, &secondary_pack, &secondary_devs);
+    }
 
     if(wsRequestState == ST_UNINITIALIZED)
     {
@@ -195,23 +220,23 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       break;
     }
 
-    try{
-      chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
-    }
-    catch(std::exception ex)
-    {
-      CONSOLE.LogError("Exception when parsing CAN message");
-      CONSOLE.LogError("CAN message: ", CanMessage2Str(message));
-      CONSOLE.LogError("Exception: ", ex.what());
-      continue;
-    }
+    // try{
+    //   chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
+    // }
+    // catch(std::exception ex)
+    // {
+    //   CONSOLE.LogError("Exception when parsing CAN message");
+    //   CONSOLE.LogError("CAN message: ", CanMessage2Str(message));
+    //   CONSOLE.LogError("Exception: ", ex.what());
+    //   continue;
+    // }
 
-    // For every device that has been modified by the parse operation
-    for (auto modified : modifiedDevices)
-    {
-      unique_lock<mutex> lck(mtx);
-      ProtoSerialize(timestamp, modified);
-    }
+    // // For every device that has been modified by the parse operation
+    // for (auto modified : modifiedDevices)
+    // {
+    //   unique_lock<mutex> lck(mtx);
+    //   ProtoSerialize(timestamp, modified);
+    // }
   }
   CONSOLE.LogStatus("IDLE DONE");
 }
@@ -245,23 +270,51 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   CONSOLE.Log("Initializing loggers, and csv files");
   for(auto logger : gps_loggers)
   {
+    if(!tel_conf.gps_enabled[i])
+      continue;
     logger->SetOutputFolder(CURRENT_LOG_FOLDER);
     logger->SetHeader(header);
   }
   CONSOLE.Log("Loggers DONE");
 
-  dump_file = new std::fstream(CURRENT_LOG_FOLDER + "/" + "candump.log", std::fstream::out);
-  (*dump_file) << header << "\n";
+  dump_file = fopen((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), "w");
+  fprintf(dump_file, "%s\n", header.c_str());
 
+  ///////
   if(tel_conf.generate_csv)
   {
     if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
       create_directory(CURRENT_LOG_FOLDER + "/Parsed");
-      
-    chimera->add_filenames(CURRENT_LOG_FOLDER + "/Parsed", ".csv");
-    chimera->open_all_files();
-    chimera->write_all_headers(0);
+    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed/primary"))
+      create_directory(CURRENT_LOG_FOLDER + "/Parsed/primary");
+    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed/secondary"))
+      create_directory(CURRENT_LOG_FOLDER + "/Parsed/secondary");
+
+    char buff[125];
+    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++){
+      primary_message_name_from_id(primary_devs[i].id, buff);
+      string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/"+string(buff)+".csv");
+      primary_files[i] = fopen(folder.c_str(), "w");
+      primary_fields_from_id(primary_devs[i].id, primary_files[i]);
+      fprintf(primary_files[i], "\r\n");
+    }
+    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++){
+      secondary_message_name_from_id(secondary_devs[i].id, buff);
+      string folder = (CURRENT_LOG_FOLDER + "/Parsed/secondary/"+string(buff)+".csv");
+      secondary_files[i] = fopen(folder.c_str(), "w");
+      secondary_fields_from_id(secondary_devs[i].id, secondary_files[i]);
+      fprintf(secondary_files[i], "\r\n");
+    }
   }
+  // if(tel_conf.generate_csv)
+  // {
+  //   if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
+  //     create_directory(CURRENT_LOG_FOLDER + "/Parsed");
+      
+  //   // chimera->add_filenames(CURRENT_LOG_FOLDER + "/Parsed", ".csv");
+  //   // chimera->open_all_files();
+  //   // chimera->write_all_headers(0);
+  // }
   CONSOLE.Log("CSV Done");
 
   can_stat.msg_count = 0;
@@ -288,19 +341,27 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
   CONSOLE.LogStatus("RUN");
 
   static can_frame message;
-  double timestamp;
-  vector<Device *> modifiedDevices;
+  uint64_t timestamp;
+  // vector<Device *> modifiedDevices;
 
+  static FILE* csv_out;
+  static int dev_idx = 0;
   string dev = can->get_device();
+
+  timers["logcan"] = get_timestamp();
   while(GetCurrentState() == ST_RUN)
   {
-    timestamp = get_timestamp();
+    timestamp = get_timestamp_u();
     can->receive(&message);
     can_stat.msg_count++;
     msgs_counters[dev] ++;
 
 
-    LogCan(timestamp, message);
+    timers["logcan"] = get_timestamp();
+    LogCan(((double)timestamp)/1000000, message);
+    timers["logcan"] = get_timestamp() - timers["logcan"];
+    printf("%f\r\n", timers["logcan"]);
+
 
 
     // Parse the message only if is needed
@@ -308,7 +369,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     if(tel_conf.generate_csv || tel_conf.ws_enabled)
     {
       try{
-        chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
+        // chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
       }
       catch(std::exception ex)
       {
@@ -318,19 +379,54 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         continue;
       }
 
-      // For every device that has been modified by the parse operation
-      for (auto modified : modifiedDevices)
+      if(primary_is_message_id(message.can_id))
       {
-        unique_lock<mutex> lck(mtx);
-
-        if(tel_conf.generate_csv &&
-          modified->files.size() > 0 && modified->files[0] != nullptr)
+        dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
+        primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
+        primary_proto_serialize_from_id(message.can_id, &primary_pack, &primary_devs);
+        if(tel_conf.generate_csv)
         {
-          (*modified->files[0]) << modified->get_string(",") + "\n";
+          csv_out = primary_files[dev_idx];
+          if(primary_devs[dev_idx].message == NULL)
+            primary_string_from_id(message.can_id, primary_devs[dev_idx].raw_message, csv_out);
+          else
+            primary_string_from_id(message.can_id, primary_devs[dev_idx].message, csv_out);
+          
+          fprintf(csv_out, "\n");
         }
-
-        ProtoSerialize(timestamp, modified);
       }
+      if(secondary_is_message_id(message.can_id))
+      {
+        dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
+        secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
+        secondary_proto_serialize_from_id(message.can_id, &secondary_pack, &secondary_devs);
+        if(tel_conf.generate_csv)
+        {
+          csv_out = secondary_files[dev_idx];
+          if(secondary_devs[dev_idx].message == NULL)
+            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].raw_message, csv_out);
+          else
+            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].message, csv_out);
+          fprintf(csv_out, "\n");
+        }
+      }
+
+
+
+
+      // // For every device that has been modified by the parse operation
+      // for (auto modified : modifiedDevices)
+      // {
+      //   unique_lock<mutex> lck(mtx);
+
+      //   if(tel_conf.generate_csv &&
+      //     modified->files.size() > 0 && modified->files[0] != nullptr)
+      //   {
+      //     (*modified->files[0]) << modified->get_string(",") + "\n";
+      //   }
+
+      //   ProtoSerialize(timestamp, modified);
+      // }
     }
 
     // Stop message
@@ -356,18 +452,33 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
   CONSOLE.Log("Closing files");
   if(tel_conf.generate_csv){
     // Close all csv files and the dump file
-    chimera->close_all_files();
+    // chimera->close_all_files();
+    for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    {
+      if(primary_files[i] != NULL){
+        fclose(primary_files[i]);
+        primary_files[i] = NULL;
+      }
+    }
+    for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    {
+      if(secondary_files[i] != NULL){
+        fclose(secondary_files[i]);
+        secondary_files[i] = NULL;
+      }
+    }
   }
-  dump_file->close();
-  delete dump_file;
+  fclose(dump_file);
+  dump_file = NULL;
   CONSOLE.Log("Done");
 
   CONSOLE.Log("Restarting gps loggers");
   // Stop logging but continue reading port
-  for(auto logger : gps_loggers)
+  for(int i = 0; i < gps_loggers.size(); i++)
   {
-    logger->StopLogging();
-    logger->Start();
+    gps_loggers[i]->StopLogging();
+    if(tel_conf.gps_enabled[i])
+      gps_loggers[i]->Start();
   }
   CONSOLE.Log("Done");
 
@@ -453,12 +564,10 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Stopped connection");
 
-  if(dump_file != nullptr)
+  if(dump_file != NULL)
   {
-    if(dump_file->is_open())
-      dump_file->close();
-    delete dump_file;
-    dump_file = nullptr;
+    fclose(dump_file);
+    dump_file = NULL;
   }
   CONSOLE.Log("Closed dump file");
 
@@ -474,6 +583,7 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   {
     if(gps_loggers[i] == nullptr)
       continue;
+    cout << i << endl;
     gps_loggers[i]->Kill();
     gps_loggers[i]->WaitForEnd();
     delete gps_loggers[i];
@@ -481,12 +591,32 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   gps_loggers.resize(0);
   CONSOLE.Log("Closed gps loggers");
 
-  if(chimera != nullptr)
-  {
-    chimera->clear_serialized();
-    chimera->close_all_files();
-    delete chimera;
-    chimera = nullptr;
+  // if(chimera != nullptr)
+  // {
+  //   chimera->clear_serialized();
+  //   chimera->close_all_files();
+  //   delete chimera;
+  //   chimera = nullptr;
+  // }
+  primary_pack.Clear();
+  secondary_pack.Clear();
+  if(tel_conf.generate_csv){
+    // Close all csv files and the dump file
+    // chimera->close_all_files();
+    for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    {
+      if(primary_files[i] != NULL){
+        fclose(primary_files[i]);
+        primary_files[i] = NULL;
+      }
+    }
+    for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    {
+      if(secondary_files[i] != NULL){
+        fclose(secondary_files[i]);
+        secondary_files[i] = NULL;
+      }
+    }
   }
   CONSOLE.Log("Deleted vehicle");
 
@@ -628,12 +758,7 @@ void TelemetrySM::CreateFolderName(string& out)
 }
 void TelemetrySM::LogCan(const double& timestamp, const can_frame& msg)
 {
-  string line = "";
-  line += "(" + to_string(timestamp) + ")\t" + CAN_DEVICE + "\t";
-  line += CanMessage2Str(msg);
-  line += "\n";
-
-  (*dump_file) << line;
+  fprintf(dump_file, "(%lu)\t%s\t%s\n", (uint64_t)timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
 }
 
 string TelemetrySM::GetDate()
@@ -716,12 +841,12 @@ void TelemetrySM::SetupGps()
     CONSOLE.Log("Initializing ", dev, mode, enabled);
 
     int id;
-    if(i == 0)
-      id = chimera->gps1->get_id();
-    else if(i == 1)
-      id = chimera->gps2->get_id();
+    // if(i == 0)
+    //   id = chimera->gps1->get_id();
+    // else if(i == 1)
+    //   id = chimera->gps2->get_id();
 
-    GpsLogger* gps = new GpsLogger(id, dev);
+    GpsLogger* gps = new GpsLogger(i, dev);
     gps->SetOutFName("gps_" + to_string(i));
     msgs_counters["gps_" + to_string(id)] = 0;
     msgs_per_second["gps_" + to_string(id)] = 0;
@@ -750,17 +875,17 @@ void TelemetrySM::OnGpsLine(int id, string line)
   Gps* gps;
 
   // Selecting one of chimera GPS
-  if(id == chimera->gps1->get_id())
-    gps = chimera->gps1;
-  else if(id == chimera->gps2->get_id())
-    gps = chimera->gps2;
-  else
-    return;
+  // if(id == chimera->gps1->get_id())
+  //   gps = chimera->gps1;
+  // else if(id == chimera->gps2->get_id())
+  //   gps = chimera->gps2;
+  // else
+  //   return;
 
   // Parsing GPS data
   int ret = 0;
   try{
-    ret = chimera->parse_gps(gps, get_timestamp(), line);
+    // ret = chimera->parse_gps(gps, get_timestamp(), line);
   }
   catch(std::exception e)
   {
@@ -798,8 +923,8 @@ void TelemetrySM::OnGpsLine(int id, string line)
     {
       (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
     }
-    if(tel_conf.ws_send_sensor_data)
-      chimera->serialize_device(gps);
+    // if(tel_conf.ws_send_sensor_data)
+    //   chimera->serialize_device(gps);
   }
   else
   {
@@ -1066,7 +1191,7 @@ void TelemetrySM::SendWsData()
       unique_lock<mutex> lck(mtx);
 
       string serialized_string;
-      chimera->serialized_to_string(&serialized_string);
+      // chimera->serialized_to_string(&serialized_string);
 
       if(serialized_string.size() == 0)
       {
@@ -1082,7 +1207,7 @@ void TelemetrySM::SendWsData()
       d.Accept(w);
 
       ws_cli->setData(GenericMessage(sb.GetString()));
-      chimera->clear_serialized();
+      // chimera->clear_serialized();
     }
   }
 }
@@ -1139,11 +1264,11 @@ void TelemetrySM::ProtoSerialize(const double& timestamp, Device* device)
       if((1.0/tel_conf.ws_downsample_mps) < (timestamp - timers[device->get_name()]))
       {
         timers[device->get_name()] = timestamp;
-        chimera->serialize_device(device);
+        // chimera->serialize_device(device);
       }
     }else
     {
-      chimera->serialize_device(device);
+      // chimera->serialize_device(device);
     }
   }
 }

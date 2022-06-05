@@ -11,6 +11,8 @@
 #include <fstream>
 #include <string.h>
 #include <iostream>
+#include <sys/time.h>
+
 
 
 #include <filesystem>
@@ -40,6 +42,7 @@ void get_lines(string filename, vector<string>* lines);
 * Gets current timestamp in seconds
 */
 double get_timestamp();
+uint64_t get_timestamp_u();
 
 vector<string> get_all_files(string path, string extension="*");
 

@@ -23,7 +23,7 @@ const char* Can::get_device()
 	return device;
 }
 
-int Can::open_socket(){
+int Can::open_socket(bool liste_all_sockets){
   int can_socket;
 	struct ifreq ifr;
 
@@ -38,7 +38,10 @@ int Can::open_socket(){
 	ioctl(can_socket, SIOCGIFINDEX, &ifr);
 
 	(*address).can_family = AF_CAN;
-	(*address).can_ifindex = ifr.ifr_ifindex;
+	if(liste_all_sockets)
+		(*address).can_ifindex = 0;
+	else
+		(*address).can_ifindex = ifr.ifr_ifindex;
 
 	if (bind(can_socket, (struct sockaddr *) address, sizeof(*address)) < 0) {
 		return -2;
