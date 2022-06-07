@@ -168,13 +168,13 @@ private:
 
 	// WebSocket
 	ConnectionState_ ws_conn_state = ConnectionState_::NONE;
-	atomic<States> wsRequestState = ST_UNINITIALIZED;
+	atomic<States> wsRequestState;
 
 
 	// Maps
 	unordered_map<string, uint32_t> msgs_counters;
 	unordered_map<string, uint32_t> msgs_per_second;
-	unordered_map<string, double> timers;
+	unordered_map<string, uint64_t> timers;
 
 
 	TelemetryError currentError;
@@ -188,7 +188,7 @@ private:
 	void OpenLogFolder(const string& path);
 	void CreateHeader(string &header);
 	void CreateFolderName(string& folder);
-	void LogCan(const double& timestamp, const can_frame& msg);
+	void LogCan(const uint64_t& timestamp, const can_frame& msg);
 
 	// GPS
 	void SetupGps();
@@ -222,7 +222,7 @@ private:
 	void SaveStat();
 
 	// Protobuffer
-	void ProtoSerialize(const double& timestamp, Device*);
+	void ProtoSerialize(const int& can_network, const uint64_t& timestamp, const can_frame& msg, const int& dev_idx);
 
 
 private:

@@ -3,8 +3,10 @@
 TelemetrySM::TelemetrySM()
 : StateMachine(ST_MAX_STATES)
 {
-  // HOME_PATH = getenv("HOME");
-  HOME_PATH = "/home/filippo";
+  if(getenv("HOME") != NULL)
+    HOME_PATH = getenv("HOME");
+  else
+    HOME_PATH = "/home/filippo";
   CONSOLE.SaveAllMessages(HOME_PATH + "/telemetry_log.debug");
 
   currentError = TelemetryError::TEL_NONE;
@@ -43,9 +45,9 @@ TelemetrySM::~TelemetrySM()
 	// LAP COUNTER DESTROY //
 	/////////////////////////
 	lc_reset(lp); // reset object (removes everything but thresholds)
-    lc_destroy(lp);
-    lc_reset(lp_inclination);
-    lc_destroy(lp_inclination);
+  lc_destroy(lp);
+  lc_reset(lp_inclination);
+  lc_destroy(lp_inclination);
 
   EN_Deinitialize(nullptr);
 }
@@ -196,13 +198,13 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
       primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
-      primary_proto_serialize_from_id(message.can_id, &primary_pack, &primary_devs);
+      ProtoSerialize(0, timestamp, message, dev_idx);
     }
     if(secondary_is_message_id(message.can_id))
     {
       dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
       secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
-      secondary_proto_serialize_from_id(message.can_id, &secondary_pack, &secondary_devs);
+      ProtoSerialize(1, timestamp, message, dev_idx);
     }
 
     if(wsRequestState == ST_UNINITIALIZED)
@@ -219,24 +221,6 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       InternalEvent(ST_RUN);
       break;
     }
-
-    // try{
-    //   chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
-    // }
-    // catch(std::exception ex)
-    // {
-    //   CONSOLE.LogError("Exception when parsing CAN message");
-    //   CONSOLE.LogError("CAN message: ", CanMessage2Str(message));
-    //   CONSOLE.LogError("Exception: ", ex.what());
-    //   continue;
-    // }
-
-    // // For every device that has been modified by the parse operation
-    // for (auto modified : modifiedDevices)
-    // {
-    //   unique_lock<mutex> lck(mtx);
-    //   ProtoSerialize(timestamp, modified);
-    // }
   }
   CONSOLE.LogStatus("IDLE DONE");
 }
@@ -263,6 +247,7 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
     i++;
   }while(path_exists(folder));
   create_directory(folder);
+
   CURRENT_LOG_FOLDER = folder;
   CONSOLE.Log("Log folder: ", CURRENT_LOG_FOLDER);
   CONSOLE.Log("Done");
@@ -306,15 +291,6 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       fprintf(secondary_files[i], "\r\n");
     }
   }
-  // if(tel_conf.generate_csv)
-  // {
-  //   if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
-  //     create_directory(CURRENT_LOG_FOLDER + "/Parsed");
-      
-  //   // chimera->add_filenames(CURRENT_LOG_FOLDER + "/Parsed", ".csv");
-  //   // chimera->open_all_files();
-  //   // chimera->write_all_headers(0);
-  // }
   CONSOLE.Log("CSV Done");
 
   can_stat.msg_count = 0;
@@ -348,7 +324,6 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
   static int dev_idx = 0;
   string dev = can->get_device();
 
-  timers["logcan"] = get_timestamp();
   while(GetCurrentState() == ST_RUN)
   {
     timestamp = get_timestamp_u();
@@ -356,11 +331,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     can_stat.msg_count++;
     msgs_counters[dev] ++;
 
-
-    timers["logcan"] = get_timestamp();
-    LogCan(((double)timestamp)/1000000, message);
-    timers["logcan"] = get_timestamp() - timers["logcan"];
-    printf("%f\r\n", timers["logcan"]);
+    LogCan(timestamp, message);
 
 
 
@@ -368,22 +339,10 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     // Parsed messages are for sending via websocket or to be logged in csv
     if(tel_conf.generate_csv || tel_conf.ws_enabled)
     {
-      try{
-        // chimera->parse_message(timestamp, message.can_id, message.data, message.can_dlc, modifiedDevices);
-      }
-      catch(std::exception ex)
-      {
-        CONSOLE.LogError("Exception when parsing CAN message");
-        CONSOLE.LogError("CAN message: ", CanMessage2Str(message));
-        CONSOLE.LogError("Exception: ", ex.what());
-        continue;
-      }
-
       if(primary_is_message_id(message.can_id))
       {
         dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
         primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
-        primary_proto_serialize_from_id(message.can_id, &primary_pack, &primary_devs);
         if(tel_conf.generate_csv)
         {
           csv_out = primary_files[dev_idx];
@@ -394,12 +353,12 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
           
           fprintf(csv_out, "\n");
         }
+        ProtoSerialize(0, timestamp, message, dev_idx);
       }
       if(secondary_is_message_id(message.can_id))
       {
         dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
         secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
-        secondary_proto_serialize_from_id(message.can_id, &secondary_pack, &secondary_devs);
         if(tel_conf.generate_csv)
         {
           csv_out = secondary_files[dev_idx];
@@ -409,24 +368,8 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
             secondary_string_from_id(message.can_id, secondary_devs[dev_idx].message, csv_out);
           fprintf(csv_out, "\n");
         }
+        ProtoSerialize(1, timestamp, message, dev_idx);
       }
-
-
-
-
-      // // For every device that has been modified by the parse operation
-      // for (auto modified : modifiedDevices)
-      // {
-      //   unique_lock<mutex> lck(mtx);
-
-      //   if(tel_conf.generate_csv &&
-      //     modified->files.size() > 0 && modified->files[0] != nullptr)
-      //   {
-      //     (*modified->files[0]) << modified->get_string(",") + "\n";
-      //   }
-
-      //   ProtoSerialize(timestamp, modified);
-      // }
     }
 
     // Stop message
@@ -756,9 +699,9 @@ void TelemetrySM::CreateFolderName(string& out)
 
   out = s;
 }
-void TelemetrySM::LogCan(const double& timestamp, const can_frame& msg)
+void TelemetrySM::LogCan(const uint64_t& timestamp, const can_frame& msg)
 {
-  fprintf(dump_file, "(%lu)\t%s\t%s\n", (uint64_t)timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
+  fprintf(dump_file, "(%lu)\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
 }
 
 string TelemetrySM::GetDate()
@@ -1175,6 +1118,11 @@ void TelemetrySM::SendWsData()
   StringBuffer sb;
   Writer<StringBuffer> w(sb);
   rapidjson::Document::AllocatorType &alloc = d.GetAllocator();
+
+  string primary_serialized;
+  string secondary_serialized;
+  bool primary_ok;
+  bool secondary_ok;
   while(kill_threads.load() == false)
   {
     while(ws_conn_state != ConnectionState_::CONNECTED)
@@ -1190,24 +1138,26 @@ void TelemetrySM::SendWsData()
 
       unique_lock<mutex> lck(mtx);
 
-      string serialized_string;
-      // chimera->serialized_to_string(&serialized_string);
+      primary_ok = primary_pack.SerializeToString(&primary_serialized);
+      secondary_ok = secondary_pack.SerializeToString(&secondary_serialized);
 
-      if(serialized_string.size() == 0)
-      {
+      if(primary_ok == false && secondary_ok == false)
         continue;
-      }
 
       sb.Clear();
       w.Reset(sb);
       d.SetObject();
       d.AddMember("type", Value().SetString("update_data"), alloc);
       d.AddMember("timestamp", get_timestamp(), alloc);
-      d.AddMember("data", Value().SetString(serialized_string.c_str(), serialized_string.size(), alloc), alloc);
+      if(primary_ok)
+        d.AddMember("primary", Value().SetString(primary_serialized.c_str(), primary_serialized.size(), alloc), alloc);
+      if(secondary_ok)
+        d.AddMember("secondary", Value().SetString(secondary_serialized.c_str(), secondary_serialized.size(), alloc), alloc);
       d.Accept(w);
 
       ws_cli->setData(GenericMessage(sb.GetString()));
-      // chimera->clear_serialized();
+      primary_pack.Clear();
+      secondary_pack.Clear();
     }
   }
 }
@@ -1254,21 +1204,29 @@ void TelemetrySM::ActionThread()
   }
 }
 
-void TelemetrySM::ProtoSerialize(const double& timestamp, Device* device)
+void TelemetrySM::ProtoSerialize(const int& can_network, const uint64_t& timestamp, const can_frame& msg, const int& dev_idx)
 {
   // Serialize with protobuf if websocket is enabled
-  if(tel_conf.ws_enabled && tel_conf.ws_send_sensor_data)
-  {
-    if(tel_conf.ws_downsample == true)
-    {
-      if((1.0/tel_conf.ws_downsample_mps) < (timestamp - timers[device->get_name()]))
-      {
-        timers[device->get_name()] = timestamp;
-        // chimera->serialize_device(device);
+  if(tel_conf.ws_enabled == false || tel_conf.ws_send_sensor_data == false)
+    return;
+  if(tel_conf.ws_downsample == true){
+    if(can_network == 0){
+      if((1.0e6/tel_conf.ws_downsample_mps) < (timestamp - timers["primary_"+to_string(dev_idx)])){
+        timers["primary_"+to_string(dev_idx)] = timestamp;
+        primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
       }
-    }else
-    {
-      // chimera->serialize_device(device);
+    }else if(can_network == 1){
+      if((1.0e6/tel_conf.ws_downsample_mps) < (timestamp - timers["secondary_"+to_string(dev_idx)])){
+        timers["secondary_"+to_string(dev_idx)] = timestamp;
+        secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
+      }
+    }
+  }
+  else{
+    if(can_network == 0){
+      primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
+    }else if(can_network == 1){
+      secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
     }
   }
 }
