@@ -1619,7 +1619,7 @@ void Chimera::serialize_device(Device* device){
 //         if (ret != -1) return -3;
 
 //         gps_->clear();
-
+conversion_message
 //         gps_->timestamp = timestamp;
 //         gps_->msg_type = "GGA";
 

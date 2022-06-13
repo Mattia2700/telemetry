@@ -181,7 +181,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
   CONSOLE.Log("Done");
 
   can_frame message;
-  double timestamp;
+  uint64_t timestamp;
   vector<Device *> modifiedDevices;
 
   string dev = can->get_device();
@@ -191,19 +191,19 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
   while (GetCurrentState() == ST_IDLE)
   {
     can->receive(&message);
-    timestamp = get_timestamp();
+    timestamp = get_timestamp_u();
     msgs_counters[dev] ++;
 
     if(primary_is_message_id(message.can_id))
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-      primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
+      primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
     }
     if(secondary_is_message_id(message.can_id))
     {
       dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-      secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
+      secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(1, timestamp, message, dev_idx);
     }
 
@@ -318,7 +318,6 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
 
   static can_frame message;
   uint64_t timestamp;
-  // vector<Device *> modifiedDevices;
 
   static FILE* csv_out;
   static int dev_idx = 0;
@@ -326,8 +325,8 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
 
   while(GetCurrentState() == ST_RUN)
   {
-    timestamp = get_timestamp_u();
     can->receive(&message);
+    timestamp = get_timestamp_u();
     can_stat.msg_count++;
     msgs_counters[dev] ++;
 
@@ -342,14 +341,14 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       if(primary_is_message_id(message.can_id))
       {
         dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-        primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].message, timestamp);
+        primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
         if(tel_conf.generate_csv)
         {
           csv_out = primary_files[dev_idx];
-          if(primary_devs[dev_idx].message == NULL)
+          if(primary_devs[dev_idx].conversion_message == NULL)
             primary_string_from_id(message.can_id, primary_devs[dev_idx].raw_message, csv_out);
           else
-            primary_string_from_id(message.can_id, primary_devs[dev_idx].message, csv_out);
+            primary_string_from_id(message.can_id, primary_devs[dev_idx].conversion_message, csv_out);
           
           fprintf(csv_out, "\n");
         }
@@ -358,14 +357,14 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       if(secondary_is_message_id(message.can_id))
       {
         dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-        secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].message, timestamp);
+        secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
         if(tel_conf.generate_csv)
         {
           csv_out = secondary_files[dev_idx];
-          if(secondary_devs[dev_idx].message == NULL)
+          if(secondary_devs[dev_idx].conversion_message == NULL)
             secondary_string_from_id(message.can_id, secondary_devs[dev_idx].raw_message, csv_out);
           else
-            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].message, csv_out);
+            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].conversion_message, csv_out);
           fprintf(csv_out, "\n");
         }
         ProtoSerialize(1, timestamp, message, dev_idx);
@@ -701,7 +700,10 @@ void TelemetrySM::CreateFolderName(string& out)
 }
 void TelemetrySM::LogCan(const uint64_t& timestamp, const can_frame& msg)
 {
-  fprintf(dump_file, "(%lu)\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
+  if(dump_file == NULL)
+    CONSOLE.LogError("candump file not opened");
+  else
+    fprintf(dump_file, "(" PRIu64 ")\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
 }
 
 string TelemetrySM::GetDate()
