@@ -64,6 +64,19 @@ struct CAN_Stat_t
 	double duration;
 	uint64_t msg_count;
 };
+typedef struct CAN_Message_t
+{
+	string receiver_name;
+	uint64_t timestamp;
+	can_frame frame;
+} CAN_Message;
+typedef struct CAN_Socket_t
+{
+	Can *sock;
+	string name;
+	thread *thrd;
+	sockaddr_can addr;
+} CAN_Socket;
 enum TelemetryError
 {
 	TEL_NONE,
@@ -122,11 +135,12 @@ private:
 	string CURRENT_LOG_FOLDER;
 
 	std::fstream *dump_file;
-	// FILE *dump_file;
 
-	Can *can;
-	sockaddr_can addr;
-	// Chimera* chimera;
+	unordered_map<string, CAN_Socket> sockets;
+	queue<CAN_Message> messages_queue;
+	condition_variable can_cv;
+	mutex can_mutex;
+
 	WebSocketClient *ws_cli;
 	vector<GpsLogger *> gps_loggers;
 
@@ -182,6 +196,9 @@ private:
 	void CreateHeader(string &header);
 	void CreateFolderName(string &folder);
 	void LogCan(const uint64_t &timestamp, const can_frame &msg);
+
+	// CAN Receive
+	void CanReceive(CAN_Socket*);
 
 	// GPS
 	void SetupGps();

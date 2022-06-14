@@ -71,6 +71,35 @@ void Deserialize(CAN_t& obj, rapidjson::Value& doc)
 }
 
 template <>
+bool CheckJson(const can_devices_o& obj, const rapidjson::Document& doc)
+{
+    bool check = true;
+    if(!doc.HasMember("sock")){
+        std::cout << "can_devices_o MISSING FIELD: sock" << std::endl; 
+        check = false;
+    }
+    if(!doc.HasMember("name")){
+        std::cout << "can_devices_o MISSING FIELD: name" << std::endl; 
+        check = false;
+    }
+    return check;
+}
+
+template<>
+void Serialize(rapidjson::Value& out, const can_devices_o& obj, rapidjson::Document::AllocatorType& alloc)
+{
+    out.SetObject();
+    out.AddMember("sock", rapidjson::Value().SetString(obj.sock.c_str(), obj.sock.size(), alloc), alloc);
+    out.AddMember("name", rapidjson::Value().SetString(obj.name.c_str(), obj.name.size(), alloc), alloc);
+}
+template<>
+void Deserialize(can_devices_o& obj, rapidjson::Value& doc)
+{
+    obj.sock = doc["sock"].GetString();
+    obj.name = doc["name"].GetString();
+}
+
+template <>
 bool CheckJson(const telemetry_config& obj, const rapidjson::Document& doc)
 {
     bool check = true;
@@ -78,8 +107,8 @@ bool CheckJson(const telemetry_config& obj, const rapidjson::Document& doc)
         std::cout << "telemetry_config MISSING FIELD: camera_enable" << std::endl; 
         check = false;
     }
-    if(!doc.HasMember("can_device")){
-        std::cout << "telemetry_config MISSING FIELD: can_device" << std::endl; 
+    if(!doc.HasMember("can_devices")){
+        std::cout << "telemetry_config MISSING FIELD: can_devices" << std::endl; 
         check = false;
     }
     if(!doc.HasMember("generate_csv")){
@@ -131,7 +160,16 @@ void Serialize(rapidjson::Document& out, const telemetry_config& obj)
     out.SetObject();
     rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
     out.AddMember("camera_enable", rapidjson::Value().SetBool(obj.camera_enable), alloc);
-    out.AddMember("can_device", rapidjson::Value().SetString(obj.can_device.c_str(), obj.can_device.size(), alloc), alloc);
+    {
+        rapidjson::Value v0;
+        v0.SetArray();
+        for(size_t i = 0; i < obj.can_devices.size(); i++){
+        	rapidjson::Value new_obj;
+        	Serialize(new_obj, obj.can_devices[i], alloc);
+        	v0.PushBack(new_obj, alloc);
+    	}
+    	out.AddMember("can_devices", v0, alloc);
+    }
     out.AddMember("generate_csv", rapidjson::Value().SetBool(obj.generate_csv), alloc);
     {
         rapidjson::Value v0;
@@ -168,7 +206,10 @@ template<>
 void Deserialize(telemetry_config& obj, rapidjson::Document& doc)
 {
     obj.camera_enable = doc["camera_enable"].GetBool();
-    obj.can_device = doc["can_device"].GetString();
+	obj.can_devices.resize(doc["can_devices"].Size());
+	for(rapidjson::SizeType i = 0; i < doc["can_devices"].Size(); i++){
+		Deserialize(obj.can_devices[i], doc["can_devices"][i]);
+	}
     obj.generate_csv = doc["generate_csv"].GetBool();
 	obj.gps_devices.resize(doc["gps_devices"].Size());
 	for(rapidjson::SizeType i = 0; i < doc["gps_devices"].Size(); i++){
@@ -193,7 +234,10 @@ template<>
 void Deserialize(telemetry_config& obj, rapidjson::Value& doc)
 {
     obj.camera_enable = doc["camera_enable"].GetBool();
-    obj.can_device = doc["can_device"].GetString();
+	obj.can_devices.resize(doc["can_devices"].Size());
+	for(rapidjson::SizeType i = 0; i < doc["can_devices"].Size(); i++){
+		Deserialize(obj.can_devices[i], doc["can_devices"][i]);
+	}
     obj.generate_csv = doc["generate_csv"].GetBool();
 	obj.gps_devices.resize(doc["gps_devices"].Size());
 	for(rapidjson::SizeType i = 0; i < doc["gps_devices"].Size(); i++){

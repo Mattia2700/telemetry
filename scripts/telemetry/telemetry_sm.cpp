@@ -18,7 +18,6 @@ TelemetrySM::TelemetrySM()
   StatesStr[ST_STOP] = "ST_STOP";
   StatesStr[ST_ERROR] = "ST_ERROR";
 
-  can = nullptr;
   dump_file = NULL;
   // chimera = nullptr;
   ws_cli = nullptr;
@@ -129,9 +128,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   if (!path_exists(FOLDER_PATH))
     create_directory(FOLDER_PATH);
 
-  CAN_DEVICE = tel_conf.can_device;
   CONSOLE.Log("Opening can socket");
-  can = new Can();
   OpenCanSocket();
   TEL_ERROR_CHECK
   CONSOLE.Log("Done");
@@ -174,21 +171,28 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       gps_loggers[i]->Start();
   CONSOLE.Log("Done");
 
+  CAN_Message message_q;
   can_frame message;
   uint64_t timestamp;
   vector<Device *> modifiedDevices;
-
-  string dev = can->get_device();
 
   static FILE *fout;
   static int dev_idx;
   while (GetCurrentState() == ST_IDLE)
   {
-    can->receive(&message);
-    timestamp = get_timestamp_u();
-    msgs_counters[dev]++;
+    {
+      unique_lock<mutex> lck(can_mutex);
+      while (messages_queue.size() == 0)
+        can_cv.wait(lck);
+      message_q = messages_queue.back();
+      messages_queue.pop();
+    }
+    timestamp = message_q.timestamp;
+    can_stat.msg_count++;
+    msgs_counters[message_q.receiver_name]++;
+    message = message_q.frame;
 
-    if (primary_is_message_id(message.can_id))
+    if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
       primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
@@ -201,7 +205,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
           InternalEvent(ST_RUN);
       }
     }
-    if (secondary_is_message_id(message.can_id))
+    if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
     {
       dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
       secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
@@ -331,19 +335,26 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
 {
   CONSOLE.LogStatus("RUN");
 
-  static can_frame message;
+  can_frame message;
+  CAN_Message message_q;
   uint64_t timestamp;
 
   static FILE *csv_out;
   static int dev_idx = 0;
-  string dev = can->get_device();
 
   while (GetCurrentState() == ST_RUN)
   {
-    can->receive(&message);
-    timestamp = get_timestamp_u();
+    {
+      unique_lock<mutex> lck(can_mutex);
+      while (messages_queue.size() == 0)
+        can_cv.wait(lck);
+      message_q = messages_queue.back();
+      messages_queue.pop();
+    }
+    timestamp = message_q.timestamp;
     can_stat.msg_count++;
-    msgs_counters[dev]++;
+    msgs_counters[message_q.receiver_name]++;
+    message = message_q.frame;
 
     LogCan(timestamp, message);
 
@@ -351,7 +362,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     // Parsed messages are for sending via websocket or to be logged in csv
     if (tel_conf.generate_csv || tel_conf.ws_enabled)
     {
-      if (primary_is_message_id(message.can_id))
+      if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
       {
         dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
         primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
@@ -373,7 +384,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
             InternalEvent(ST_RUN);
         }
       }
-      if (secondary_is_message_id(message.can_id))
+      if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
       {
         dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
         secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
@@ -391,8 +402,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     }
 
     // Stop message
-    if (wsRequestState == ST_STOP || (message.can_id == 0xA0 && message.can_dlc >= 2 &&
-                                      message.data[0] == 0x66 && message.data[1] == 0x00))
+    if (wsRequestState == ST_STOP)
     {
       wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_STOP);
@@ -533,11 +543,15 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Closed dump file");
 
-  if (can != nullptr && can->is_open())
+  for (auto &el : sockets)
   {
-    can->close_socket();
-    delete can;
-    can = nullptr;
+    el.second.sock->close_socket();
+    if (el.second.thrd != nullptr)
+    {
+      CONSOLE.Log("Joining CAN thread [", el.second.name, "]");
+      el.second.thrd->join();
+      CONSOLE.Log("Joined CAN thread [", el.second.name, "]");
+    }
   }
   CONSOLE.Log("Closed can socket");
 
@@ -626,7 +640,7 @@ void TelemetrySM::LoadAllConfig()
   else
   {
     CONSOLE.Log("Created: " + path);
-    tel_conf.can_device = "can0";
+    tel_conf.can_devices = {can_devices_o{"can0", "primary"}};
     tel_conf.generate_csv = false;
     tel_conf.ws_enabled = true;
     tel_conf.ws_send_sensor_data = true;
@@ -778,21 +792,24 @@ void TelemetrySM::OpenLogFolder(const string &path)
 
 void TelemetrySM::OpenCanSocket()
 {
-  can->init(CAN_DEVICE.c_str(), &addr);
-
-  if (can->open_socket() < 0)
+  sockets.clear();
+  for (auto dev : tel_conf.can_devices)
   {
-    CONSOLE.LogWarn("Failed binding socket: ", CAN_DEVICE);
-    CAN_DEVICE = "vcan0";
-    can->init(CAN_DEVICE.c_str(), &addr);
-    if (can->open_socket() < 0)
+    CONSOLE.Log("Opening Socket ", dev.sock);
+    CAN_Socket &new_can = sockets[dev.name];
+    new_can.name = dev.name;
+    new_can.sock = new Can(dev.sock.c_str(), &new_can.addr);
+    new_can.thrd = nullptr;
+    if (new_can.sock->open_socket() < 0)
     {
-      CONSOLE.LogWarn("Failed binding socket: ", CAN_DEVICE);
+      CONSOLE.LogWarn("Failed opening socket: ", dev.name, " ", dev.sock);
       EmitError(TEL_CAN_SOCKET_OPEN);
       return;
     }
+    CONSOLE.Log("Opened Socket: ", dev.name);
+    CONSOLE.Log("Starting CAN thread");
+    new_can.thrd = new thread(&TelemetrySM::CanReceive, this, &new_can);
   }
-  CONSOLE.Log("Opened Socket: ", CAN_DEVICE);
 }
 
 void TelemetrySM::SetupGps()
@@ -1078,7 +1095,8 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
         char msg[8];
         for (int i = 0; i < payload.Size(); i++)
           msg[i] = (char)payload[i].GetInt();
-        can->send(req["id"].GetInt(), msg, 8);
+        if (sockets.find("primary") != sockets.end())
+          sockets["primary"].sock->send(req["id"].GetInt(), msg, 8);
       }
       else
       {
@@ -1108,7 +1126,8 @@ void TelemetrySM::SendStatus()
                                  0,
                                  primary_RaceType::primary_RaceType_AUTOCROSS,
                                  is_in_run ? primary_Toggle_ON : primary_Toggle_OFF);
-    can->send(primary_id_TLM_STATUS, (char *)msg_data, primary_TLM_STATUS_SIZE);
+    if (sockets.find("primary") != sockets.end())
+      sockets["primary"].sock->send(primary_id_TLM_STATUS, (char *)msg_data, primary_TLM_STATUS_SIZE);
 
     string str;
     for (auto el : msgs_counters)
@@ -1246,6 +1265,22 @@ void TelemetrySM::ActionThread()
     }
 
     action_string = "";
+  }
+}
+
+void TelemetrySM::CanReceive(CAN_Socket *can)
+{
+  CAN_Message msg;
+  msg.receiver_name = can->name;
+  while (!kill_threads)
+  {
+    can->sock->receive(&msg.frame);
+    msg.timestamp = get_timestamp_u();
+    {
+      unique_lock<mutex> lck(can_mutex);
+      messages_queue.push(msg);
+    }
+    can_cv.notify_all();
   }
 }
 

@@ -25,9 +25,14 @@ typedef struct CAN_t{
     float Duration_seconds;
 }CAN_t;
 
+typedef struct can_devices_o{
+    std::string sock;
+    std::string name;
+}can_devices_o;
+
 typedef struct telemetry_config{
     bool camera_enable;
-    std::string can_device;
+    std::vector<can_devices_o> can_devices;
     bool generate_csv;
     std::vector<std::string> gps_devices;
     std::vector<bool> gps_enabled;
