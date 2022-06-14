@@ -195,10 +195,10 @@ private:
 	void OpenLogFolder(const string &path);
 	void CreateHeader(string &header);
 	void CreateFolderName(string &folder);
-	void LogCan(const uint64_t &timestamp, const can_frame &msg);
+	void LogCan(const CAN_Message &message);
 
 	// CAN Receive
-	void CanReceive(CAN_Socket*);
+	void CanReceive(CAN_Socket *);
 
 	// GPS
 	void SetupGps();

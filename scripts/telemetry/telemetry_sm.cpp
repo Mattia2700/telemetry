@@ -356,7 +356,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     msgs_counters[message_q.receiver_name]++;
     message = message_q.frame;
 
-    LogCan(timestamp, message);
+    LogCan(message_q);
 
     // Parse the message only if is needed
     // Parsed messages are for sending via websocket or to be logged in csv
@@ -738,12 +738,12 @@ void TelemetrySM::CreateFolderName(string &out)
 
   out = s;
 }
-void TelemetrySM::LogCan(const uint64_t &timestamp, const can_frame &msg)
+void TelemetrySM::LogCan(const CAN_Message &message)
 {
   if (dump_file == NULL || !dump_file->is_open())
     CONSOLE.LogError("candump file not opened");
   else
-    (*dump_file) << timestamp << " " << CAN_DEVICE << " " << CanMessage2Str(msg) << "\n";
+    (*dump_file) << message.timestamp << " " << message.receiver_name << " " << CanMessage2Str(message.frame) << "\n";
 }
 
 string TelemetrySM::GetDate()
@@ -833,9 +833,9 @@ void TelemetrySM::SetupGps()
     //   id = chimera->gps2->get_id();
 
     GpsLogger *gps = new GpsLogger(i, dev);
-    gps->SetOutFName("gps_" + to_string(i));
-    msgs_counters["gps_" + to_string(id)] = 0;
-    msgs_per_second["gps_" + to_string(id)] = 0;
+    gps->SetOutFName("gps_" + to_string(gps->GetId()));
+    msgs_counters["gps_" + to_string(gps->GetId())] = 0;
+    msgs_per_second["gps_" + to_string(gps->GetId())] = 0;
     if (mode == "file")
       gps->SetMode(MODE_FILE);
     else

@@ -41,9 +41,9 @@ class GpsLogger
 public:
   GpsLogger(int id, string device);
 
-  void SetOutFName(const string& fname);
-  void SetOutputFolder(const string& folder);
-  void SetHeader(const string& header);
+  void SetOutFName(const string &fname);
+  void SetOutputFolder(const string &folder);
+  void SetHeader(const string &header);
   void SetCallback(void (*f)(int, string));
   void SetCallback(std::function<void(int, string)> function);
   void SetMode(int mode = 0);
@@ -57,8 +57,9 @@ public:
 
   bool IsRunning();
 
-private:
+  int GetId(){return this->id};
 
+private:
   void Run();
   int OpenDevice();
 
@@ -66,8 +67,8 @@ private:
 
   double GetTimestamp();
 
-  std::ofstream* m_GPS;
-  std::ofstream* m_StatFile;
+  std::ofstream *m_GPS;
+  std::ofstream *m_StatFile;
 
   string m_FName;
   string m_Device;
