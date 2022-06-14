@@ -193,6 +193,13 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
       primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
+
+      if (message.can_id == primary_id_SET_TLM_STATUS)
+      {
+        primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
+        if (msg->tlm_status == primary_Toggle_ON)
+          InternalEvent(ST_RUN);
+      }
     }
     if (secondary_is_message_id(message.can_id))
     {
@@ -208,8 +215,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       break;
     }
 
-    if (wsRequestState == ST_RUN || (message.can_id == 0xA0 && message.can_dlc >= 2 &&
-                                     message.data[0] == 0x66 && message.data[1] == 0x01))
+    if (wsRequestState == ST_RUN)
     {
       wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_RUN);
@@ -257,13 +263,20 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   }
   CONSOLE.Log("Loggers DONE");
 
-  dump_file = fopen((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), "w");
-  if (dump_file == NULL)
+  // dump_file = fopen((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), "w");
+  // if (dump_file == NULL)
+  // {
+  //   CONSOLE.LogError("Error opening candump file!");
+  //   EmitError(TEL_LOG_FOLDER);
+  // }
+  // fprintf(dump_file, "%s\n", header.c_str());
+  dump_file = new fstream((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), std::fstream::out);
+  if (!dump_file->is_open())
   {
     CONSOLE.LogError("Error opening candump file!");
     EmitError(TEL_LOG_FOLDER);
   }
-  fprintf(dump_file, "%s\n", header.c_str());
+  (*dump_file) << header << "\n";
 
   ///////
   if (tel_conf.generate_csv)
@@ -353,6 +366,12 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
           fprintf(csv_out, "\n");
         }
         ProtoSerialize(0, timestamp, message, dev_idx);
+        if (message.can_id == primary_id_SET_TLM_STATUS)
+        {
+          primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
+          if (msg->tlm_status == primary_Toggle_OFF)
+            InternalEvent(ST_RUN);
+        }
       }
       if (secondary_is_message_id(message.can_id))
       {
@@ -413,7 +432,7 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
       }
     }
   }
-  fclose(dump_file);
+  dump_file->close();
   dump_file = NULL;
   CONSOLE.Log("Done");
 
@@ -509,7 +528,7 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
 
   if (dump_file != NULL)
   {
-    fclose(dump_file);
+    dump_file->close();
     dump_file = NULL;
   }
   CONSOLE.Log("Closed dump file");
@@ -707,10 +726,10 @@ void TelemetrySM::CreateFolderName(string &out)
 }
 void TelemetrySM::LogCan(const uint64_t &timestamp, const can_frame &msg)
 {
-  if (dump_file == NULL)
+  if (dump_file == NULL || !dump_file->is_open())
     CONSOLE.LogError("candump file not opened");
   else
-    fprintf(dump_file, "(%lu)\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
+    (*dump_file) << timestamp << " " << CAN_DEVICE << " " << CanMessage2Str(msg) << "\n";
 }
 
 string TelemetrySM::GetDate()
@@ -1075,16 +1094,21 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
 
 void TelemetrySM::SendStatus()
 {
-  char msg_data[8];
+  uint8_t msg_data[8];
   int is_in_run;
+  primary_message_TLM_STATUS status;
   while (kill_threads.load() == false)
   {
     if (GetCurrentState() == ST_RUN)
       is_in_run = 1;
     else
       is_in_run = 0;
-    msg_data[0] = is_in_run;
-    can->send(0x99, msg_data, 1);
+    primary_serialize_TLM_STATUS(msg_data,
+                                 0,
+                                 0,
+                                 primary_RaceType::primary_RaceType_AUTOCROSS,
+                                 is_in_run ? primary_Toggle_ON : primary_Toggle_OFF);
+    can->send(primary_id_TLM_STATUS, (char *)msg_data, primary_TLM_STATUS_SIZE);
 
     string str;
     for (auto el : msgs_counters)

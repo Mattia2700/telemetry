@@ -121,8 +121,8 @@ private:
 	string FOLDER_PATH;
 	string CURRENT_LOG_FOLDER;
 
-	// std::fstream* dump_file;
-	FILE *dump_file;
+	std::fstream *dump_file;
+	// FILE *dump_file;
 
 	Can *can;
 	sockaddr_can addr;
