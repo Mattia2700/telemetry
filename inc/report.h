@@ -17,7 +17,7 @@
 
 #include "libharu/include/hpdf.h"
 
-#include "can_stat_json/json_loader.h"
+#include "json_loader.h"
 
 #include "gnuplot-iostream.h"
 

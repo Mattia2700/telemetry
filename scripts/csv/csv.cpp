@@ -12,9 +12,7 @@
 
 #include "report.h"
 
-#include "can_stat_json/json_loader.h"
-#include "gps_stat_json/json_loader.h"
-#include "csv_parser_config/json_loader.h"
+#include "json_loader.h"
 
 using namespace std;
 

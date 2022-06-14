@@ -1,9 +1,9 @@
 #include "telemetry_sm.h"
 
 TelemetrySM::TelemetrySM()
-: StateMachine(ST_MAX_STATES)
+    : StateMachine(ST_MAX_STATES)
 {
-  if(getenv("HOME") != NULL)
+  if (getenv("HOME") != NULL)
     HOME_PATH = getenv("HOME");
   else
     HOME_PATH = "/home/filippo";
@@ -11,12 +11,12 @@ TelemetrySM::TelemetrySM()
 
   currentError = TelemetryError::TEL_NONE;
 
-	StatesStr[ST_UNINITIALIZED]   = "ST_UNINITIALIZED";
-	StatesStr[ST_INIT]            = "ST_INIT";
-	StatesStr[ST_IDLE]            = "ST_IDLE";
-	StatesStr[ST_RUN]             = "ST_RUN";
-	StatesStr[ST_STOP]            = "ST_STOP";
-	StatesStr[ST_ERROR]           = "ST_ERROR";
+  StatesStr[ST_UNINITIALIZED] = "ST_UNINITIALIZED";
+  StatesStr[ST_INIT] = "ST_INIT";
+  StatesStr[ST_IDLE] = "ST_IDLE";
+  StatesStr[ST_RUN] = "ST_RUN";
+  StatesStr[ST_STOP] = "ST_STOP";
+  StatesStr[ST_ERROR] = "ST_ERROR";
 
   can = nullptr;
   dump_file = NULL;
@@ -33,18 +33,18 @@ TelemetrySM::TelemetrySM()
 
   primary_devices_new(&primary_devs);
   secondary_devices_new(&secondary_devs);
-  for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+  for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
     primary_files[i] = NULL;
-  for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+  for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
     secondary_files[i] = NULL;
 }
 
 TelemetrySM::~TelemetrySM()
 {
-	/////////////////////////
-	// LAP COUNTER DESTROY //
-	/////////////////////////
-	lc_reset(lp); // reset object (removes everything but thresholds)
+  /////////////////////////
+  // LAP COUNTER DESTROY //
+  /////////////////////////
+  lc_reset(lp); // reset object (removes everything but thresholds)
   lc_destroy(lp);
   lc_reset(lp_inclination);
   lc_destroy(lp_inclination);
@@ -55,51 +55,48 @@ TelemetrySM::~TelemetrySM()
 void TelemetrySM::Init()
 {
   BEGIN_TRANSITION_MAP
-    TRANSITION_MAP_ENTRY(ST_INIT      ) // NONE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
-    TRANSITION_MAP_ENTRY(ST_INIT      ) // IDLE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // RUN
-    TRANSITION_MAP_ENTRY(ST_INIT      ) // STOP
-    TRANSITION_MAP_ENTRY(ST_INIT      ) // ERROR
+  TRANSITION_MAP_ENTRY(ST_INIT)       // NONE
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
+  TRANSITION_MAP_ENTRY(ST_INIT)       // IDLE
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // RUN
+  TRANSITION_MAP_ENTRY(ST_INIT)       // STOP
+  TRANSITION_MAP_ENTRY(ST_INIT)       // ERROR
   END_TRANSITION_MAP(nullptr)
 }
 
 void TelemetrySM::Run()
 {
   BEGIN_TRANSITION_MAP
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // NONE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
-    TRANSITION_MAP_ENTRY(ST_RUN       ) // IDLE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // RUN
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // STOP
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ERROR
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // NONE
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
+  TRANSITION_MAP_ENTRY(ST_RUN)        // IDLE
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // RUN
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // STOP
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ERROR
   END_TRANSITION_MAP(nullptr)
 }
 
 void TelemetrySM::Stop()
 {
   BEGIN_TRANSITION_MAP
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // NONE
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // IDLE
-    TRANSITION_MAP_ENTRY(ST_STOP      ) // RUN
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // STOP
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ERROR
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // NONE
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // INIT
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // IDLE
+  TRANSITION_MAP_ENTRY(ST_STOP)       // RUN
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // STOP
+  TRANSITION_MAP_ENTRY(EVENT_IGNORED) // ERROR
   END_TRANSITION_MAP(nullptr)
 }
 
-void TelemetrySM::Reset()
-{
-  BEGIN_TRANSITION_MAP
-    TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // NONE
+void TelemetrySM::Reset(){
+    BEGIN_TRANSITION_MAP
+        TRANSITION_MAP_ENTRY(EVENT_IGNORED) // NONE
     TRANSITION_MAP_ENTRY(ST_UNINITIALIZED)  // INIT
     TRANSITION_MAP_ENTRY(ST_UNINITIALIZED)  // IDLE
     TRANSITION_MAP_ENTRY(EVENT_IGNORED)     // RUN
     TRANSITION_MAP_ENTRY(ST_UNINITIALIZED)  // STOP
     TRANSITION_MAP_ENTRY(ST_UNINITIALIZED)  // ERROR
-  END_TRANSITION_MAP(nullptr)
-}
-
+    END_TRANSITION_MAP(nullptr)}
 
 STATE_DEFINE(TelemetrySM, UninitializedImpl, NoEventData)
 {
@@ -126,13 +123,11 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   TEL_ERROR_CHECK
   CONSOLE.Log("Done");
 
-
   // FOLDER_PATH/<date>/<session>
   sesh_config.Date = GetDate();
   FOLDER_PATH += "/" + sesh_config.Date;
-  if(!path_exists(FOLDER_PATH))
+  if (!path_exists(FOLDER_PATH))
     create_directory(FOLDER_PATH);
-
 
   CAN_DEVICE = tel_conf.can_device;
   CONSOLE.Log("Opening can socket");
@@ -140,7 +135,6 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   OpenCanSocket();
   TEL_ERROR_CHECK
   CONSOLE.Log("Done");
-
 
   CONSOLE.Log("Chimera and WS instances");
   // chimera = new Chimera();
@@ -153,7 +147,7 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   SetupGps();
   TEL_ERROR_CHECK
 
-  if(tel_conf.camera_enable)
+  if (tel_conf.camera_enable)
   {
 #ifdef WITH_CAMERA
     CamInitData initData;
@@ -175,8 +169,8 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
   CONSOLE.LogStatus("IDLE");
 
   CONSOLE.Log("Starting gps loggers");
-  for(size_t i = 0; i < gps_loggers.size(); i++)
-    if(tel_conf.gps_enabled[i])
+  for (size_t i = 0; i < gps_loggers.size(); i++)
+    if (tel_conf.gps_enabled[i])
       gps_loggers[i]->Start();
   CONSOLE.Log("Done");
 
@@ -186,36 +180,36 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
 
   string dev = can->get_device();
 
-  static FILE* fout;
-  static int   dev_idx;
+  static FILE *fout;
+  static int dev_idx;
   while (GetCurrentState() == ST_IDLE)
   {
     can->receive(&message);
     timestamp = get_timestamp_u();
-    msgs_counters[dev] ++;
+    msgs_counters[dev]++;
 
-    if(primary_is_message_id(message.can_id))
+    if (primary_is_message_id(message.can_id))
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
       primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
     }
-    if(secondary_is_message_id(message.can_id))
+    if (secondary_is_message_id(message.can_id))
     {
       dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
       secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(1, timestamp, message, dev_idx);
     }
 
-    if(wsRequestState == ST_UNINITIALIZED)
+    if (wsRequestState == ST_UNINITIALIZED)
     {
       wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_UNINITIALIZED);
       break;
     }
 
-    if(wsRequestState == ST_RUN || (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-      message.data[0] == 0x66 && message.data[1] == 0x01))
+    if (wsRequestState == ST_RUN || (message.can_id == 0xA0 && message.can_dlc >= 2 &&
+                                     message.data[0] == 0x66 && message.data[1] == 0x01))
     {
       wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_RUN);
@@ -234,18 +228,19 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   // Insert header at top of the file
   static string header;
   CreateHeader(header);
-  
+
   static string folder;
   static string subfolder;
   CreateFolderName(subfolder);
 
   CONSOLE.Log("Creting new directory");
-  // Adding incremental number at the end of foldername  
+  // Adding incremental number at the end of foldername
   int i = 1;
-  do{
+  do
+  {
     folder = FOLDER_PATH + "/" + subfolder + " " + to_string(i);
     i++;
-  }while(path_exists(folder));
+  } while (path_exists(folder));
   create_directory(folder);
 
   CURRENT_LOG_FOLDER = folder;
@@ -253,9 +248,9 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   CONSOLE.Log("Done");
 
   CONSOLE.Log("Initializing loggers, and csv files");
-  for(auto logger : gps_loggers)
+  for (auto logger : gps_loggers)
   {
-    if(!tel_conf.gps_enabled[i])
+    if (!tel_conf.gps_enabled[i])
       continue;
     logger->SetOutputFolder(CURRENT_LOG_FOLDER);
     logger->SetHeader(header);
@@ -263,29 +258,36 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   CONSOLE.Log("Loggers DONE");
 
   dump_file = fopen((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), "w");
+  if (dump_file == NULL)
+  {
+    CONSOLE.LogError("Error opening candump file!");
+    EmitError(TEL_LOG_FOLDER);
+  }
   fprintf(dump_file, "%s\n", header.c_str());
 
   ///////
-  if(tel_conf.generate_csv)
+  if (tel_conf.generate_csv)
   {
-    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
+    if (!path_exists(CURRENT_LOG_FOLDER + "/Parsed"))
       create_directory(CURRENT_LOG_FOLDER + "/Parsed");
-    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed/primary"))
+    if (!path_exists(CURRENT_LOG_FOLDER + "/Parsed/primary"))
       create_directory(CURRENT_LOG_FOLDER + "/Parsed/primary");
-    if(!path_exists(CURRENT_LOG_FOLDER + "/Parsed/secondary"))
+    if (!path_exists(CURRENT_LOG_FOLDER + "/Parsed/secondary"))
       create_directory(CURRENT_LOG_FOLDER + "/Parsed/secondary");
 
     char buff[125];
-    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++){
+    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    {
       primary_message_name_from_id(primary_devs[i].id, buff);
-      string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/"+string(buff)+".csv");
+      string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + string(buff) + ".csv");
       primary_files[i] = fopen(folder.c_str(), "w");
       primary_fields_from_id(primary_devs[i].id, primary_files[i]);
       fprintf(primary_files[i], "\r\n");
     }
-    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++){
+    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    {
       secondary_message_name_from_id(secondary_devs[i].id, buff);
-      string folder = (CURRENT_LOG_FOLDER + "/Parsed/secondary/"+string(buff)+".csv");
+      string folder = (CURRENT_LOG_FOLDER + "/Parsed/secondary/" + string(buff) + ".csv");
       secondary_files[i] = fopen(folder.c_str(), "w");
       secondary_fields_from_id(secondary_devs[i].id, secondary_files[i]);
       fprintf(secondary_files[i], "\r\n");
@@ -296,10 +298,10 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   can_stat.msg_count = 0;
   can_stat.duration = get_timestamp();
 
-  for(auto logger : gps_loggers)
+  for (auto logger : gps_loggers)
     logger->StartLogging();
 
-  if(tel_conf.camera_enable)
+  if (tel_conf.camera_enable)
   {
 #ifdef WITH_CAMERA
     CamRunData runData;
@@ -319,49 +321,47 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
   static can_frame message;
   uint64_t timestamp;
 
-  static FILE* csv_out;
+  static FILE *csv_out;
   static int dev_idx = 0;
   string dev = can->get_device();
 
-  while(GetCurrentState() == ST_RUN)
+  while (GetCurrentState() == ST_RUN)
   {
     can->receive(&message);
     timestamp = get_timestamp_u();
     can_stat.msg_count++;
-    msgs_counters[dev] ++;
+    msgs_counters[dev]++;
 
     LogCan(timestamp, message);
 
-
-
     // Parse the message only if is needed
     // Parsed messages are for sending via websocket or to be logged in csv
-    if(tel_conf.generate_csv || tel_conf.ws_enabled)
+    if (tel_conf.generate_csv || tel_conf.ws_enabled)
     {
-      if(primary_is_message_id(message.can_id))
+      if (primary_is_message_id(message.can_id))
       {
         dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
         primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
-        if(tel_conf.generate_csv)
+        if (tel_conf.generate_csv)
         {
           csv_out = primary_files[dev_idx];
-          if(primary_devs[dev_idx].conversion_message == NULL)
+          if (primary_devs[dev_idx].conversion_message == NULL)
             primary_string_from_id(message.can_id, primary_devs[dev_idx].raw_message, csv_out);
           else
             primary_string_from_id(message.can_id, primary_devs[dev_idx].conversion_message, csv_out);
-          
+
           fprintf(csv_out, "\n");
         }
         ProtoSerialize(0, timestamp, message, dev_idx);
       }
-      if(secondary_is_message_id(message.can_id))
+      if (secondary_is_message_id(message.can_id))
       {
         dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
         secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
-        if(tel_conf.generate_csv)
+        if (tel_conf.generate_csv)
         {
           csv_out = secondary_files[dev_idx];
-          if(secondary_devs[dev_idx].conversion_message == NULL)
+          if (secondary_devs[dev_idx].conversion_message == NULL)
             secondary_string_from_id(message.can_id, secondary_devs[dev_idx].raw_message, csv_out);
           else
             secondary_string_from_id(message.can_id, secondary_devs[dev_idx].conversion_message, csv_out);
@@ -372,8 +372,8 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     }
 
     // Stop message
-    if (wsRequestState == ST_STOP || (message.can_id  == 0xA0 && message.can_dlc >= 2 &&
-        message.data[0] == 0x66 && message.data[1] == 0x00))
+    if (wsRequestState == ST_STOP || (message.can_id == 0xA0 && message.can_dlc >= 2 &&
+                                      message.data[0] == 0x66 && message.data[1] == 0x00))
     {
       wsRequestState = ST_MAX_STATES;
       InternalEvent(ST_STOP);
@@ -392,19 +392,22 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
   can_stat.duration = get_timestamp() - can_stat.duration;
 
   CONSOLE.Log("Closing files");
-  if(tel_conf.generate_csv){
+  if (tel_conf.generate_csv)
+  {
     // Close all csv files and the dump file
     // chimera->close_all_files();
-    for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
     {
-      if(primary_files[i] != NULL){
+      if (primary_files[i] != NULL)
+      {
         fclose(primary_files[i]);
         primary_files[i] = NULL;
       }
     }
-    for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
     {
-      if(secondary_files[i] != NULL){
+      if (secondary_files[i] != NULL)
+      {
         fclose(secondary_files[i]);
         secondary_files[i] = NULL;
       }
@@ -416,16 +419,15 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
 
   CONSOLE.Log("Restarting gps loggers");
   // Stop logging but continue reading port
-  for(int i = 0; i < gps_loggers.size(); i++)
+  for (int i = 0; i < gps_loggers.size(); i++)
   {
     gps_loggers[i]->StopLogging();
-    if(tel_conf.gps_enabled[i])
+    if (tel_conf.gps_enabled[i])
       gps_loggers[i]->Start();
   }
   CONSOLE.Log("Done");
 
-
-  if(tel_conf.camera_enable)
+  if (tel_conf.camera_enable)
   {
 #ifdef WITH_CAMERA
     CONSOLE.Log("Stopping Camera");
@@ -433,7 +435,6 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
     CONSOLE.Log("Done");
 #endif
   }
-
 
   // Save stats of this log session
   CONSOLE.Log("Saving stat: ", CURRENT_LOG_FOLDER);
@@ -456,47 +457,47 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
 
   kill_threads.store(true);
 
-  if(actions_thread != nullptr)
+  if (actions_thread != nullptr)
   {
-    if(actions_thread->joinable())
+    if (actions_thread->joinable())
       actions_thread->join();
     delete actions_thread;
     actions_thread = nullptr;
   }
   CONSOLE.Log("Stopped actions thread");
 
-  if(data_thread != nullptr)
+  if (data_thread != nullptr)
   {
-    if(data_thread->joinable())
+    if (data_thread->joinable())
       data_thread->join();
     delete data_thread;
     data_thread = nullptr;
   }
   CONSOLE.Log("Stopped data thread");
-  if(status_thread != nullptr)
+  if (status_thread != nullptr)
   {
-    if(status_thread->joinable())
+    if (status_thread->joinable())
       status_thread->join();
     delete status_thread;
     status_thread = nullptr;
   }
   CONSOLE.Log("Stopped status thread");
-  if(ws_conn_thread != nullptr)
+  if (ws_conn_thread != nullptr)
   {
-    if(ws_conn_thread->joinable())
+    if (ws_conn_thread->joinable())
       ws_conn_thread->join();
     delete ws_conn_thread;
     ws_conn_thread = nullptr;
   }
   CONSOLE.Log("Stopped reconnection thread");
 
-  if(ws_cli != nullptr)
+  if (ws_cli != nullptr)
   {
     ws_cli->clearData();
     ws_cli->closeConnection();
-    if(ws_cli_thread != nullptr)
+    if (ws_cli_thread != nullptr)
     {
-      if(ws_cli_thread->joinable())
+      if (ws_cli_thread->joinable())
         ws_cli_thread->join();
       delete ws_cli_thread;
       ws_cli_thread = nullptr;
@@ -506,14 +507,14 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Stopped connection");
 
-  if(dump_file != NULL)
+  if (dump_file != NULL)
   {
     fclose(dump_file);
     dump_file = NULL;
   }
   CONSOLE.Log("Closed dump file");
 
-  if(can != nullptr && can->is_open())
+  if (can != nullptr && can->is_open())
   {
     can->close_socket();
     delete can;
@@ -521,9 +522,9 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Closed can socket");
 
-  for(int i = 0; i < gps_loggers.size(); i++)
+  for (int i = 0; i < gps_loggers.size(); i++)
   {
-    if(gps_loggers[i] == nullptr)
+    if (gps_loggers[i] == nullptr)
       continue;
     cout << i << endl;
     gps_loggers[i]->Kill();
@@ -542,19 +543,22 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   // }
   primary_pack.Clear();
   secondary_pack.Clear();
-  if(tel_conf.generate_csv){
+  if (tel_conf.generate_csv)
+  {
     // Close all csv files and the dump file
     // chimera->close_all_files();
-    for(int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
     {
-      if(primary_files[i] != NULL){
+      if (primary_files[i] != NULL)
+      {
         fclose(primary_files[i]);
         primary_files[i] = NULL;
       }
     }
-    for(int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
     {
-      if(secondary_files[i] != NULL){
+      if (secondary_files[i] != NULL)
+      {
         fclose(secondary_files[i]);
         secondary_files[i] = NULL;
       }
@@ -576,7 +580,6 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   CONSOLE.LogStatus("DEINITIALIZE DONE");
 }
 
-
 TelemetryError TelemetrySM::GetError()
 {
   return currentError;
@@ -594,13 +597,15 @@ void TelemetrySM::EmitError(TelemetryError error)
 void TelemetrySM::LoadAllConfig()
 {
   string path = HOME_PATH + "/telemetry_config.json";
-  if(path_exists(path))
+  if (path_exists(path))
   {
-    if(LoadJson(tel_conf, path))
+    if (LoadStruct(tel_conf, path))
       CONSOLE.Log("Loaded telemetry config");
     else
       EmitError(TEL_LOAD_CONFIG_TELEMETRY);
-  }else{
+  }
+  else
+  {
     CONSOLE.Log("Created: " + path);
     tel_conf.can_device = "can0";
     tel_conf.generate_csv = false;
@@ -610,19 +615,21 @@ void TelemetrySM::LoadAllConfig()
     tel_conf.ws_downsample = true;
     tel_conf.ws_downsample_mps = 50;
     tel_conf.ws_server_url = "ws://eagle-telemetry-server.herokuapp.com";
-    SaveJson(tel_conf, path);
+    SaveStruct(tel_conf, path);
   }
 
   path = HOME_PATH + "/session_config.json";
-  if(path_exists(path))
+  if (path_exists(path))
   {
-    if(LoadJson(sesh_config, path))
+    if (LoadStruct(sesh_config, path))
       CONSOLE.Log("Loaded session config");
     else
       EmitError(TEL_LOAD_CONFIG_SESSION);
-  }else{
+  }
+  else
+  {
     CONSOLE.Log("Created: " + path);
-    SaveJson(sesh_config, path);
+    SaveStruct(sesh_config, path);
   }
 }
 void TelemetrySM::SaveAllConfig()
@@ -630,11 +637,11 @@ void TelemetrySM::SaveAllConfig()
   string path = " ";
   path = HOME_PATH + "/telemetry_config.json";
   CONSOLE.Log("Saving new tel config");
-  SaveJson(tel_conf, path);
+  SaveStruct(tel_conf, path);
   CONSOLE.Log("Done");
   CONSOLE.Log("Saving new sesh config");
   path = HOME_PATH + "/session_config.json";
-  SaveJson(sesh_config, path);
+  SaveStruct(sesh_config, path);
   CONSOLE.Log("Done");
 }
 
@@ -669,7 +676,7 @@ void TelemetrySM::SaveStat()
   stat_f.close();
 }
 
-void TelemetrySM::CreateHeader(string& out)
+void TelemetrySM::CreateHeader(string &out)
 {
   out = "\r\n\n";
   out += "*** EAGLE-TRT\r\n";
@@ -683,8 +690,8 @@ void TelemetrySM::CreateHeader(string& out)
   out += "*** Configuration .... " + sesh_config.Configuration;
   out += "\n\n\r";
 }
-void TelemetrySM::CreateFolderName(string& out)
-{ 
+void TelemetrySM::CreateFolderName(string &out)
+{
   // Create a folder with current configurations
   stringstream subfolder;
   subfolder << sesh_config.Race;
@@ -698,12 +705,12 @@ void TelemetrySM::CreateFolderName(string& out)
 
   out = s;
 }
-void TelemetrySM::LogCan(const uint64_t& timestamp, const can_frame& msg)
+void TelemetrySM::LogCan(const uint64_t &timestamp, const can_frame &msg)
 {
-  if(dump_file == NULL)
+  if (dump_file == NULL)
     CONSOLE.LogError("candump file not opened");
   else
-    fprintf(dump_file, "(" PRIu64 ")\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
+    fprintf(dump_file, "(%lu)\t%s\t%s\n", timestamp, CAN_DEVICE.c_str(), CanMessage2Str(msg).c_str());
 }
 
 string TelemetrySM::GetDate()
@@ -726,7 +733,7 @@ string TelemetrySM::GetTime()
   ss << std::put_time(&ltm, "%H:%M:%S");
   return ss.str();
 }
-string TelemetrySM::CanMessage2Str(const can_frame& msg)
+string TelemetrySM::CanMessage2Str(const can_frame &msg)
 {
   string out = "";
   // Format message as ID#<payload>
@@ -739,14 +746,13 @@ string TelemetrySM::CanMessage2Str(const can_frame& msg)
   return out;
 }
 
-
-void TelemetrySM::OpenLogFolder(const string& path)
+void TelemetrySM::OpenLogFolder(const string &path)
 {
   CONSOLE.Log("Output Folder ", path);
   if (!path_exists(path))
   {
     CONSOLE.LogWarn("Creating log folder");
-    if(!create_directory(path))
+    if (!create_directory(path))
       EmitError(TEL_LOG_FOLDER);
   }
 }
@@ -770,17 +776,16 @@ void TelemetrySM::OpenCanSocket()
   CONSOLE.Log("Opened Socket: ", CAN_DEVICE);
 }
 
-
 void TelemetrySM::SetupGps()
 {
   CONSOLE.Log("Initializing gps instances");
   // Setup of all GPS devices
-  for(size_t i = 0; i < tel_conf.gps_devices.size(); i++)
+  for (size_t i = 0; i < tel_conf.gps_devices.size(); i++)
   {
     string dev = tel_conf.gps_devices[i];
     string mode = tel_conf.gps_mode[i];
     bool enabled = tel_conf.gps_enabled[i];
-    if(dev == "")
+    if (dev == "")
       continue;
 
     CONSOLE.Log("Initializing ", dev, mode, enabled);
@@ -791,11 +796,11 @@ void TelemetrySM::SetupGps()
     // else if(i == 1)
     //   id = chimera->gps2->get_id();
 
-    GpsLogger* gps = new GpsLogger(i, dev);
+    GpsLogger *gps = new GpsLogger(i, dev);
     gps->SetOutFName("gps_" + to_string(i));
     msgs_counters["gps_" + to_string(id)] = 0;
     msgs_per_second["gps_" + to_string(id)] = 0;
-    if(mode == "file")
+    if (mode == "file")
       gps->SetMode(MODE_FILE);
     else
       gps->SetMode(MODE_PORT);
@@ -803,7 +808,7 @@ void TelemetrySM::SetupGps()
     /////////////////
     // LAP COUNTER //
     /////////////////
-    lp = lc_init(NULL);  // initialization with default settings
+    lp = lc_init(NULL); // initialization with default settings
     lp_inclination = lc_init(NULL);
     previousX = -1;
     previousY = -1;
@@ -817,7 +822,7 @@ void TelemetrySM::SetupGps()
 // Callback, fires every time a line from a GPS is received
 void TelemetrySM::OnGpsLine(int id, string line)
 {
-  Gps* gps;
+  Gps *gps;
 
   // Selecting one of chimera GPS
   // if(id == chimera->gps1->get_id())
@@ -829,10 +834,11 @@ void TelemetrySM::OnGpsLine(int id, string line)
 
   // Parsing GPS data
   int ret = 0;
-  try{
+  try
+  {
     // ret = chimera->parse_gps(gps, get_timestamp(), line);
   }
-  catch(std::exception e)
+  catch (std::exception e)
   {
     CONSOLE.LogError("GPS parse error: ", line);
     return;
@@ -840,33 +846,37 @@ void TelemetrySM::OnGpsLine(int id, string line)
 
   // If parsing was successfull
   // save parsed data into gps file
-  if(ret == 1)
+  if (ret == 1)
   {
     // lapCounter
     point.x = gps->latitude;
     point.y = gps->longitude;
 
-    if(!(point.x == previousX && point.y == previousY)) {
-        previousX = point.x;
-        previousY = point.y;
+    if (!(point.x == previousX && point.y == previousY))
+    {
+      previousX = point.x;
+      previousY = point.y;
 
-		if (point.x == 0 && point.y == 0) {
-			// return
-		}
+      if (point.x == 0 && point.y == 0)
+      {
+        // return
+      }
 
-		if(lc_eval_point(lp, &point, lp_inclination)) {
-			// è passato un giro
-			// PHIL: arriva al volante?
-		}
-	}
+      if (lc_eval_point(lp, &point, lp_inclination))
+      {
+        // è passato un giro
+        // PHIL: arriva al volante?
+      }
+    }
 
-    msgs_counters["gps_" + to_string(id)] ++;
+    msgs_counters["gps_" + to_string(id)]++;
 
     unique_lock<mutex> lck(mtx);
-      
-    if(GetCurrentState() == ST_RUN && tel_conf.generate_csv)
+
+    if (GetCurrentState() == ST_RUN && tel_conf.generate_csv)
     {
-      (*gps->files[0]) << gps->get_string(",") + "\n" << flush;
+      (*gps->files[0]) << gps->get_string(",") + "\n"
+                       << flush;
     }
     // if(tel_conf.ws_send_sensor_data)
     //   chimera->serialize_device(gps);
@@ -877,29 +887,29 @@ void TelemetrySM::OnGpsLine(int id, string line)
   }
 }
 
-
 void TelemetrySM::ConnectToWS()
 {
-  ws_cli->addOnOpen(bind(&TelemetrySM::OnOpen, this,  std::placeholders::_1));
+  ws_cli->addOnOpen(bind(&TelemetrySM::OnOpen, this, std::placeholders::_1));
   ws_cli->addOnClose(bind(&TelemetrySM::OnClose, this, std::placeholders::_1, std::placeholders::_2));
   ws_cli->addOnError(bind(&TelemetrySM::OnError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   // sends sensors data only if connected
   data_thread = new thread(&TelemetrySM::SendWsData, this);
   status_thread = new thread(&TelemetrySM::SendStatus, this);
-  while(kill_threads.load() == false)
+  while (kill_threads.load() == false)
   {
     usleep(1000000);
-    if(!tel_conf.ws_enabled)
+    if (!tel_conf.ws_enabled)
       continue;
-    if(ws_conn_state == ConnectionState_::CONNECTED || ws_conn_state == ConnectionState_::CONNECTING)
+    if (ws_conn_state == ConnectionState_::CONNECTED || ws_conn_state == ConnectionState_::CONNECTING)
       continue;
-    
+
     ws_cli->init(tel_conf.ws_server_url, "", 0);
     // ws_cli->init("192.168.42.88", "3000", 0);
     ws_cli->addOnMessage(bind(&TelemetrySM::OnMessage, this, std::placeholders::_1, std::placeholders::_2));
     ws_cli_thread = ws_cli->start();
-    if(ws_cli_thread == nullptr){
+    if (ws_cli_thread == nullptr)
+    {
       CONSOLE.ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
     }
     // Login as telemetry
@@ -910,7 +920,7 @@ void TelemetrySM::ConnectToWS()
   CONSOLE.LogError("KILLED");
 }
 
-void TelemetrySM::OnMessage(const int& id, const GenericMessage& msg)
+void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
 {
   Document req;
   StringBuffer sb;
@@ -922,131 +932,142 @@ void TelemetrySM::OnMessage(const int& id, const GenericMessage& msg)
   Writer<StringBuffer> w2(sb2);
   rapidjson::Document::AllocatorType &alloc2 = ret.GetAllocator();
 
-
   ParseResult ok = req.Parse(msg.data.c_str(), msg.data.size());
-  if(!ok || !req.HasMember("type"))
+  if (!ok || !req.HasMember("type"))
   {
     return;
   }
-  if(req["type"] == "telemetry_set_sesh_config"){
-    if(req["data"].HasMember("Pilot") &&
-      req["data"].HasMember("Circuit") &&
-      req["data"].HasMember("Configuration") &&
-      req["data"].HasMember("Race"))
+  if (req["type"] == "telemetry_set_sesh_config")
+  {
+    if (req["data"].HasMember("Pilot") &&
+        req["data"].HasMember("Circuit") &&
+        req["data"].HasMember("Configuration") &&
+        req["data"].HasMember("Race"))
     {
       sesh_config.Configuration = req["data"]["Configuration"].GetString();
       sesh_config.Race = req["data"]["Race"].GetString();
-      if(string(req["data"]["Pilot"].GetString()) != "")
+      if (string(req["data"]["Pilot"].GetString()) != "")
         sesh_config.Pilot = req["data"]["Pilot"].GetString();
-      if(string(req["data"]["Circuit"].GetString()) != "")
+      if (string(req["data"]["Circuit"].GetString()) != "")
         sesh_config.Circuit = req["data"]["Circuit"].GetString();
 
       SaveAllConfig();
     }
-    else{
+    else
+    {
       CONSOLE.LogWarn("Telemetry set session config (Wrong members)");
     }
   }
-  if(req["type"] == "telemetry_set_tel_config")
+  if (req["type"] == "telemetry_set_tel_config")
   {
     telemetry_config buffer;
-    auto j = json::parse(msg.data);
-    try
-    {
-      Deserialize(buffer, j["data"]);
-    }
-    catch(const std::exception& e)
-    {
-      CONSOLE.LogWarn("Failed parsing telemetry config (from ws) ", msg.data);
-    }
+    Deserialize(buffer, req["data"]);
+    // try
+    // {
+    //   Deserialize(buffer, j["data"]);
+    // }
+    // catch(const std::exception& e)
+    // {
+    //   CONSOLE.LogWarn("Failed parsing telemetry config (from ws) ", msg.data);
+    // }
     tel_conf = buffer;
 
     SaveAllConfig();
   }
-  else if(req["type"] == "ping")
+  else if (req["type"] == "ping")
   {
     CONSOLE.DebugMessage("Requested ping");
     ret.SetObject();
     ret.AddMember("type", Value().SetString("server_answer_ping"), alloc2);
     ret.AddMember("time", (get_timestamp() - req["time"].GetDouble()), alloc2);
     ret.Accept(w2);
-    
+
     ws_cli->setData(GenericMessage(sb2.GetString()));
-  } else if(req["type"] == "telemetry_get_config")
+  }
+  else if (req["type"] == "telemetry_get_config")
   {
     CONSOLE.DebugMessage("Requested configs");
 
-    string conf1 = Serialize(tel_conf).dump();
-    string conf2 = Serialize(sesh_config).dump();
+    Document d;
+    Serialize(d, tel_conf);
+    d.Accept(w2);
+    string conf1 = d.GetString();
+    d.Clear();
+    Serialize(d, tel_conf);
+    d.Accept(w2);
+    string conf2 = d.GetString();
 
     ret.SetObject();
     ret.AddMember("type", Value().SetString("telemetry_config"), alloc2);
     ret.AddMember("telemetry_config", Value().SetString(conf1.c_str(), conf1.size(), alloc2), alloc2);
     ret.AddMember("session_config", Value().SetString(conf2.c_str(), conf2.size(), alloc2), alloc2);
     ret.Accept(w2);
-    
+
     ws_cli->setData(GenericMessage(sb2.GetString()));
     CONSOLE.Log("Done config");
-  } 
-  else if(req["type"] == "telemetry_kill")
+  }
+  else if (req["type"] == "telemetry_kill")
   {
     CONSOLE.Log("Requested Kill (from ws)");
     exit(0);
   }
-  else if(req["type"] == "telemetry_reset")
+  else if (req["type"] == "telemetry_reset")
   {
     CONSOLE.Log("Requested Reset (from ws)");
     wsRequestState = ST_UNINITIALIZED;
   }
-  else if(req["type"] == "telemetry_start")
+  else if (req["type"] == "telemetry_start")
   {
     CONSOLE.Log("Requested Start (from ws)");
     wsRequestState = ST_RUN;
   }
-  else if(req["type"] == "telemetry_stop")
+  else if (req["type"] == "telemetry_stop")
   {
     CONSOLE.Log("Requested Stop (from ws)");
     wsRequestState = ST_STOP;
   }
-  else if(req["type"] == "telemetry_action_zip_logs")
+  else if (req["type"] == "telemetry_action_zip_logs")
   {
     CONSOLE.Log("Requested action: telemetry_action_zip_logs");
     unique_lock<mutex> lck(mtx);
     action_string = "cd /home/pi/telemetry/python && python3 zip_logs.py all";
   }
-  else if(req["type"] == "telemetry_action_zip_and_move")
+  else if (req["type"] == "telemetry_action_zip_and_move")
   {
     CONSOLE.Log("Requested action: telemetry_action_zip_and_move");
     unique_lock<mutex> lck(mtx);
     action_string = "cd /home/pi/telemetry/python && python3 zip_and_move.py all";
   }
-  else if(req["type"] == "telemetry_action_raw")
+  else if (req["type"] == "telemetry_action_raw")
   {
-    if(req.HasMember("data"))
+    if (req.HasMember("data"))
     {
       CONSOLE.Log("Requested action:", req["data"].GetString());
       unique_lock<mutex> lck(mtx);
       action_string = req["data"].GetString();
     }
   }
-  else if(req["type"] == "telemetry_send_can_message")
+  else if (req["type"] == "telemetry_send_can_message")
   {
     CONSOLE.Log("Requested to send a can message to car");
-    if((req.HasMember("id") && req.HasMember("payload")) &&
-       (req["id"].IsInt() && req["payload"].IsArray()))
+    if ((req.HasMember("id") && req.HasMember("payload")) &&
+        (req["id"].IsInt() && req["payload"].IsArray()))
     {
       auto payload = req["payload"].GetArray();
-      if(payload.Size() > 0 && payload.Size() <= 8 && payload[0].IsInt())
+      if (payload.Size() > 0 && payload.Size() <= 8 && payload[0].IsInt())
       {
         char msg[8];
-        for(int i = 0 ; i < payload.Size(); i++)
+        for (int i = 0; i < payload.Size(); i++)
           msg[i] = (char)payload[i].GetInt();
         can->send(req["id"].GetInt(), msg, 8);
-      }else{
+      }
+      else
+      {
         CONSOLE.LogWarn("CAN message malformed (from ws)");
       }
     }
-    else{
+    else
+    {
       CONSOLE.LogWarn("CAN message malformed (from ws)");
     }
   }
@@ -1056,9 +1077,9 @@ void TelemetrySM::SendStatus()
 {
   char msg_data[8];
   int is_in_run;
-  while(kill_threads.load() == false)
+  while (kill_threads.load() == false)
   {
-    if(GetCurrentState() == ST_RUN)
+    if (GetCurrentState() == ST_RUN)
       is_in_run = 1;
     else
       is_in_run = 0;
@@ -1066,15 +1087,15 @@ void TelemetrySM::SendStatus()
     can->send(0x99, msg_data, 1);
 
     string str;
-    for(auto el : msgs_counters)
+    for (auto el : msgs_counters)
     {
       msgs_per_second[el.first] = msgs_counters[el.first];
       msgs_counters[el.first] = 0;
       str += el.first + " " + to_string(msgs_per_second[el.first]) + " ";
     }
-    CONSOLE.Log("Status",StatesStr[GetCurrentState()],"MSGS per second: " + str);
+    CONSOLE.Log("Status", StatesStr[GetCurrentState()], "MSGS per second: " + str);
 
-    if(tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
+    if (tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
     {
       Document d;
       StringBuffer sb;
@@ -1087,7 +1108,7 @@ void TelemetrySM::SendStatus()
       d.AddMember("data", is_in_run, alloc);
       Value val;
       val.SetObject();
-      for(auto el : msgs_per_second)
+      for (auto el : msgs_per_second)
       {
         val.AddMember(Value().SetString(el.first.c_str(), alloc), el.second, alloc);
       }
@@ -1099,7 +1120,6 @@ void TelemetrySM::SendStatus()
       d.AddMember("camera_error", Value().SetString(cam_error.c_str(), cam_error.size(), alloc), alloc);
 #endif // WITH_CAMERA
 
-
       d.AddMember("cpu_total_load", cpu_total_load_value(), alloc);
       d.AddMember("cpu_process_load", cpu_process_load_value(), alloc);
       d.AddMember("mem_process_load", mem_process_load_value(), alloc);
@@ -1108,7 +1128,6 @@ void TelemetrySM::SendStatus()
 
       ws_cli->setData(GenericMessage(sb.GetString()));
     }
-
 
     usleep(1000000);
   }
@@ -1125,17 +1144,17 @@ void TelemetrySM::SendWsData()
   string secondary_serialized;
   bool primary_ok;
   bool secondary_ok;
-  while(kill_threads.load() == false)
+  while (kill_threads.load() == false)
   {
-    while(ws_conn_state != ConnectionState_::CONNECTED)
+    while (ws_conn_state != ConnectionState_::CONNECTED)
       usleep(500000);
-    while(ws_conn_state == ConnectionState_::CONNECTED)
+    while (ws_conn_state == ConnectionState_::CONNECTED)
     {
-      if(kill_threads.load() == true)
+      if (kill_threads.load() == true)
         break;
       usleep(1000 * tel_conf.ws_send_rate);
 
-      if(!tel_conf.ws_send_sensor_data)
+      if (!tel_conf.ws_send_sensor_data)
         continue;
 
       unique_lock<mutex> lck(mtx);
@@ -1143,7 +1162,7 @@ void TelemetrySM::SendWsData()
       primary_ok = primary_pack.SerializeToString(&primary_serialized);
       secondary_ok = secondary_pack.SerializeToString(&secondary_serialized);
 
-      if(primary_ok == false && secondary_ok == false)
+      if (primary_ok == false && secondary_ok == false)
         continue;
 
       sb.Clear();
@@ -1151,9 +1170,9 @@ void TelemetrySM::SendWsData()
       d.SetObject();
       d.AddMember("type", Value().SetString("update_data"), alloc);
       d.AddMember("timestamp", get_timestamp(), alloc);
-      if(primary_ok)
+      if (primary_ok)
         d.AddMember("primary", Value().SetString(primary_serialized.c_str(), primary_serialized.size(), alloc), alloc);
-      if(secondary_ok)
+      if (secondary_ok)
         d.AddMember("secondary", Value().SetString(secondary_serialized.c_str(), secondary_serialized.size(), alloc), alloc);
       d.Accept(w);
 
@@ -1167,12 +1186,12 @@ void TelemetrySM::SendWsData()
 void TelemetrySM::ActionThread()
 {
   string cmd_copy = "";
-  while(kill_threads.load() == false)
+  while (kill_threads.load() == false)
   {
     usleep(1000);
     {
       unique_lock<mutex> lck(mtx);
-      if(action_string == "")
+      if (action_string == "")
         continue;
       cmd_copy = action_string;
     }
@@ -1181,69 +1200,79 @@ void TelemetrySM::ActionThread()
     {
       CONSOLE.Log("Starting command:", cmd_copy);
       string status = "Action: " + cmd_copy + " ----> started";
-      ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
+      ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
 
       int ret = system(cmd_copy.c_str());
-      if(ret == 0)
+      if (ret == 0)
       {
         status = "Action: " + cmd_copy + " ----> successful";
         CONSOLE.Log(status);
-        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
+        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
       }
       else
       {
         status = "Action: " + cmd_copy + " ----> failed with code: " + to_string(ret);
         CONSOLE.LogError(status);
-        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\""+status+"\"}"));
+        ws_cli->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
       }
     }
-    catch(exception e)
+    catch (exception e)
     {
-      CONSOLE.LogError("Actions exception:",e.what());
+      CONSOLE.LogError("Actions exception:", e.what());
     }
 
     action_string = "";
   }
 }
 
-void TelemetrySM::ProtoSerialize(const int& can_network, const uint64_t& timestamp, const can_frame& msg, const int& dev_idx)
+void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timestamp, const can_frame &msg, const int &dev_idx)
 {
   // Serialize with protobuf if websocket is enabled
-  if(tel_conf.ws_enabled == false || tel_conf.ws_send_sensor_data == false)
+  if (tel_conf.ws_enabled == false || tel_conf.ws_send_sensor_data == false)
     return;
-  if(tel_conf.ws_downsample == true){
-    if(can_network == 0){
-      if((1.0e6/tel_conf.ws_downsample_mps) < (timestamp - timers["primary_"+to_string(dev_idx)])){
-        timers["primary_"+to_string(dev_idx)] = timestamp;
+  if (tel_conf.ws_downsample == true)
+  {
+    if (can_network == 0)
+    {
+      if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["primary_" + to_string(dev_idx)]))
+      {
+        timers["primary_" + to_string(dev_idx)] = timestamp;
         primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
       }
-    }else if(can_network == 1){
-      if((1.0e6/tel_conf.ws_downsample_mps) < (timestamp - timers["secondary_"+to_string(dev_idx)])){
-        timers["secondary_"+to_string(dev_idx)] = timestamp;
+    }
+    else if (can_network == 1)
+    {
+      if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["secondary_" + to_string(dev_idx)]))
+      {
+        timers["secondary_" + to_string(dev_idx)] = timestamp;
         secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
       }
     }
   }
-  else{
-    if(can_network == 0){
+  else
+  {
+    if (can_network == 0)
+    {
       primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
-    }else if(can_network == 1){
+    }
+    else if (can_network == 1)
+    {
       secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
     }
   }
 }
 
-void TelemetrySM::OnOpen(const int& id)
+void TelemetrySM::OnOpen(const int &id)
 {
   CONSOLE.Log("WS opened");
   ws_conn_state = ConnectionState_::CONNECTED;
 }
-void TelemetrySM::OnClose(const int& id, const int& num)
+void TelemetrySM::OnClose(const int &id, const int &num)
 {
   CONSOLE.LogError("WS Closed <", num, ">");
   ws_conn_state = ConnectionState_::CLOSED;
 }
-void TelemetrySM::OnError(const int& id, const int& num, const string& err)
+void TelemetrySM::OnError(const int &id, const int &num, const string &err)
 {
   CONSOLE.LogError("WS Error <", num, ">", "message: ", err);
   ws_conn_state = ConnectionState_::FAIL;
