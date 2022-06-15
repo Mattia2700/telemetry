@@ -13,16 +13,14 @@
 #include <iostream>
 #include <sys/time.h>
 
-
-
 #include <filesystem>
 
 using namespace std;
 using namespace std::chrono;
 using namespace filesystem;
 
-
-struct message {
+struct message
+{
   double timestamp;
   int id;
   int size;
@@ -34,17 +32,17 @@ struct gps_message
   string message;
 };
 
-bool parse_message(string str, message* msg);
-bool parse_gps_line(string str, gps_message* msg);
-void get_lines(string filename, vector<string>* lines);
+bool parse_message(string str, message *msg);
+bool parse_gps_line(string str, gps_message *msg);
+void get_lines(string filename, vector<string> *lines);
 
 /**
-* Gets current timestamp in seconds
-*/
+ * Gets current timestamp in seconds
+ */
 double get_timestamp();
 uint64_t get_timestamp_u();
 
-vector<string> get_all_files(string path, string extension="*");
+vector<string> get_all_files(string path, string extension = "*");
 
 vector<string> get_gps_from_files(vector<string> files);
 vector<string> get_files_with_word(vector<string> files, string word);
@@ -64,22 +62,23 @@ vector<string> split(string str, char separator);
 
 // returns -1 if all fields are filled
 // returns index of first empty field
-int empty_fields(const vector<string>& vec);
+int empty_fields(const vector<string> &vec);
 
 // indeces to be checked
 // returns -1 if all fields are filled
 // returns index of first empty field
-int empty_fields(const vector<string>& vec, const vector<int>& indeces);
-
+int empty_fields(const vector<string> &vec, const vector<int> &indeces);
 
 /**
-* Returns a string whith int expressed as Hexadecimal
-* Capital letters
-*
-* @param num number to be converted
-* @param zeros length of the final string (num = 4 => 0000A)
-* return string
-*/
+ * Returns a string whith int expressed as Hexadecimal
+ * Capital letters
+ *
+ * @param num number to be converted
+ * @param zeros length of the final string (num = 4 => 0000A)
+ * return string
+ */
 string get_hex(int num, int zeros);
+
+void get_hex(char *buff, const int &num, const int &zeros);
 
 #endif // UTILS_H

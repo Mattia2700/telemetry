@@ -835,7 +835,7 @@ void Report::PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname)
 }
 
 
-void Report::Generate(const string& path, const can_stat_json& stat)
+void Report::Generate(const string& path, const session_config& stat)
 {
   HPDF_Doc  pdf;
   HPDF_Page page;

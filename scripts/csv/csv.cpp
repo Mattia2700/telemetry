@@ -18,20 +18,20 @@ using namespace std;
 
 csv_parser_config config;
 /**
-* Total lines parse
-*/
+ * Total lines parse
+ */
 long long int total_lines = 0;
 /**
-* Parse the given file
-*
-* @param filename of the file to be parsed
-*/
+ * Parse the given file
+ *
+ * @param filename of the file to be parsed
+ */
 void parse_file(string fname);
 /**
-* Parses all the files in the vector
-*
-* @param files vector of filenames
-*/
+ * Parses all the files in the vector
+ *
+ * @param files vector of filenames
+ */
 void parse_files(vector<string> files);
 
 // Add here a thread when is started
@@ -42,7 +42,7 @@ int main()
 
   string home = getenv("HOME");
   string config_path = home + "/csv_parser_config.json";
-  if(fs::exists(config_path))
+  if (fs::exists(config_path))
   {
     LoadJson(config, config_path);
   }
@@ -152,17 +152,17 @@ void parse_file(string fname)
   auto files = get_all_files(base_folder, ".log");
   auto gps_files = get_gps_from_files(files);
 
-  can_stat_json can_stat;
+  session_config session;
   auto json_files = get_all_files(base_folder, ".json");
-  auto can_stat_files = get_files_with_word(json_files, "CAN_Info");
+  auto session_files = get_files_with_word(json_files, "Session");
 
-  if(can_stat_files.size() != 0)
+  if (session_files.size() != 0)
   {
     try
     {
-      LoadJson(can_stat, can_stat_files[0]);
+      LoadJson(session, session_files[0]);
     }
-    catch(exception e)
+    catch (exception e)
     {
       cout << "Exception loading json " << e.what() << endl;
     }
@@ -179,7 +179,7 @@ void parse_file(string fname)
   {
     out_folder = base_folder + "/" + config.subfolder_name;
   }
-  
+
   create_directory(out_folder);
 
   Chimera chimera;
@@ -202,16 +202,17 @@ void parse_file(string fname)
   // Start Timer
   double t_start = get_timestamp();
   double prev_timestsamp;
-  if(config.parse_candump)
+  if (config.parse_candump)
   {
     for (uint32_t i = 20; i < lines.size(); i++)
     {
       // Try parsing the line
-      try{
+      try
+      {
         if (!parse_message(lines[i], &msg))
           continue;
       }
-      catch(exception e)
+      catch (exception e)
       {
         continue;
       }
@@ -229,7 +230,7 @@ void parse_file(string fname)
       for (auto modified : modifiedDevices)
       {
         *modified->files[0] << modified->get_string(",") + "\n";
-        if(config.generate_report)
+        if (config.generate_report)
           report.AddDeviceSample(&chimera, modified);
       }
       prev_timestsamp = msg.timestamp;
@@ -237,25 +238,27 @@ void parse_file(string fname)
   }
   can_lines = lines.size();
 
-  if(config.parse_gps)
+  if (config.parse_gps)
   {
-    for(auto gps_file : gps_files)
+    for (auto gps_file : gps_files)
     {
-      Gps* current_gps;
-      
-      if(fs::path(gps_file).filename().string().find("1") != string::npos)
+      Gps *current_gps;
+
+      if (fs::path(gps_file).filename().string().find("1") != string::npos)
         current_gps = chimera.gps2;
       else
         current_gps = chimera.gps1;
 
       get_lines(gps_file, &lines);
       gps_message msg;
-      for(size_t i = 20; i < lines.size(); i++)
+      for (size_t i = 20; i < lines.size(); i++)
       {
-        try{
-          if(!parse_gps_line(lines[i], &msg))
+        try
+        {
+          if (!parse_gps_line(lines[i], &msg))
             continue;
-        }catch(exception e)
+        }
+        catch (exception e)
         {
           cout << "failed parsing gps line: " << lines[i] << endl;
           continue;
@@ -265,7 +268,7 @@ void parse_file(string fname)
         if (ret == 1)
         {
           *current_gps->files[0] << current_gps->get_string(",") + "\n";
-          if(config.generate_report)
+          if (config.generate_report)
             report.AddDeviceSample(&chimera, current_gps);
         }
       }
@@ -275,25 +278,26 @@ void parse_file(string fname)
 
   // Debug
   lines_count = can_lines + gps_lines;
-  double dt =  get_timestamp() - t_start;
+  double dt = get_timestamp() - t_start;
   cout << "Parsed " << lines_count << " lines in: " << to_string(dt) << " -> " << lines_count / dt << " lines/sec" << endl;
   chimera.close_all_files();
 
   // Increment total lines
   total_lines += lines_count;
 
-  if(config.generate_report && can_lines > 1000)
+  if (config.generate_report && can_lines > 1000)
   {
     t_start = get_timestamp();
-    report.Clean(1920*2);
+    report.Clean(1920 * 2);
     cout << "Generating: " << base_folder << endl;
-    try{
+    try
+    {
       report.Generate(base_folder + "/Report.pdf", can_stat);
-    }catch(exception e)
+    }
+    catch (exception e)
     {
       cout << "Exception: " << e.what() << " failed generating report: " << base_folder << endl;
     }
     cout << "Generating Report took: " << (get_timestamp() - t_start) << " " << base_folder << endl;
   }
-
 }

@@ -25,16 +25,13 @@ using namespace std;
 using namespace gnuplotio;
 namespace fs = std::filesystem;
 
-
-void error_handler  (HPDF_STATUS   error_no,
-                HPDF_STATUS   detail_no,
-                void         *user_data);
-void
-show_description (HPDF_Page    page,
-                  float        x,
-                  float        y,
-                  const char  *text);
-
+void error_handler(HPDF_STATUS error_no,
+                   HPDF_STATUS detail_no,
+                   void *user_data);
+void show_description(HPDF_Page page,
+                      float x,
+                      float y,
+                      const char *text);
 
 template <class T1>
 vector<T1> upsample(const vector<T1> &x, const int p)
@@ -57,7 +54,6 @@ vector<T1> downsample(const vector<T1> &x, const int q)
     y[n] = x[n * q];
   return y;
 }
-
 
 struct MapElement
 {
@@ -95,16 +91,17 @@ struct Point_ST
 class Report
 {
 public:
-  Report(){
+  Report()
+  {
     id = instances;
-    instances ++;
+    instances++;
   };
 
-  void AddDeviceSample(Chimera* chim, Device* device);
-  void Generate(const string& path, const can_stat_json& stat);
+  void AddDeviceSample(Chimera *chim, Device *device);
+  void Generate(const string &path, const session_config &stat);
   void Clean(int);
-  void Filter(const vector<double> &in, vector<double>* out, int window=10);
-  void DownSample(const vector<double>& in, vector<double>* out, int count);
+  void Filter(const vector<double> &in, vector<double> *out, int window = 10);
+  void DownSample(const vector<double> &in, vector<double> *out, int count);
 
 private:
   unordered_map<string, unordered_map<string, vector<double>>> sensor_data;
@@ -120,27 +117,28 @@ private:
   Delta_ST min_voltage_drop;
   Delta_ST total_voltage_drop;
   Delta_ST distance_travelled;
-  
+
   double lat_0 = -1.0;
   double long_0 = -1.0;
   double last_alt = -1.0;
 
   static int instances;
   int id;
+
 private:
-  void lla2xyz(const double& lat, const double& lng, const double& alt, const double& lat0, const double& lng0, double&, double&, double&);
+  void lla2xyz(const double &lat, const double &lng, const double &alt, const double &lat0, const double &lng0, double &, double &, double &);
 
-  string _Odometers(const string& fname);
-  string _Pedals(const string& fname);
-  string _IMU(const string& fname);
-  string _SteerAccelGyro(const string& fname);
-  string _PedalsSpeedAccel(const string& fname);
-  string _BMS_HV(const string& fname);
-  string _VoltCurrentSpeed(const string& fname);
-  string _GpsEncoderSpeed(const string& fname);
-  string _GPS(const string& fname);
-  string _GPSDirection(const string& fname);
+  string _Odometers(const string &fname);
+  string _Pedals(const string &fname);
+  string _IMU(const string &fname);
+  string _SteerAccelGyro(const string &fname);
+  string _PedalsSpeedAccel(const string &fname);
+  string _BMS_HV(const string &fname);
+  string _VoltCurrentSpeed(const string &fname);
+  string _GpsEncoderSpeed(const string &fname);
+  string _GPS(const string &fname);
+  string _GPSDirection(const string &fname);
 
-  bool CheckSize(const vector<MapElement>& sensors, size_t& minsize);
-  void PlaceImage(HPDF_Doc& pdf, HPDF_Page& page, const string& fname);
+  bool CheckSize(const vector<MapElement> &sensors, size_t &minsize);
+  void PlaceImage(HPDF_Doc &pdf, HPDF_Page &page, const string &fname);
 };

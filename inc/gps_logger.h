@@ -19,6 +19,7 @@
 #include "utils.h"
 #include "serial.h"
 #include "console.h"
+#include "json_loader.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"
@@ -57,7 +58,7 @@ public:
 
   bool IsRunning();
 
-  int GetId(){return this->id};
+  int GetId() { return this->id; };
 
 private:
   void Run();
@@ -68,7 +69,6 @@ private:
   double GetTimestamp();
 
   std::ofstream *m_GPS;
-  std::ofstream *m_StatFile;
 
   string m_FName;
   string m_Device;
@@ -92,6 +92,6 @@ private:
   // void (*m_OnNewLine)(int, string) = nullptr;
   std::function<void(int, string)> m_OnNewLine;
 
-  GPS_Stat_t stat;
+  stat_json stat;
   int id;
 };

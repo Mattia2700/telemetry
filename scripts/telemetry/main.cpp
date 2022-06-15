@@ -1,20 +1,20 @@
 #include "telemetry_sm.h"
 
-int main(int argc, char** argv)
+int main(int argc, char **argv)
 {
   TelemetrySM telemetry;
   int MAX_RETRIES = 10;
-  for(int retry = 0; retry < MAX_RETRIES; retry++)
+  for (int retry = 0; retry < MAX_RETRIES; retry++)
   {
     try
     {
       telemetry.Init();
     }
-    catch(exception e)
+    catch (exception e)
     {
       CONSOLE.LogError("Fatal exception", e.what());
     }
-    if(telemetry.GetError() != TelemetryError::TEL_NONE)
+    if (telemetry.GetError() != TelemetryError::TEL_NONE)
     {
       CONSOLE.LogError("Telemetry error", TelemetryErrorStr[telemetry.GetError()]);
       telemetry.Reset();
@@ -25,6 +25,6 @@ int main(int argc, char** argv)
   }
 
   CONSOLE.Log("Telemetry quitted");
-  
+
   return 0;
 }

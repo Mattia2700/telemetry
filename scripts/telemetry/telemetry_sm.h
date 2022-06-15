@@ -7,6 +7,7 @@
 #include <iostream>
 #include <exception>
 #include <unordered_map>
+#include <filesystem>
 
 #include <mutex>
 #include <thread>
@@ -30,10 +31,6 @@
 #include "StateMachine/StateMachine.h"
 
 #include "json_loader.h"
-// #include "session_config/json_loader.h"
-
-#include "rapidjson/document.h"
-#include "rapidjson/prettywriter.h"
 using namespace rapidjson;
 
 extern "C"
@@ -43,16 +40,15 @@ extern "C"
 
 #define CANLIB_TIMESTAMP
 #define primary_IMPLEMENTATION
-#define primary_IDS_IMPLEMENTATION
-#include "thirdparty/can/lib/primary/c/network.h"
-#include "thirdparty/can/lib/primary/c/ids.h"
 #define secondary_IMPLEMENTATION
+#define primary_IDS_IMPLEMENTATION
 #define secondary_IDS_IMPLEMENTATION
-#include "thirdparty/can/lib/secondary/c/network.h"
-#include "thirdparty/can/lib/secondary/c/ids.h"
-
 #define primary_MAPPING_IMPLEMENTATION
 #define secondary_MAPPING_IMPLEMENTATION
+#include "thirdparty/can/lib/primary/c/ids.h"
+#include "thirdparty/can/lib/secondary/c/ids.h"
+#include "thirdparty/can/lib/primary/c/network.h"
+#include "thirdparty/can/lib/secondary/c/network.h"
 #include "thirdparty/can/proto/primary/cpp/mapping.h"
 #include "thirdparty/can/proto/secondary/cpp/mapping.h"
 
@@ -171,9 +167,7 @@ private:
 	// JSON
 	telemetry_config tel_conf;
 	session_config sesh_config;
-
-	// Stats
-	CAN_Stat_t can_stat;
+	stat_json can_stat;
 
 	// WebSocket
 	ConnectionState_ ws_conn_state = ConnectionState_::NONE;

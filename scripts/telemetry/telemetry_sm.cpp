@@ -19,13 +19,15 @@ TelemetrySM::TelemetrySM()
   StatesStr[ST_ERROR] = "ST_ERROR";
 
   dump_file = NULL;
-  // chimera = nullptr;
   ws_cli = nullptr;
   data_thread = nullptr;
   status_thread = nullptr;
   ws_conn_thread = nullptr;
   ws_cli_thread = nullptr;
   actions_thread = nullptr;
+
+  lp = nullptr;
+  lp_inclination = nullptr;
 
   kill_threads.store(false);
   wsRequestState = ST_MAX_STATES;
@@ -40,14 +42,6 @@ TelemetrySM::TelemetrySM()
 
 TelemetrySM::~TelemetrySM()
 {
-  /////////////////////////
-  // LAP COUNTER DESTROY //
-  /////////////////////////
-  lc_reset(lp); // reset object (removes everything but thresholds)
-  lc_destroy(lp);
-  lc_reset(lp_inclination);
-  lc_destroy(lp_inclination);
-
   EN_Deinitialize(nullptr);
 }
 
@@ -188,7 +182,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
       messages_queue.pop();
     }
     timestamp = message_q.timestamp;
-    can_stat.msg_count++;
+    can_stat.Messages++;
     msgs_counters[message_q.receiver_name]++;
     message = message_q.frame;
 
@@ -312,8 +306,8 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   }
   CONSOLE.Log("CSV Done");
 
-  can_stat.msg_count = 0;
-  can_stat.duration = get_timestamp();
+  can_stat.Messages = 0;
+  can_stat.Duration_seconds = get_timestamp();
 
   for (auto logger : gps_loggers)
     logger->StartLogging();
@@ -352,7 +346,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       messages_queue.pop();
     }
     timestamp = message_q.timestamp;
-    can_stat.msg_count++;
+    can_stat.Messages++;
     msgs_counters[message_q.receiver_name]++;
     message = message_q.frame;
 
@@ -381,7 +375,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         {
           primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
           if (msg->tlm_status == primary_Toggle_OFF)
-            InternalEvent(ST_RUN);
+            InternalEvent(ST_STOP);
         }
       }
       if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
@@ -418,7 +412,7 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
 
   unique_lock<mutex> lck(mtx);
   // duration of the log
-  can_stat.duration = get_timestamp() - can_stat.duration;
+  can_stat.Duration_seconds = get_timestamp() - can_stat.Duration_seconds;
 
   CONSOLE.Log("Closing files");
   if (tel_conf.generate_csv)
@@ -483,6 +477,20 @@ STATE_DEFINE(TelemetrySM, ErrorImpl, NoEventData)
 ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
 {
   CONSOLE.LogStatus("DEINITIALIZE");
+
+  /////////////////////////
+  // LAP COUNTER DESTROY //
+  /////////////////////////
+  if (lp != nullptr)
+  {
+    lc_reset(lp); // reset object (removes everything but thresholds)
+    lc_destroy(lp);
+  }
+  if (lp_inclination != nullptr)
+  {
+    lc_reset(lp_inclination);
+    lc_destroy(lp_inclination);
+  }
 
   kill_threads.store(true);
 
@@ -680,33 +688,11 @@ void TelemetrySM::SaveAllConfig()
 
 void TelemetrySM::SaveStat()
 {
-  Document doc;
-  StringBuffer json_ss;
-  PrettyWriter<StringBuffer> writer(json_ss);
-  rapidjson::Document::AllocatorType &alloc = doc.GetAllocator();
+  can_stat.Average_Frequency_Hz = double(can_stat.Messages) / can_stat.Duration_seconds;
+  SaveStruct(can_stat, CURRENT_LOG_FOLDER + "/CAN_Stat.json");
 
-  doc.SetObject();
-  // Add keys and string values
-  doc.AddMember("Date", Value().SetString(StringRef(sesh_config.Date.c_str())), alloc);
-  doc.AddMember("Time", Value().SetString(StringRef(sesh_config.Time.c_str())), alloc);
-  doc.AddMember("Circuit", Value().SetString(StringRef(sesh_config.Circuit.c_str())), alloc);
-  doc.AddMember("Pilot", Value().SetString(StringRef(sesh_config.Pilot.c_str())), alloc);
-  doc.AddMember("Race", Value().SetString(StringRef(sesh_config.Race.c_str())), alloc);
-  doc.AddMember("Configuration", Value().SetString(StringRef(sesh_config.Configuration.c_str())), alloc);
-
-  Value val;
-  val.SetObject();
-  {
-    val.AddMember("Messages", can_stat.msg_count, alloc);
-    val.AddMember("Average Frequency (Hz)", int(double(can_stat.msg_count) / can_stat.duration), alloc);
-    val.AddMember("Duration (seconds)", can_stat.duration, alloc);
-  }
-  doc.AddMember("CAN", val, alloc);
-
-  doc.Accept(writer);
-  std::ofstream stat_f(CURRENT_LOG_FOLDER + "/CAN_Info.json");
-  stat_f << json_ss.GetString();
-  stat_f.close();
+  sesh_config.Canlib_Version = primary_IDS_VERSION;
+  SaveStruct(sesh_config, CURRENT_LOG_FOLDER + "/Session.json");
 }
 
 void TelemetrySM::CreateHeader(string &out)
@@ -768,15 +754,19 @@ string TelemetrySM::GetTime()
 }
 string TelemetrySM::CanMessage2Str(const can_frame &msg)
 {
-  string out = "";
   // Format message as ID#<payload>
   // Hexadecimal representation
-  out += get_hex(int(msg.can_id), 3) + "#";
+  char buff[22];
+  static char id[3];
+  static char val[2];
+  get_hex(id, msg.can_id, 3);
+  sprintf(buff, "%s#", id);
   for (int i = 0; i < msg.can_dlc; i++)
   {
-    out += get_hex(int(msg.data[i]), 2);
+    get_hex(val, msg.data[i], 2);
+    strcat(buff, val);
   }
-  return out;
+  return string(buff);
 }
 
 void TelemetrySM::OpenLogFolder(const string &path)
@@ -809,6 +799,7 @@ void TelemetrySM::OpenCanSocket()
     CONSOLE.Log("Opened Socket: ", dev.name);
     CONSOLE.Log("Starting CAN thread");
     new_can.thrd = new thread(&TelemetrySM::CanReceive, this, &new_can);
+    CONSOLE.Log("Started CAN thread");
   }
 }
 

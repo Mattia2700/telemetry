@@ -1,74 +1,9 @@
 #include "json_loader.h"
 
-template <>
-bool CheckJson(const GPS_t& obj, const rapidjson::Document& doc)
-{
-    bool check = true;
-    if(!doc.HasMember("Messages")){
-        std::cout << "GPS_t MISSING FIELD: Messages" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Average_Frequency_Hz")){
-        std::cout << "GPS_t MISSING FIELD: Average_Frequency_Hz" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Duration_seconds")){
-        std::cout << "GPS_t MISSING FIELD: Duration_seconds" << std::endl; 
-        check = false;
-    }
-    return check;
-}
-
-template<>
-void Serialize(rapidjson::Value& out, const GPS_t& obj, rapidjson::Document::AllocatorType& alloc)
-{
-    out.SetObject();
-    out.AddMember("Messages", rapidjson::Value().SetInt(obj.Messages), alloc);
-    out.AddMember("Average_Frequency_Hz", rapidjson::Value().SetInt(obj.Average_Frequency_Hz), alloc);
-    out.AddMember("Duration_seconds", rapidjson::Value().SetDouble(obj.Duration_seconds), alloc);
-}
-template<>
-void Deserialize(GPS_t& obj, rapidjson::Value& doc)
-{
-    obj.Messages = doc["Messages"].GetInt();
-    obj.Average_Frequency_Hz = doc["Average_Frequency_Hz"].GetInt();
-    obj.Duration_seconds = doc["Duration_seconds"].GetDouble();
-}
-
-template <>
-bool CheckJson(const CAN_t& obj, const rapidjson::Document& doc)
-{
-    bool check = true;
-    if(!doc.HasMember("Messages")){
-        std::cout << "CAN_t MISSING FIELD: Messages" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Average_Frequency_Hz")){
-        std::cout << "CAN_t MISSING FIELD: Average_Frequency_Hz" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Duration_seconds")){
-        std::cout << "CAN_t MISSING FIELD: Duration_seconds" << std::endl; 
-        check = false;
-    }
-    return check;
-}
-
-template<>
-void Serialize(rapidjson::Value& out, const CAN_t& obj, rapidjson::Document::AllocatorType& alloc)
-{
-    out.SetObject();
-    out.AddMember("Messages", rapidjson::Value().SetInt(obj.Messages), alloc);
-    out.AddMember("Average_Frequency_Hz", rapidjson::Value().SetInt(obj.Average_Frequency_Hz), alloc);
-    out.AddMember("Duration_seconds", rapidjson::Value().SetDouble(obj.Duration_seconds), alloc);
-}
-template<>
-void Deserialize(CAN_t& obj, rapidjson::Value& doc)
-{
-    obj.Messages = doc["Messages"].GetInt();
-    obj.Average_Frequency_Hz = doc["Average_Frequency_Hz"].GetInt();
-    obj.Duration_seconds = doc["Duration_seconds"].GetDouble();
-}
+#include "rapidjson/filewritestream.h"
+#include "rapidjson/prettywriter.h"
+#include "rapidjson/rapidjson.h"
+#include "rapidjson/writer.h"
 
 template <>
 bool CheckJson(const can_devices_o& obj, const rapidjson::Document& doc)
@@ -304,6 +239,10 @@ bool CheckJson(const session_config& obj, const rapidjson::Document& doc)
         std::cout << "session_config MISSING FIELD: Time" << std::endl; 
         check = false;
     }
+    if(!doc.HasMember("Canlib_Version")){
+        std::cout << "session_config MISSING FIELD: Canlib_Version" << std::endl; 
+        check = false;
+    }
     return check;
 }
 
@@ -318,6 +257,7 @@ void Serialize(rapidjson::Document& out, const session_config& obj)
     out.AddMember("Configuration", rapidjson::Value().SetString(obj.Configuration.c_str(), obj.Configuration.size(), alloc), alloc);
     out.AddMember("Date", rapidjson::Value().SetString(obj.Date.c_str(), obj.Date.size(), alloc), alloc);
     out.AddMember("Time", rapidjson::Value().SetString(obj.Time.c_str(), obj.Time.size(), alloc), alloc);
+    out.AddMember("Canlib_Version", rapidjson::Value().SetDouble(obj.Canlib_Version), alloc);
 }
 template<>
 void Deserialize(session_config& obj, rapidjson::Document& doc)
@@ -328,6 +268,7 @@ void Deserialize(session_config& obj, rapidjson::Document& doc)
     obj.Configuration = doc["Configuration"].GetString();
     obj.Date = doc["Date"].GetString();
     obj.Time = doc["Time"].GetString();
+    obj.Canlib_Version = doc["Canlib_Version"].GetDouble();
 }
 template<>
 void Deserialize(session_config& obj, rapidjson::Value& doc)
@@ -338,6 +279,7 @@ void Deserialize(session_config& obj, rapidjson::Value& doc)
     obj.Configuration = doc["Configuration"].GetString();
     obj.Date = doc["Date"].GetString();
     obj.Time = doc["Time"].GetString();
+    obj.Canlib_Version = doc["Canlib_Version"].GetDouble();
 }
 template<>
 bool LoadStruct(session_config& out, const std::string& path)
@@ -425,74 +367,49 @@ void SaveStruct(const csv_parser_config& obj, const std::string& path)
 }
 
 template <>
-bool CheckJson(const can_stat_json& obj, const rapidjson::Document& doc)
+bool CheckJson(const stat_json& obj, const rapidjson::Document& doc)
 {
     bool check = true;
-    if(!doc.HasMember("Date")){
-        std::cout << "can_stat_json MISSING FIELD: Date" << std::endl; 
+    if(!doc.HasMember("Messages")){
+        std::cout << "stat_json MISSING FIELD: Messages" << std::endl; 
         check = false;
     }
-    if(!doc.HasMember("Circuit")){
-        std::cout << "can_stat_json MISSING FIELD: Circuit" << std::endl; 
+    if(!doc.HasMember("Average_Frequency_Hz")){
+        std::cout << "stat_json MISSING FIELD: Average_Frequency_Hz" << std::endl; 
         check = false;
     }
-    if(!doc.HasMember("Pilot")){
-        std::cout << "can_stat_json MISSING FIELD: Pilot" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Race")){
-        std::cout << "can_stat_json MISSING FIELD: Race" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("Configuration")){
-        std::cout << "can_stat_json MISSING FIELD: Configuration" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("CAN")){
-        std::cout << "can_stat_json MISSING FIELD: CAN" << std::endl; 
+    if(!doc.HasMember("Duration_seconds")){
+        std::cout << "stat_json MISSING FIELD: Duration_seconds" << std::endl; 
         check = false;
     }
     return check;
 }
 
 template<>
-void Serialize(rapidjson::Document& out, const can_stat_json& obj)
+void Serialize(rapidjson::Document& out, const stat_json& obj)
 {
     out.SetObject();
     rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
-    out.AddMember("Date", rapidjson::Value().SetString(obj.Date.c_str(), obj.Date.size(), alloc), alloc);
-    out.AddMember("Circuit", rapidjson::Value().SetString(obj.Circuit.c_str(), obj.Circuit.size(), alloc), alloc);
-    out.AddMember("Pilot", rapidjson::Value().SetString(obj.Pilot.c_str(), obj.Pilot.size(), alloc), alloc);
-    out.AddMember("Race", rapidjson::Value().SetString(obj.Race.c_str(), obj.Race.size(), alloc), alloc);
-    out.AddMember("Configuration", rapidjson::Value().SetString(obj.Configuration.c_str(), obj.Configuration.size(), alloc), alloc);
-    {
-        rapidjson::Value v;
-        Serialize(v, obj.CAN, alloc);
-        out.AddMember("CAN", v, alloc);
-    }
+    out.AddMember("Messages", rapidjson::Value().SetInt(obj.Messages), alloc);
+    out.AddMember("Average_Frequency_Hz", rapidjson::Value().SetInt(obj.Average_Frequency_Hz), alloc);
+    out.AddMember("Duration_seconds", rapidjson::Value().SetDouble(obj.Duration_seconds), alloc);
 }
 template<>
-void Deserialize(can_stat_json& obj, rapidjson::Document& doc)
+void Deserialize(stat_json& obj, rapidjson::Document& doc)
 {
-    obj.Date = doc["Date"].GetString();
-    obj.Circuit = doc["Circuit"].GetString();
-    obj.Pilot = doc["Pilot"].GetString();
-    obj.Race = doc["Race"].GetString();
-    obj.Configuration = doc["Configuration"].GetString();
-    Deserialize(obj.CAN, doc["CAN"]);
+    obj.Messages = doc["Messages"].GetInt();
+    obj.Average_Frequency_Hz = doc["Average_Frequency_Hz"].GetInt();
+    obj.Duration_seconds = doc["Duration_seconds"].GetDouble();
 }
 template<>
-void Deserialize(can_stat_json& obj, rapidjson::Value& doc)
+void Deserialize(stat_json& obj, rapidjson::Value& doc)
 {
-    obj.Date = doc["Date"].GetString();
-    obj.Circuit = doc["Circuit"].GetString();
-    obj.Pilot = doc["Pilot"].GetString();
-    obj.Race = doc["Race"].GetString();
-    obj.Configuration = doc["Configuration"].GetString();
-    Deserialize(obj.CAN, doc["CAN"]);
+    obj.Messages = doc["Messages"].GetInt();
+    obj.Average_Frequency_Hz = doc["Average_Frequency_Hz"].GetInt();
+    obj.Duration_seconds = doc["Duration_seconds"].GetDouble();
 }
 template<>
-bool LoadStruct(can_stat_json& out, const std::string& path)
+bool LoadStruct(stat_json& out, const std::string& path)
 {
     rapidjson::Document doc;
     LoadJSON(doc, path);
@@ -502,64 +419,7 @@ bool LoadStruct(can_stat_json& out, const std::string& path)
     return true;
 }
 template<>
-void SaveStruct(const can_stat_json& obj, const std::string& path)
-{
-    rapidjson::Document doc;
-    Serialize(doc, obj);
-    SaveJSON(doc, path);
-}
-
-template <>
-bool CheckJson(const gps_stat_json& obj, const rapidjson::Document& doc)
-{
-    bool check = true;
-    if(!doc.HasMember("Date")){
-        std::cout << "gps_stat_json MISSING FIELD: Date" << std::endl; 
-        check = false;
-    }
-    if(!doc.HasMember("GPS")){
-        std::cout << "gps_stat_json MISSING FIELD: GPS" << std::endl; 
-        check = false;
-    }
-    return check;
-}
-
-template<>
-void Serialize(rapidjson::Document& out, const gps_stat_json& obj)
-{
-    out.SetObject();
-    rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
-    out.AddMember("Date", rapidjson::Value().SetString(obj.Date.c_str(), obj.Date.size(), alloc), alloc);
-    {
-        rapidjson::Value v;
-        Serialize(v, obj.GPS, alloc);
-        out.AddMember("GPS", v, alloc);
-    }
-}
-template<>
-void Deserialize(gps_stat_json& obj, rapidjson::Document& doc)
-{
-    obj.Date = doc["Date"].GetString();
-    Deserialize(obj.GPS, doc["GPS"]);
-}
-template<>
-void Deserialize(gps_stat_json& obj, rapidjson::Value& doc)
-{
-    obj.Date = doc["Date"].GetString();
-    Deserialize(obj.GPS, doc["GPS"]);
-}
-template<>
-bool LoadStruct(gps_stat_json& out, const std::string& path)
-{
-    rapidjson::Document doc;
-    LoadJSON(doc, path);
-    if(!CheckJson(out, doc))
-        return false;
-    Deserialize(out, doc);
-    return true;
-}
-template<>
-void SaveStruct(const gps_stat_json& obj, const std::string& path)
+void SaveStruct(const stat_json& obj, const std::string& path)
 {
     rapidjson::Document doc;
     Serialize(doc, obj);
@@ -580,7 +440,7 @@ void SaveJSON(const rapidjson::Document& doc, const std::string& path)
     char writeBuffer[65536];
     rapidjson::FileWriteStream os(fp, writeBuffer, sizeof(writeBuffer));
     
-    rapidjson::Writer<rapidjson::FileWriteStream> writer(os);
+    rapidjson::PrettyWriter<rapidjson::FileWriteStream> writer(os);
     doc.Accept(writer);
     
     fclose(fp);

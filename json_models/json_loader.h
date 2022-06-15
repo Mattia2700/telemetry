@@ -8,22 +8,7 @@
 #include <sstream>
 #include <iostream>
 
-#include "rapidjson/filewritestream.h"
-#include "rapidjson/rapidjson.h"
 #include "rapidjson/document.h"
-#include "rapidjson/writer.h"
-
-typedef struct GPS_t{
-    int Messages;
-    int Average_Frequency_Hz;
-    float Duration_seconds;
-}GPS_t;
-
-typedef struct CAN_t{
-    int Messages;
-    int Average_Frequency_Hz;
-    float Duration_seconds;
-}CAN_t;
 
 typedef struct can_devices_o{
     std::string sock;
@@ -52,6 +37,7 @@ typedef struct session_config{
     std::string Configuration;
     std::string Date;
     std::string Time;
+    float Canlib_Version;
 }session_config;
 
 typedef struct csv_parser_config{
@@ -61,19 +47,11 @@ typedef struct csv_parser_config{
     bool generate_report;
 }csv_parser_config;
 
-typedef struct can_stat_json{
-    std::string Date;
-    std::string Circuit;
-    std::string Pilot;
-    std::string Race;
-    std::string Configuration;
-    CAN_t CAN;
-}can_stat_json;
-
-typedef struct gps_stat_json{
-    std::string Date;
-    GPS_t GPS;
-}gps_stat_json;
+typedef struct stat_json{
+    int Messages;
+    int Average_Frequency_Hz;
+    float Duration_seconds;
+}stat_json;
 
 // T is a struct
 // J is a rapidjson::Document or a rapidjson::Value
