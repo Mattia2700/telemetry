@@ -185,18 +185,19 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     can_stat.Messages++;
     msgs_counters[message_q.receiver_name]++;
     message = message_q.frame;
-
     if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
       primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
-
       if (message.can_id == primary_id_SET_TLM_STATUS)
       {
         primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
         if (msg->tlm_status == primary_Toggle_ON)
+        {
           InternalEvent(ST_RUN);
+          break;
+        }
       }
     }
     if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
@@ -261,13 +262,6 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   }
   CONSOLE.Log("Loggers DONE");
 
-  // dump_file = fopen((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), "w");
-  // if (dump_file == NULL)
-  // {
-  //   CONSOLE.LogError("Error opening candump file!");
-  //   EmitError(TEL_LOG_FOLDER);
-  // }
-  // fprintf(dump_file, "%s\n", header.c_str());
   dump_file = new fstream((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), std::fstream::out);
   if (!dump_file->is_open())
   {
@@ -375,7 +369,10 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         {
           primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
           if (msg->tlm_status == primary_Toggle_OFF)
+          {
             InternalEvent(ST_STOP);
+            break;
+          }
         }
       }
       if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
@@ -1269,7 +1266,8 @@ void TelemetrySM::CanReceive(CAN_Socket *can)
     msg.timestamp = get_timestamp_u();
     {
       unique_lock<mutex> lck(can_mutex);
-      messages_queue.push(msg);
+      if (GetCurrentState() == ST_IDLE || GetCurrentState() == ST_RUN)
+        messages_queue.push(msg);
     }
     can_cv.notify_all();
   }

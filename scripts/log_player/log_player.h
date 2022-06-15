@@ -32,13 +32,11 @@ string serialized_string;
 
 const char *CAN_DEVICE;
 sockaddr_can addr;
-Can * can;
-
+Can *can;
 
 std::mutex mtx;
 std::condition_variable cv;
 
 string shared_string;
 
-double get_timestamp();
 void writer(string fname);

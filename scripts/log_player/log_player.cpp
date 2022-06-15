@@ -13,7 +13,7 @@ void writer(string fname)
     cv.wait(lk); // wait for notify by main thread
 
     // Copy values from the shared string to the fifo file
-    if(write(fd, shared_string.c_str(), shared_string.size()) == -1)
+    if (write(fd, shared_string.c_str(), shared_string.size()) == -1)
     {
       close(fd);
       mkfifo(fname.c_str(), 0666);
@@ -23,7 +23,8 @@ void writer(string fname)
   close(fd);
 }
 
-int main(){
+int main()
+{
 
   CAN_DEVICE = "can0";
   can = new Can(CAN_DEVICE, &addr);
@@ -47,8 +48,9 @@ int main(){
 
   {
     int counter = 0;
-    while( remove((BASENAME + to_string(counter)).c_str() ) == 0 ){
-      counter ++;
+    while (remove((BASENAME + to_string(counter)).c_str()) == 0)
+    {
+      counter++;
       cout << "Deleted: " << BASENAME << counter << endl;
     }
     cout << "Removed " << counter << " previous ports" << endl;
@@ -70,7 +72,8 @@ int main(){
   b.SetSelectionType(SelectionType::sel_all);
   auto selected_paths = b.Start();
 
-  if(selected_paths.size() <= 0){
+  if (selected_paths.size() <= 0)
+  {
     cout << "No file selected... exiting" << endl;
     return -1;
   }
@@ -78,23 +81,25 @@ int main(){
   string folder = std::filesystem::path(selected_paths[0]).parent_path().filename().string();
   cout << selected_paths[0] << endl;
 
-  for (auto file : selected_paths){
+  for (auto file : selected_paths)
+  {
     message msg;
     vector<string> lines;
     get_lines(file, &lines);
-    while(true)
+    while (true)
     {
       double prev_timestamp = -1;
       auto start_time = steady_clock::now();
-      for(int i = 20; i < lines.size(); i++){
-        if(!parse_message(lines [i], &msg))
+      for (int i = 20; i < lines.size(); i++)
+      {
+        if (!parse_message(lines[i], &msg))
           continue;
 
-        
-        can->send(msg.id, (char*)msg.data, msg.size);
+        can->send(msg.id, (char *)msg.data, msg.size);
 
-        if(prev_timestamp > 0){
-          usleep((msg.timestamp - prev_timestamp)*100000);
+        if (prev_timestamp > 0)
+        {
+          usleep((msg.timestamp - prev_timestamp) * 100000);
         }
 
         prev_timestamp = msg.timestamp;
@@ -102,11 +107,5 @@ int main(){
     }
   }
 
-  return  0;
-}
-
-
-double get_timestamp()
-{
-  return duration_cast<duration<double, milli>>(system_clock::now().time_since_epoch()).count() / 1000;
+  return 0;
 }

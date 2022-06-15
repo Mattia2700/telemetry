@@ -29,11 +29,9 @@ using namespace filesystem;
 
 string serialized_string;
 
-
 std::mutex mtx;
 std::condition_variable cv;
 
 string shared_string;
 
-double get_timestamp();
 void writer(string fname);

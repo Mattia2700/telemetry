@@ -30,7 +30,7 @@ endif()
 ## BOOST ##
 ###########
 find_package(Boost REQUIRED COMPONENTS
-    iostreams system filesystem
+    iostreams system
 )
 
 #########
@@ -118,19 +118,6 @@ target_link_libraries(libBase
 )
 
 add_library(
-  libJsonModels
-  SHARED
-
-  # JSON
-  json_models/json_loader.cpp
-  # json_models/session_config/json_loader.cpp
-  # json_models/telemetry_config/json_loader.cpp
-  # json_models/csv_parser_config/json_loader.cpp
-  # json_models/can_stat_json/json_loader.cpp
-  # json_models/gps_stat_json/json_loader.cpp
-)
-
-add_library(
  libVehicle
  SHARED
 
@@ -149,7 +136,6 @@ target_link_libraries(libVehicle
  ${Protobuf_LIBRARIES}
  Boost::iostreams
  Boost::system
- Boost::filesystem
 )
 
 if(WITH_CAMERA)
@@ -182,7 +168,6 @@ add_library(
 
  json_models/json_loader.cpp
 
- #thirdparty/can/proto/bms/cpp/network.pb.cc
  thirdparty/can/proto/primary/cpp/primary.pb.cc
  thirdparty/can/proto/secondary/cpp/secondary.pb.cc
 )
@@ -194,7 +179,6 @@ target_link_libraries(libSMImpl
 
  libBase
  libVehicle
-#  libJsonModels
  libStateMachine
 )
 

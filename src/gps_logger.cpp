@@ -247,6 +247,8 @@ double GpsLogger::GetTimestamp()
 
 void GpsLogger::SaveStat()
 {
+  if (stat.Messages == 0 || !path_exists(m_Folder))
+    return;
   CONSOLE.Log("GPS", id, "Saving stat");
   stat.Average_Frequency_Hz = float(stat.Messages) / stat.Duration_seconds;
   SaveStruct(stat, m_Folder + "/" + m_FName + ".json");
