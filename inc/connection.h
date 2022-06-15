@@ -13,15 +13,16 @@
 
 using namespace std;
 
-class GenericSocket {};
-class GenericMessage {
+class GenericSocket
+{
+};
+class GenericMessage
+{
 public:
     GenericMessage(){};
-    GenericMessage(const string& data_): data(data_){};
-    GenericMessage(const string& topic_, const string& payload_):
-                   topic(topic_), payload(payload_){};
+    GenericMessage(const string &data_) : data(data_){};
+    GenericMessage(const string &topic_, const string &payload_) : topic(topic_), payload(payload_){};
 
-    
     // use these if in subsub
     string topic;
     string payload;
@@ -30,69 +31,77 @@ public:
     string data;
 };
 
-class Connection {
-    public:
-        int getId();
+class Connection
+{
+public:
+    int getId();
 
-        void init(const string& address, const string& port, const int& openMode);
+    void init(const string &address, const string &port, const int &openMode);
 
-        enum {
-            NONE,
-            PUB,
-            SUB
-        };
+    enum
+    {
+        NONE,
+        PUB,
+        SUB
+    };
 
-        struct message {
-            string topic;
-            string payload;
-        };
+    struct message
+    {
+        string topic;
+        string payload;
+    };
 
-        virtual void closeConnection() = 0;
-        virtual thread* start() = 0;
+    virtual void closeConnection() = 0;
+    virtual thread *start() = 0;
 
-        void clearData();
-        void setData(const GenericMessage& message);
+    void clearData();
+    void setData(const GenericMessage &message);
 
-        void addOnOpen(function<void(const int& id)>);
-        void addOnClose(function<void(const int& id, const int& code)>);
-        void addOnError(function<void(const int& id, const int& code, const string& msg)>);
-        void addOnMessage(function<void(const int& id, const GenericMessage&)>);
+    void addOnOpen(function<void(const int &id)>);
+    void addOnClose(function<void(const int &id, const int &code)>);
+    void addOnError(function<void(const int &id, const int &code, const string &msg)>);
+    void addOnMessage(function<void(const int &id, const GenericMessage &)>);
 
-        void sendLoop();
-    protected:
-        Connection();
-        ~Connection();
+    void sendLoop();
 
-        int id;
+    // ZMQ/RAW_TCP/WEBSOCKET...
+    string GetConnectionType() { return connection_type; };
 
-        string port;
-        string address;
-        int openMode;
+protected:
+    Connection();
+    ~Connection();
 
-        bool open = false;
-        bool done = false;
-        bool new_data = false;
+    int id;
 
-        mutex mtx;
-        condition_variable cv;
-        queue<GenericMessage> buff_send;
+    string port;
+    string address;
+    string connection_type;
+    int openMode;
 
-    protected:
+    bool open = false;
+    bool done = false;
+    bool new_data = false;
 
-        void stop();
-        void reset();
+    mutex mtx;
+    condition_variable cv;
+    queue<GenericMessage> buff_send;
 
-        void receiveLoop();
+protected:
+    void stop();
+    void reset();
 
-        virtual void sendMessage(const GenericMessage& msg) = 0;
-        virtual void receiveMessage(GenericMessage& msg) = 0;
+    void receiveLoop();
 
-        function<void(const int& id)> onOpen;
-        function<void(const int& id, const int& code)> onClose;
-        function<void(const int& id, const int& code, const string& msg)> onError;
-        function<void(const int& id, const GenericMessage& msg)> onMessage;
-    private:
-        static int instance_count;
+    virtual void sendMessage(const GenericMessage &msg) = 0;
+    virtual void receiveMessage(GenericMessage &msg) = 0;
+
+    function<void(const int &id)> onOpen;
+    function<void(const int &id, const int &code)> onClose;
+    function<void(const int &id, const int &code, const string &msg)> onError;
+    function<void(const int &id, const GenericMessage &msg)> onMessage;
+
+private:
+    static int instance_count;
 };
 
 #endif

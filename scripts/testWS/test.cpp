@@ -4,31 +4,36 @@ using namespace std;
 #include <string>
 #include <unistd.h>
 
-#include "wsclient.h"
+#include "ws_connection.h"
 
-void onMessage(const int& id, const GenericMessage& msg) {
+void onMessage(const int &id, const GenericMessage &msg)
+{
     cout << id << " RECV: " << msg.data << endl;
 }
 
-void onError(const int& id, const int& code, const string& message) {
+void onError(const int &id, const int &code, const string &message)
+{
     cout << id << " Error: " << code << " - " << message << endl;
 }
 
-void onClose(const int& id, const int& code) {
+void onClose(const int &id, const int &code)
+{
     cout << id << " Connection closed: " << code << endl;
 }
 
-void onOpen(const int& id) {
+void onOpen(const int &id)
+{
     cout << id << " Connection opened" << endl;
 }
 
-int main() {
-    WebSocketClient cli1;
+int main()
+{
+    WSConnection cli1;
     cli1.init("192.168.43.207", "3000", 0);
-    WebSocketClient cli2;
+    WSConnection cli2;
     cli2.init("192.168.43.207", "3000", 0);
 
-    //cli1.add_on_message(onMessage);
+    // cli1.add_on_message(onMessage);
     cli1.addOnOpen(onOpen);
     cli1.addOnClose(onClose);
     cli1.addOnError(onError);
@@ -41,8 +46,8 @@ int main() {
     thread *cli1_thread = cli1.start();
     thread *cli2_thread = cli2.start();
 
-
-    while(true) {
+    while (true)
+    {
         sleep(1);
         cli1.setData(GenericMessage("Test Message"));
     }

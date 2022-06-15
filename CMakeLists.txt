@@ -103,8 +103,8 @@ add_library(
   src/console.cpp
   src/loads.cpp
 
-  src/wsclient.cpp
-  src/zmqConn.cpp
+  src/ws_connection.cpp
+  src/zmq_connection.cpp
   src/connection.cpp
 
   thirdparty/lapcounter/src/lapcounter.c
@@ -117,18 +117,18 @@ target_link_libraries(libBase
   ${ZeroMQ_LIBRARY}
 )
 
+# add_library(
+#   libJson
+#   SHARED
+#   json_models/json_loader.cpp
+#   json_models/messages.cpp
+# )
+
 add_library(
  libVehicle
  SHARED
-
- src/devices.cpp
- src/vehicle.cpp
  src/ubxparser.cpp
  src/gps_logger.cpp
- src/report.cpp
-
- # PROTO
- Protobuffer/cpp/devices.pb.cc
 )
 target_link_libraries(libVehicle
  hpdf
@@ -165,9 +165,7 @@ add_library(
  libSMImpl
  SHARED
  scripts/telemetry/telemetry_sm.cpp
-
- json_models/json_loader.cpp
-
+ 
  thirdparty/can/proto/primary/cpp/primary.pb.cc
  thirdparty/can/proto/secondary/cpp/secondary.pb.cc
 )

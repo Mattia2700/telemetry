@@ -16,6 +16,7 @@
 #include <thread>
 #include <condition_variable>
 
+#define JSON_LOG_FUNC(msg) CONSOLE.LogError(msg)
 #include "utils.h"
 #include "serial.h"
 #include "console.h"

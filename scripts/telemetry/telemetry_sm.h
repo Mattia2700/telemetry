@@ -1,3 +1,5 @@
+#ifndef __TELEMETRY_SM__
+#define __TELEMETRY_SM__
 #include <chrono>
 #include <stdio.h>
 #include <unistd.h>
@@ -24,13 +26,14 @@
 #include "camera.h"
 #endif
 
-#include "wsclient.h"
-#include "devices.pb.h"
+#include "ws_connection.h"
 
 #include "console.h"
 #include "StateMachine/StateMachine.h"
 
+#define JSON_LOG_FUNC(msg) CONSOLE.LogError(msg)
 #include "json_loader.h"
+#include "messages.h"
 using namespace rapidjson;
 
 extern "C"
@@ -137,7 +140,7 @@ private:
 	condition_variable can_cv;
 	mutex can_mutex;
 
-	WebSocketClient *ws_cli;
+	WSConnection *connection;
 	vector<GpsLogger *> gps_loggers;
 
 	primary_devices primary_devs;
@@ -161,7 +164,7 @@ private:
 	thread *data_thread;
 	thread *status_thread;
 	thread *ws_conn_thread;
-	thread *ws_cli_thread;
+	thread *connection_thread;
 	thread *actions_thread;
 
 	// JSON
@@ -251,3 +254,5 @@ private:
 #define TEL_ERROR_CHECK                         \
 	if (GetError() != TelemetryError::TEL_NONE) \
 		return;
+
+#endif // __TELEMETRY_SM__
