@@ -26,16 +26,14 @@ const char *Can::get_device()
 	return device;
 }
 
-int Can::open_socket(bool listen_all_sockets)
+int Can::open_socket()
 {
 	int can_socket;
 	struct ifreq ifr;
 
 	can_socket = socket(PF_CAN, SOCK_RAW, CAN_RAW);
 	if (can_socket < 0)
-	{
 		return -1;
-	}
 
 	// If can_socket is set to 0,
 	// messages are received from all interfaces (can0, can1, vcan0)
@@ -43,10 +41,7 @@ int Can::open_socket(bool listen_all_sockets)
 	ioctl(can_socket, SIOCGIFINDEX, &ifr);
 
 	(*address).can_family = AF_CAN;
-	if (listen_all_sockets)
-		(*address).can_ifindex = 0;
-	else
-		(*address).can_ifindex = ifr.ifr_ifindex;
+	(*address).can_ifindex = ifr.ifr_ifindex;
 
 	if (bind(can_socket, (struct sockaddr *)address, sizeof(*address)) < 0)
 	{

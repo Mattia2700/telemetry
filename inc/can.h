@@ -15,79 +15,80 @@
 #include <linux/can/raw.h>
 
 using namespace std;
-class Can{
+class Can
+{
 public:
   /**
    *  Must set device and address with init
-  */
+   */
   Can();
 
   /**
-  * Sets device string (can0, vcan0)
-  * Sets address pointer
-  */
-  Can(const char* device, struct sockaddr_can* address);
+   * Sets device string (can0, vcan0)
+   * Sets address pointer
+   */
+  Can(const char *device, struct sockaddr_can *address);
 
   /**
-  * Sets device string (can0, vcan0)
-  * Sets address pointer
-  */
-  void init(const char* device, struct sockaddr_can* address);
+   * Sets device string (can0, vcan0)
+   * Sets address pointer
+   */
+  void init(const char *device, struct sockaddr_can *address);
 
   /**
-  * Opens device updating address,
-  *
-  * return socket fd
-  */
-  int open_socket(bool liste_all_sockets=false);
+   * Opens device updating address,
+   *
+   * return socket fd
+   */
+  int open_socket();
 
   /**
    * Closes the can socket
-   * 
+   *
    * return true if close was successfull
-  */
+   */
   bool close_socket();
 
   /**
    * Returns if the socket is opened
-  */
+   */
   bool is_open();
 
   /**
    * Returns device name
-  */
-  const char* get_device();
+   */
+  const char *get_device();
 
   /**
-  * Sends an array of bytes
-  *
-  * @param id message id
-  * @param data array of bytes
-  * @param len num of bytes to be sent (0~8)
-  * return success
-  */
-  int send(int id, char* data, int len);
+   * Sends an array of bytes
+   *
+   * @param id message id
+   * @param data array of bytes
+   * @param len num of bytes to be sent (0~8)
+   * return success
+   */
+  int send(int id, char *data, int len);
 
   /**
-  * Receive a can frame from device
-  *
-  * @param frame pointer of struct that will be filled
-  * return success
-  */
-  int receive(can_frame* frame);
+   * Receive a can frame from device
+   *
+   * @param frame pointer of struct that will be filled
+   * return success
+   */
+  int receive(can_frame *frame);
 
   /**
-  * Setup filters so select id that can be received
-  *
-  * @param filter struct filled (id, mask)
-  * return success
-  */
-  int set_filters(can_filter& filter);
+   * Setup filters so select id that can be received
+   *
+   * @param filter struct filled (id, mask)
+   * return success
+   */
+  int set_filters(can_filter &filter);
 
 private:
-  int sock;                           // socket fd
-  const char* device;                 // name of device
-  sockaddr_can* address;              // address of device
+  int sock;              // socket fd
+  const char *device;    // name of device
+  sockaddr_can *address; // address of device
 
   bool opened;
 };

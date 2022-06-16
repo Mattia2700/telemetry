@@ -724,9 +724,14 @@ void TelemetrySM::CreateFolderName(string &out)
 void TelemetrySM::LogCan(const CAN_Message &message)
 {
   if (dump_file == NULL || !dump_file->is_open())
+  {
     CONSOLE.LogError("candump file not opened");
-  else
-    (*dump_file) << message.timestamp << " " << message.receiver_name << " " << CanMessage2Str(message.frame) << "\n";
+    return;
+  }
+  static string rec;
+  rec = message.receiver_name;
+  rec.resize(10, ' ');
+  (*dump_file) << message.timestamp << " " << rec << " " << CanMessage2Str(message.frame) << "\n";
 }
 
 string TelemetrySM::GetDate()
@@ -1290,7 +1295,11 @@ void TelemetrySM::CanReceive(CAN_Socket *can)
   msg.receiver_name = can->name;
   while (!kill_threads)
   {
-    can->sock->receive(&msg.frame);
+    if (can->sock->receive(&msg.frame) == -1)
+    {
+      CONSOLE.LogWarn("Can receive ", can->name);
+      continue;
+    }
     msg.timestamp = get_timestamp_u();
     {
       unique_lock<mutex> lck(can_mutex);
