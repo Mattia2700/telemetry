@@ -172,6 +172,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
 
   static FILE *fout;
   static int dev_idx;
+  static void *canlib_message;
   while (GetCurrentState() == ST_IDLE)
   {
     {
@@ -188,7 +189,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
     {
       dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-      primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
+      primary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
       if (message.can_id == primary_id_SET_TLM_STATUS)
       {
@@ -203,7 +204,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
     {
       dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-      secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
+      secondary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
       ProtoSerialize(1, timestamp, message, dev_idx);
     }
 
@@ -286,7 +287,7 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       primary_message_name_from_id(primary_devs[i].id, buff);
       string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + string(buff) + ".csv");
       primary_files[i] = fopen(folder.c_str(), "w");
-      primary_fields_from_id(primary_devs[i].id, primary_files[i]);
+      primary_fields_file_from_id(primary_devs[i].id, primary_files[i]);
       fprintf(primary_files[i], "\r\n");
     }
     for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
@@ -294,7 +295,7 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       secondary_message_name_from_id(secondary_devs[i].id, buff);
       string folder = (CURRENT_LOG_FOLDER + "/Parsed/secondary/" + string(buff) + ".csv");
       secondary_files[i] = fopen(folder.c_str(), "w");
-      secondary_fields_from_id(secondary_devs[i].id, secondary_files[i]);
+      secondary_fields_file_from_id(secondary_devs[i].id, secondary_files[i]);
       fprintf(secondary_files[i], "\r\n");
     }
   }
@@ -330,6 +331,8 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
   static FILE *csv_out;
   static int dev_idx = 0;
 
+  void *canlib_message;
+
   while (GetCurrentState() == ST_RUN)
   {
     {
@@ -353,14 +356,14 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
       {
         dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-        primary_deserialize_from_id(message.can_id, message.data, primary_devs[dev_idx].raw_message, primary_devs[dev_idx].conversion_message, timestamp);
+        primary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
         if (tel_conf.generate_csv)
         {
           csv_out = primary_files[dev_idx];
           if (primary_devs[dev_idx].conversion_message == NULL)
-            primary_string_from_id(message.can_id, primary_devs[dev_idx].raw_message, csv_out);
+            primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
           else
-            primary_string_from_id(message.can_id, primary_devs[dev_idx].conversion_message, csv_out);
+            primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
 
           fprintf(csv_out, "\n");
         }
@@ -378,14 +381,14 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
       {
         dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-        secondary_deserialize_from_id(message.can_id, message.data, secondary_devs[dev_idx].raw_message, secondary_devs[dev_idx].conversion_message, timestamp);
+        secondary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
         if (tel_conf.generate_csv)
         {
           csv_out = secondary_files[dev_idx];
           if (secondary_devs[dev_idx].conversion_message == NULL)
-            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].raw_message, csv_out);
+            secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
           else
-            secondary_string_from_id(message.can_id, secondary_devs[dev_idx].conversion_message, csv_out);
+            secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
           fprintf(csv_out, "\n");
         }
         ProtoSerialize(1, timestamp, message, dev_idx);
