@@ -20,7 +20,7 @@
 #include "utils.h"
 #include "serial.h"
 #include "console.h"
-#include "json_loader.h"
+#include "telemetry_config.h"
 
 #include "rapidjson/document.h"
 #include "rapidjson/prettywriter.h"

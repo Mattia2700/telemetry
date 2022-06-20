@@ -31,16 +31,16 @@ void Connection::init(const string& address, const string& port, const int& open
 
 // this loop check if there are new data to send
 void Connection::sendLoop() {
-    while(!open) usleep(10000);
+    while(!open) usleep(1000);
     while(!done) {
         unique_lock<mutex> lck(mtx);
-
-        while(!new_data && !done) cv.wait(lck);
+        while(!new_data && !done)
+            cv.wait(lck);
 
         // Adding this because code can be stuck waiting for cv
         // when actually the socket is being closed
         if(done) break;
-
+        
         this->sendMessage(buff_send.front());
 
         buff_send.pop();
@@ -65,7 +65,7 @@ void Connection::receiveLoop() {
 }
 
 void Connection::clearData() {
-    unique_lock<mutex> guard(mtx);
+    lock_guard<mutex> guard(mtx);
 
     while(!buff_send.empty()) {
         buff_send.pop();
@@ -74,7 +74,7 @@ void Connection::clearData() {
 }
 
 void Connection::setData(const GenericMessage& msg) {
-    unique_lock<mutex> guard(mtx);
+    lock_guard<mutex> guard(mtx);
 
     buff_send.push(msg);
 
@@ -90,9 +90,11 @@ void Connection::setData(const GenericMessage& msg) {
 }
 
 void Connection::stop() {
-    unique_lock<mutex> guard(mtx);
-    done = true;
-    open = false;
+    {
+        lock_guard<mutex> guard(mtx);
+        done = true;
+        open = false;
+    }
 
     cv.notify_all();
 
@@ -102,10 +104,12 @@ void Connection::stop() {
 }
 
 void Connection::reset() {
-    unique_lock<mutex> guard(mtx);
-    done = false;
-    open = false;
-    new_data = false;
+    {
+        lock_guard<mutex> guard(mtx);
+        done = false;
+        open = false;
+        new_data = false;
+    }
     clearData();
 }
 

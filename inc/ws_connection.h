@@ -27,6 +27,17 @@ enum ConnectionState_
 	CLOSED
 };
 
+#define WS_LOGIN          GenericMessage("{\"identifier\":\"client\"}")
+#define WS_COLLECT_PING   GenericMessage("{\"type\": \"server_collect_all_ping\"}")
+#define WS_GET_PING       GenericMessage("{\"type\": \"server_get_all_ping\"}")
+#define WS_TEL_START GenericMessage("{\"type\": \"telemetry_start\"}")
+#define WS_TEL_STOP  GenericMessage("{\"type\": \"telemetry_stop\"}")
+#define WS_TEL_KILL  GenericMessage("{\"type\": \"telemetry_kill\"}")
+#define WS_TEL_RESET GenericMessage("{\"type\": \"telemetry_reset\"}")
+#define WS_TEL_GET_CONFIG GenericMessage("{\"type\":\"telemetry_get_config\"}")
+#define WS_TEL_ACTION_ZIP           GenericMessage("{\"type\":\"telemetry_action_zip_logs\"}")
+#define WS_TEL_ACTION_ZIP_AND_MOVE  GenericMessage("{\"type\":\"telemetry_action_zip_and_move\"}")
+
 class custom_ws_socket
 {
 public:

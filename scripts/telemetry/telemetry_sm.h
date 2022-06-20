@@ -32,7 +32,7 @@
 #include "StateMachine/StateMachine.h"
 
 #define JSON_LOG_FUNC(msg) CONSOLE.LogError(msg)
-#include "json_loader.h"
+#include "telemetry_config.h"
 #include "messages.h"
 using namespace rapidjson;
 

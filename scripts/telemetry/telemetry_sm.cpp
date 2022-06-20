@@ -960,6 +960,7 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
   Writer<StringBuffer> w(sb);
   rapidjson::Document::AllocatorType &alloc = req.GetAllocator();
 
+  Document helper_doc;
   Document ret;
   StringBuffer sb2;
   Writer<StringBuffer> w2(sb2);
@@ -986,17 +987,18 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
   // Parsing messages
   if (topic == "telemetry_set_sesh_config")
   {
-    if (req["data"].HasMember("Pilot") &&
-        req["data"].HasMember("Circuit") &&
-        req["data"].HasMember("Configuration") &&
-        req["data"].HasMember("Race"))
+    helper_doc.Parse(req["data"].GetString());
+    if (helper_doc.HasMember("Pilot") &&
+        helper_doc.HasMember("Circuit") &&
+        helper_doc.HasMember("Configuration") &&
+        helper_doc.HasMember("Race"))
     {
-      sesh_config.Configuration = req["data"]["Configuration"].GetString();
-      sesh_config.Race = req["data"]["Race"].GetString();
-      if (string(req["data"]["Pilot"].GetString()) != "")
-        sesh_config.Pilot = req["data"]["Pilot"].GetString();
-      if (string(req["data"]["Circuit"].GetString()) != "")
-        sesh_config.Circuit = req["data"]["Circuit"].GetString();
+      sesh_config.Configuration = helper_doc["Configuration"].GetString();
+      sesh_config.Race = helper_doc["Race"].GetString();
+      if (string(helper_doc["Pilot"].GetString()) != "")
+        sesh_config.Pilot = helper_doc["Pilot"].GetString();
+      if (string(helper_doc["Circuit"].GetString()) != "")
+        sesh_config.Circuit = helper_doc["Circuit"].GetString();
 
       SaveAllConfig();
     }
@@ -1008,7 +1010,7 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
   else if (topic == "telemetry_set_tel_config")
   {
     telemetry_config buffer;
-    Deserialize(buffer, req["data"]);
+    Deserialize(buffer, helper_doc.Parse(req["data"].GetString()));
     tel_conf = buffer;
 
     SaveAllConfig();
@@ -1127,6 +1129,10 @@ void TelemetrySM::SendStatus()
                                  is_in_run ? primary_Toggle_ON : primary_Toggle_OFF);
     if (sockets.find("primary") != sockets.end())
       sockets["primary"].sock->send(primary_id_TLM_STATUS, (char *)msg_data, primary_TLM_STATUS_SIZE);
+
+    primary_serialize_TLM_VERSION(msg_data, 12, primary_IDS_VERSION);
+    if (sockets.find("primary") != sockets.end())
+      sockets["primary"].sock->send(primary_id_TLM_VERSION, (char *)msg_data, primary_TLM_VERSION_SIZE);
 
     string str;
     for (auto el : msgs_counters)

@@ -24,11 +24,21 @@ typedef struct msgs_per_second_o{
     int count;
 }msgs_per_second_o;
 
+typedef struct basic_message{
+    std::string type;
+    std::string data;
+}basic_message;
+
 typedef struct get_telemetry_config{
     std::string type;
     std::string telemetry_config;
     std::string session_config;
 }get_telemetry_config;
+
+typedef struct ping{
+    std::string type;
+    float time;
+}ping;
 
 typedef struct telemetry_status{
     std::string type;
@@ -41,9 +51,6 @@ typedef struct telemetry_status{
     int cpu_process_load;
     int mem_process_load;
 }telemetry_status;
-
-#ifndef __JSON_LOADER_DEFINITION__
-#define __JSON_LOADER_DEFINITION__
 
 // T is a struct
 // J is a rapidjson::Document or a rapidjson::Value
@@ -70,6 +77,10 @@ void SaveStruct(const T& obj, const std::string& path);
 template<class T>
 std::string JsonToString(const T& obj);
 
+
+#ifndef __JSON_LOADER_DEFINITION__
+#define __JSON_LOADER_DEFINITION__
+
 static void LoadJSON(rapidjson::Document& out, const std::string& path)
 {
     std::ifstream f(path);
@@ -89,6 +100,8 @@ static void SaveJSON(const rapidjson::Document& doc, const std::string& path)
 
 #endif // __JSON_LOADER_DEFINITION__
 
+
+#ifdef __MESSAGES_IMPLEMENTATION__
 
 template <>
 bool CheckJson(const msgs_per_second_o& obj, const rapidjson::Document& doc)
@@ -125,6 +138,86 @@ void Deserialize(msgs_per_second_o& obj, rapidjson::Value& doc)
     }else{
         obj.count = doc["count"].GetInt();
     }
+}
+
+template <>
+bool CheckJson(const basic_message& obj, const rapidjson::Document& doc)
+{
+    bool check = true;
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: type"); 
+        check = false;
+    }
+    if(!doc.HasMember("data")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: data"); 
+        check = false;
+    }
+    return check;
+}
+
+template<>
+void Serialize(rapidjson::Document& out, const basic_message& obj)
+{
+    out.SetObject();
+    rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
+    out.AddMember("type", rapidjson::Value().SetString(obj.type.c_str(), obj.type.size(), alloc), alloc);
+    out.AddMember("data", rapidjson::Value().SetString(obj.data.c_str(), obj.data.size(), alloc), alloc);
+}
+template<>
+void Deserialize(basic_message& obj, rapidjson::Document& doc)
+{
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: type"); 
+    }else{
+        obj.type = doc["type"].GetString();
+    }
+    if(!doc.HasMember("data")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: data"); 
+    }else{
+        obj.data = doc["data"].GetString();
+    }
+}
+template<>
+void Deserialize(basic_message& obj, rapidjson::Value& doc)
+{
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: type"); 
+    }else{
+        obj.type = doc["type"].GetString();
+    }
+    if(!doc.HasMember("data")){
+        JSON_LOG_FUNC("basic_message MISSING FIELD: data"); 
+    }else{
+        obj.data = doc["data"].GetString();
+    }
+}
+
+template<>
+std::string JsonToString(const basic_message& obj)
+{
+    rapidjson::Document doc;
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> w(sb);
+    Serialize(doc, obj);
+    doc.Accept(w);
+    return sb.GetString();
+}
+
+template<>
+bool LoadStruct(basic_message& out, const std::string& path)
+{
+    rapidjson::Document doc;
+    LoadJSON(doc, path);
+    bool check_passed = CheckJson(out, doc);
+    Deserialize(out, doc);
+    return check_passed;
+}
+template<>
+void SaveStruct(const basic_message& obj, const std::string& path)
+{
+    rapidjson::Document doc;
+    Serialize(doc, obj);
+    SaveJSON(doc, path);
 }
 
 template <>
@@ -216,6 +309,86 @@ bool LoadStruct(get_telemetry_config& out, const std::string& path)
 }
 template<>
 void SaveStruct(const get_telemetry_config& obj, const std::string& path)
+{
+    rapidjson::Document doc;
+    Serialize(doc, obj);
+    SaveJSON(doc, path);
+}
+
+template <>
+bool CheckJson(const ping& obj, const rapidjson::Document& doc)
+{
+    bool check = true;
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("ping MISSING FIELD: type"); 
+        check = false;
+    }
+    if(!doc.HasMember("time")){
+        JSON_LOG_FUNC("ping MISSING FIELD: time"); 
+        check = false;
+    }
+    return check;
+}
+
+template<>
+void Serialize(rapidjson::Document& out, const ping& obj)
+{
+    out.SetObject();
+    rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
+    out.AddMember("type", rapidjson::Value().SetString(obj.type.c_str(), obj.type.size(), alloc), alloc);
+    out.AddMember("time", rapidjson::Value().SetDouble(obj.time), alloc);
+}
+template<>
+void Deserialize(ping& obj, rapidjson::Document& doc)
+{
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("ping MISSING FIELD: type"); 
+    }else{
+        obj.type = doc["type"].GetString();
+    }
+    if(!doc.HasMember("time")){
+        JSON_LOG_FUNC("ping MISSING FIELD: time"); 
+    }else{
+        obj.time = doc["time"].GetDouble();
+    }
+}
+template<>
+void Deserialize(ping& obj, rapidjson::Value& doc)
+{
+    if(!doc.HasMember("type")){
+        JSON_LOG_FUNC("ping MISSING FIELD: type"); 
+    }else{
+        obj.type = doc["type"].GetString();
+    }
+    if(!doc.HasMember("time")){
+        JSON_LOG_FUNC("ping MISSING FIELD: time"); 
+    }else{
+        obj.time = doc["time"].GetDouble();
+    }
+}
+
+template<>
+std::string JsonToString(const ping& obj)
+{
+    rapidjson::Document doc;
+    rapidjson::StringBuffer sb;
+    rapidjson::Writer<rapidjson::StringBuffer> w(sb);
+    Serialize(doc, obj);
+    doc.Accept(w);
+    return sb.GetString();
+}
+
+template<>
+bool LoadStruct(ping& out, const std::string& path)
+{
+    rapidjson::Document doc;
+    LoadJSON(doc, path);
+    bool check_passed = CheckJson(out, doc);
+    Deserialize(out, doc);
+    return check_passed;
+}
+template<>
+void SaveStruct(const ping& obj, const std::string& path)
 {
     rapidjson::Document doc;
     Serialize(doc, obj);
@@ -421,5 +594,7 @@ void SaveStruct(const telemetry_status& obj, const std::string& path)
     Serialize(doc, obj);
     SaveJSON(doc, path);
 }
+
+#endif //__MESSAGES_IMPLEMENTATION__
 
 #endif // __JSON_LOADER__

@@ -16,6 +16,7 @@ WSConnection::WSConnection() : Connection()
     socket->m_client.set_access_channels(websocketpp::log::alevel::disconnect);
     socket->m_client.set_access_channels(websocketpp::log::alevel::app);
 
+
     // Initialize the Asio transport policy
     socket->m_client.init_asio();
 
@@ -71,8 +72,10 @@ thread *WSConnection::start()
 
 void WSConnection::m_onOpen(websocketpp::connection_hdl)
 {
-    unique_lock<mutex> guard(mtx);
-    open = true;
+    {
+        lock_guard<mutex> guard(mtx);
+        open = true;
+    }
 
     if (onOpen)
         onOpen(id);
@@ -80,18 +83,13 @@ void WSConnection::m_onOpen(websocketpp::connection_hdl)
 
 void WSConnection::m_onClose(websocketpp::connection_hdl conn)
 {
-    if (onClose)
-        onClose(id, 0);
-    stop();
-    reset();
+    onClose(id, 0);
 }
 
 void WSConnection::m_onFail(websocketpp::connection_hdl)
 {
     if (onError)
         onError(id, 0, "Failed");
-    stop();
-    reset();
 }
 
 WSConnection::~WSConnection()
@@ -105,8 +103,10 @@ void WSConnection::closeConnection()
     {
         // the code was 1000
         socket->m_client.close(socket->m_hdl, 0, "Closed by user");
+        socket->m_hdl.reset();
+        socket->m_client.reset();
     }
-
+    reset();
     done = true;
     cv.notify_all();
 }
