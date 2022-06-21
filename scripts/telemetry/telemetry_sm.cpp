@@ -288,6 +288,7 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       primary_files[i] = fopen(folder.c_str(), "w");
       primary_fields_file_from_id((*primary_devs)[i].id, primary_files[i]);
       fprintf(primary_files[i], "\r\n");
+      fflush(primary_files[i]);
     }
     for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     {
@@ -296,6 +297,7 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       secondary_files[i] = fopen(folder.c_str(), "w");
       secondary_fields_file_from_id((*secondary_devs)[i].id, secondary_files[i]);
       fprintf(secondary_files[i], "\r\n");
+      fflush(secondary_files[i]);
     }
   }
   CONSOLE.Log("CSV Done");
@@ -360,11 +362,12 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         {
           csv_out = primary_files[dev_idx];
           if ((*primary_devs)[dev_idx].message_conversion == NULL)
-            primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
+            primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_raw, csv_out);
           else
-            primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
+            primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_conversion, csv_out);
 
           fprintf(csv_out, "\n");
+          fflush(csv_out);
         }
         ProtoSerialize(0, timestamp, message, dev_idx);
         if (message.can_id == primary_ID_SET_TLM_STATUS)
@@ -385,10 +388,11 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         {
           csv_out = secondary_files[dev_idx];
           if ((*secondary_devs)[dev_idx].message_conversion == NULL)
-            secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
+            secondary_to_string_file_from_id(message.can_id, (*secondary_devs)[dev_idx].message_raw, csv_out);
           else
-            secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
+            secondary_to_string_file_from_id(message.can_id, (*secondary_devs)[dev_idx].message_conversion, csv_out);
           fprintf(csv_out, "\n");
+          fflush(csv_out);
         }
         ProtoSerialize(1, timestamp, message, dev_idx);
       }

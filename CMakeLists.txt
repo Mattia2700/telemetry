@@ -193,6 +193,12 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 add_executable(telemetry scripts/telemetry/main.cpp)
 target_link_libraries(telemetry libSMImpl libCamera)
 
+add_executable(test_can scripts/testCan/main.cpp 
+  thirdparty/can/proto/primary/cpp/primary.pb.cc
+  thirdparty/can/proto/secondary/cpp/secondary.pb.cc
+)
+target_link_libraries(test_can ${Protobuf_LIBRARIES} libBase)
+
 ## PORT SHARE
 add_executable(share scripts/port/share.cpp src/serial.cpp)
 add_executable(port_simulator scripts/port/port_simulator.cpp src/serial.cpp )
