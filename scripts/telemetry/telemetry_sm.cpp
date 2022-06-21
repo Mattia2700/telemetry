@@ -32,11 +32,11 @@ TelemetrySM::TelemetrySM()
   kill_threads.store(false);
   wsRequestState = ST_MAX_STATES;
 
-  primary_devices_new(&primary_devs);
-  secondary_devices_new(&secondary_devs);
-  for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+  primary_devs = primary_devices_new();
+  secondary_devs = secondary_devices_new();
+  for (int i = 0; i < primary_MESSAGE_COUNT; i++)
     primary_files[i] = NULL;
-  for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+  for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     secondary_files[i] = NULL;
 }
 
@@ -172,7 +172,6 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
 
   static FILE *fout;
   static int dev_idx;
-  static void *canlib_message;
   while (GetCurrentState() == ST_IDLE)
   {
     {
@@ -188,12 +187,12 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     message = message_q.frame;
     if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
     {
-      dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-      primary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
+      dev_idx = primary_index_from_id(message.can_id);
+      primary_deserialize_from_id(message.can_id, message.data, (*primary_devs)[dev_idx].message_raw, (*primary_devs)[dev_idx].message_conversion, timestamp);
       ProtoSerialize(0, timestamp, message, dev_idx);
-      if (message.can_id == primary_id_SET_TLM_STATUS)
+      if (message.can_id == primary_ID_SET_TLM_STATUS)
       {
-        primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
+        primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)(*primary_devs)[dev_idx].message_raw);
         if (msg->tlm_status == primary_Toggle_ON)
         {
           InternalEvent(ST_RUN);
@@ -203,8 +202,8 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
     }
     if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
     {
-      dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-      secondary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
+      dev_idx = secondary_index_from_id(message.can_id);
+      secondary_deserialize_from_id(message.can_id, message.data, (*secondary_devs)[dev_idx].message_raw, (*secondary_devs)[dev_idx].message_conversion, timestamp);
       ProtoSerialize(1, timestamp, message, dev_idx);
     }
 
@@ -282,20 +281,20 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       create_directory(CURRENT_LOG_FOLDER + "/Parsed/secondary");
 
     char buff[125];
-    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < primary_MESSAGE_COUNT; i++)
     {
-      primary_message_name_from_id(primary_devs[i].id, buff);
+      primary_message_name_from_id((*primary_devs)[i].id, buff);
       string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + string(buff) + ".csv");
       primary_files[i] = fopen(folder.c_str(), "w");
-      primary_fields_file_from_id(primary_devs[i].id, primary_files[i]);
+      primary_fields_file_from_id((*primary_devs)[i].id, primary_files[i]);
       fprintf(primary_files[i], "\r\n");
     }
-    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     {
-      secondary_message_name_from_id(secondary_devs[i].id, buff);
+      secondary_message_name_from_id((*secondary_devs)[i].id, buff);
       string folder = (CURRENT_LOG_FOLDER + "/Parsed/secondary/" + string(buff) + ".csv");
       secondary_files[i] = fopen(folder.c_str(), "w");
-      secondary_fields_file_from_id(secondary_devs[i].id, secondary_files[i]);
+      secondary_fields_file_from_id((*secondary_devs)[i].id, secondary_files[i]);
       fprintf(secondary_files[i], "\r\n");
     }
   }
@@ -355,12 +354,12 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
     {
       if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
       {
-        dev_idx = primary_devices_index_from_id(message.can_id, &primary_devs);
-        primary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
+        dev_idx = primary_index_from_id(message.can_id);
+        primary_deserialize_from_id(message.can_id, message.data, (*primary_devs)[dev_idx].message_raw, (*primary_devs)[dev_idx].message_conversion, timestamp);
         if (tel_conf.generate_csv)
         {
           csv_out = primary_files[dev_idx];
-          if (primary_devs[dev_idx].conversion_message == NULL)
+          if ((*primary_devs)[dev_idx].message_conversion == NULL)
             primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
           else
             primary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
@@ -368,9 +367,9 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
           fprintf(csv_out, "\n");
         }
         ProtoSerialize(0, timestamp, message, dev_idx);
-        if (message.can_id == primary_id_SET_TLM_STATUS)
+        if (message.can_id == primary_ID_SET_TLM_STATUS)
         {
-          primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)primary_devs[dev_idx].raw_message);
+          primary_message_SET_TLM_STATUS *msg = ((primary_message_SET_TLM_STATUS *)(*primary_devs)[dev_idx].message_raw);
           if (msg->tlm_status == primary_Toggle_OFF)
           {
             InternalEvent(ST_STOP);
@@ -380,12 +379,12 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
       }
       if (message_q.receiver_name == "secondary" && secondary_is_message_id(message.can_id))
       {
-        dev_idx = secondary_devices_index_from_id(message.can_id, &secondary_devs);
-        secondary_deserialize_from_id(message.can_id, message.data, &canlib_message, timestamp);
+        dev_idx = secondary_index_from_id(message.can_id);
+        secondary_deserialize_from_id(message.can_id, message.data, (*secondary_devs)[dev_idx].message_raw, (*secondary_devs)[dev_idx].message_conversion, timestamp);
         if (tel_conf.generate_csv)
         {
           csv_out = secondary_files[dev_idx];
-          if (secondary_devs[dev_idx].conversion_message == NULL)
+          if ((*secondary_devs)[dev_idx].message_conversion == NULL)
             secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
           else
             secondary_to_string_file_from_id(message.can_id, canlib_message, csv_out);
@@ -419,7 +418,7 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
   {
     // Close all csv files and the dump file
     // chimera->close_all_files();
-    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < primary_MESSAGE_COUNT; i++)
     {
       if (primary_files[i] != NULL)
       {
@@ -427,7 +426,7 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
         primary_files[i] = NULL;
       }
     }
-    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     {
       if (secondary_files[i] != NULL)
       {
@@ -588,7 +587,7 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   {
     // Close all csv files and the dump file
     // chimera->close_all_files();
-    for (int i = 0; i < primary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < primary_MESSAGE_COUNT; i++)
     {
       if (primary_files[i] != NULL)
       {
@@ -596,7 +595,7 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
         primary_files[i] = NULL;
       }
     }
-    for (int i = 0; i < secondary_NUMBER_OF_MESSAGES; i++)
+    for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     {
       if (secondary_files[i] != NULL)
       {
@@ -1128,11 +1127,11 @@ void TelemetrySM::SendStatus()
                                  primary_RaceType::primary_RaceType_AUTOCROSS,
                                  is_in_run ? primary_Toggle_ON : primary_Toggle_OFF);
     if (sockets.find("primary") != sockets.end())
-      sockets["primary"].sock->send(primary_id_TLM_STATUS, (char *)msg_data, primary_TLM_STATUS_SIZE);
+      sockets["primary"].sock->send(primary_ID_TLM_STATUS, (char *)msg_data, primary_SIZE_TLM_STATUS);
 
     primary_serialize_TLM_VERSION(msg_data, 12, primary_IDS_VERSION);
     if (sockets.find("primary") != sockets.end())
-      sockets["primary"].sock->send(primary_id_TLM_VERSION, (char *)msg_data, primary_TLM_VERSION_SIZE);
+      sockets["primary"].sock->send(primary_ID_TLM_VERSION, (char *)msg_data, primary_SIZE_TLM_VERSION);
 
     string str;
     for (auto el : msgs_counters)
@@ -1331,7 +1330,7 @@ void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timesta
       if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["primary_" + to_string(dev_idx)]))
       {
         timers["primary_" + to_string(dev_idx)] = timestamp;
-        primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
+        primary_proto_serialize_from_id(msg.can_id, &primary_pack, primary_devs);
       }
     }
     else if (can_network == 1)
@@ -1339,7 +1338,7 @@ void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timesta
       if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["secondary_" + to_string(dev_idx)]))
       {
         timers["secondary_" + to_string(dev_idx)] = timestamp;
-        secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
+        secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, secondary_devs);
       }
     }
   }
@@ -1347,11 +1346,11 @@ void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timesta
   {
     if (can_network == 0)
     {
-      primary_proto_serialize_from_id(msg.can_id, &primary_pack, &primary_devs);
+      primary_proto_serialize_from_id(msg.can_id, &primary_pack, primary_devs);
     }
     else if (can_network == 1)
     {
-      secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, &secondary_devs);
+      secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, secondary_devs);
     }
   }
 }

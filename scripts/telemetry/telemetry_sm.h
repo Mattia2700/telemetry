@@ -42,16 +42,17 @@ extern "C"
 }
 
 #define CANLIB_TIMESTAMP
-#define primary_IMPLEMENTATION
-#define secondary_IMPLEMENTATION
 #define primary_IDS_IMPLEMENTATION
 #define secondary_IDS_IMPLEMENTATION
-#define primary_MAPPING_IMPLEMENTATION
-#define secondary_MAPPING_IMPLEMENTATION
+#define primary_NETWORK_IMPLEMENTATION
+#define secondary_NETWORK_IMPLEMENTATION
 #include "thirdparty/can/lib/primary/c/ids.h"
 #include "thirdparty/can/lib/secondary/c/ids.h"
 #include "thirdparty/can/lib/primary/c/network.h"
 #include "thirdparty/can/lib/secondary/c/network.h"
+
+#define primary_MAPPING_IMPLEMENTATION
+#define secondary_MAPPING_IMPLEMENTATION
 #include "thirdparty/can/proto/primary/cpp/mapping.h"
 #include "thirdparty/can/proto/secondary/cpp/mapping.h"
 
@@ -143,14 +144,14 @@ private:
 	WSConnection *connection;
 	vector<GpsLogger *> gps_loggers;
 
-	primary_devices primary_devs;
-	secondary_devices secondary_devs;
+	primary_devices *primary_devs;
+	secondary_devices *secondary_devs;
 
 	primary::Pack primary_pack;
 	secondary::Pack secondary_pack;
 
-	FILE *primary_files[primary_NUMBER_OF_MESSAGES];
-	FILE *secondary_files[secondary_NUMBER_OF_MESSAGES];
+	FILE *primary_files[primary_MESSAGE_COUNT];
+	FILE *secondary_files[secondary_MESSAGE_COUNT];
 #ifdef WITH_CAMERA
 	Camera camera;
 #endif
