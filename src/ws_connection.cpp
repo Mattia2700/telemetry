@@ -16,7 +16,6 @@ WSConnection::WSConnection() : Connection()
     socket->m_client.set_access_channels(websocketpp::log::alevel::disconnect);
     socket->m_client.set_access_channels(websocketpp::log::alevel::app);
 
-
     // Initialize the Asio transport policy
     socket->m_client.init_asio();
 
@@ -113,17 +112,21 @@ void WSConnection::closeConnection()
 
 void WSConnection::m_onMessage(client *cli, websocketpp::connection_hdl hdl, message_ptr msg)
 {
+    static GenericMessage message;
     if (onMessage)
     {
-        GenericMessage m;
-        m.data = string(msg->get_payload().c_str(), msg->get_payload().size());
-        onMessage(id, m);
+        message.topic = msg->get_payload().c_str();
+        if (topics.find(message.topic) == topics.end())
+            return;
+        message.payload = msg->get_payload().c_str() + message.topic.size() + 1;
+        onMessage(id, message);
     }
 }
 
 void WSConnection::sendMessage(const GenericMessage &msg)
 {
-    socket->m_client.send(socket->m_hdl, msg.data, websocketpp::frame::opcode::binary, socket->ec);
+    string msg_str = string(msg.topic.c_str() + '\000', msg.topic.size() + 1) + msg.payload;
+    socket->m_client.send(socket->m_hdl, msg_str, websocketpp::frame::opcode::binary, socket->ec);
     if (socket->ec && onError)
     {
         onError(id, socket->ec.value(), socket->ec.message());
@@ -132,4 +135,15 @@ void WSConnection::sendMessage(const GenericMessage &msg)
 
 void WSConnection::receiveMessage(GenericMessage &msg_)
 {
+}
+
+int WSConnection::subscribe(const string &topic)
+{
+    topics.insert(topic);
+    return 0;
+}
+int WSConnection::unsubscribe(const string &topic)
+{
+    topics.erase(topic);
+    return 0;
 }

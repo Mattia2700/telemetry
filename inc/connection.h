@@ -20,20 +20,17 @@ class GenericMessage
 {
 public:
     GenericMessage(){};
-    GenericMessage(const string &data_) : data(data_){};
     GenericMessage(const string &topic_, const string &payload_) : topic(topic_), payload(payload_){};
 
     // use these if in subsub
     string topic;
     string payload;
-
-    // use this if in raw
-    string data;
 };
 
 class Connection
 {
 public:
+    ~Connection();
     int getId();
 
     void init(const string &address, const string &port, const int &openMode);
@@ -54,6 +51,9 @@ public:
     virtual void closeConnection() = 0;
     virtual thread *start() = 0;
 
+    virtual int subscribe(const string &topic) = 0;
+    virtual int unsubscribe(const string &topic) = 0;
+
     void clearData();
     void setData(const GenericMessage &message);
 
@@ -69,7 +69,6 @@ public:
 
 protected:
     Connection();
-    ~Connection();
 
     int id;
 

@@ -6,7 +6,9 @@ SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 SET(CMAKE_CXX_STANDARD_REQUIRED True)
 
-SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -g")
+SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} "-pthread -O3 -pg")
+SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-pg")
+SET(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS} "-pg")
 
 ###########
 ## PROTO ##
@@ -184,13 +186,11 @@ if(WITH_CAMERA)
   target_link_libraries(libSMImpl libCamera)
 endif()
 
-
-
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ## TELEMETRY
 add_executable(telemetry scripts/telemetry/main.cpp)
+set_target_properties( telemetry PROPERTIES COMPILE_FLAGS "-pg" )
 target_link_libraries(telemetry libSMImpl libCamera)
 
 add_executable(test_can scripts/testCan/main.cpp 

@@ -1,6 +1,7 @@
 #ifndef __WS_CONECTION__
 #define __WS_CONECTION__
 
+#include <set>
 #include <mutex>
 #include <string>
 #include <unordered_set>
@@ -27,16 +28,16 @@ enum ConnectionState_
 	CLOSED
 };
 
-#define WS_LOGIN          GenericMessage("{\"identifier\":\"client\"}")
-#define WS_COLLECT_PING   GenericMessage("{\"type\": \"server_collect_all_ping\"}")
-#define WS_GET_PING       GenericMessage("{\"type\": \"server_get_all_ping\"}")
-#define WS_TEL_START GenericMessage("{\"type\": \"telemetry_start\"}")
-#define WS_TEL_STOP  GenericMessage("{\"type\": \"telemetry_stop\"}")
-#define WS_TEL_KILL  GenericMessage("{\"type\": \"telemetry_kill\"}")
-#define WS_TEL_RESET GenericMessage("{\"type\": \"telemetry_reset\"}")
-#define WS_TEL_GET_CONFIG GenericMessage("{\"type\":\"telemetry_get_config\"}")
-#define WS_TEL_ACTION_ZIP           GenericMessage("{\"type\":\"telemetry_action_zip_logs\"}")
-#define WS_TEL_ACTION_ZIP_AND_MOVE  GenericMessage("{\"type\":\"telemetry_action_zip_and_move\"}")
+#define WS_LOGIN GenericMessage("client", "{\"identifier\":\"client\"}")
+#define WS_COLLECT_PING GenericMessage("server_collect_all_ping", "{\"type\": \"server_collect_all_ping\"}")
+#define WS_GET_PING GenericMessage("server_get_all_ping", "{\"type\": \"server_get_all_ping\"}")
+#define WS_TEL_START GenericMessage("telemetry_start", "{\"type\": \"telemetry_start\"}")
+#define WS_TEL_STOP GenericMessage("telemetry_stop", "{\"type\": \"telemetry_stop\"}")
+#define WS_TEL_KILL GenericMessage("telemetry_kill", "{\"type\": \"telemetry_kill\"}")
+#define WS_TEL_RESET GenericMessage("telemetry_reset", "{\"type\": \"telemetry_reset\"}")
+#define WS_TEL_GET_CONFIG GenericMessage("telemetry_get_config", "{\"type\":\"telemetry_get_config\"}")
+#define WS_TEL_ACTION_ZIP GenericMessage("telemetry_action_zip_logs", "{\"type\":\"telemetry_action_zip_logs\"}")
+#define WS_TEL_ACTION_ZIP_AND_MOVE GenericMessage("telemetry_action_zip_and_move", "{\"type\":\"telemetry_action_zip_and_move\"}")
 
 class custom_ws_socket
 {
@@ -56,7 +57,11 @@ public:
 	virtual void closeConnection();
 	virtual thread *start();
 
+	virtual int subscribe(const string &topic);
+	virtual int unsubscribe(const string &topic);
+
 private:
+	set<string> topics;
 	custom_ws_socket *socket;
 
 	void m_onOpen(websocketpp::connection_hdl);

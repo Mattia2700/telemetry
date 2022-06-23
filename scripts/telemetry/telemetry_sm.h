@@ -27,6 +27,7 @@
 #endif
 
 #include "ws_connection.h"
+#include "zmq_connection.h"
 
 #include "console.h"
 #include "StateMachine/StateMachine.h"
@@ -92,6 +93,19 @@ static const char *TelemetryErrorStr[]{
 	"Log folder error",
 	"Can failed opening socket"};
 
+static string topics[]{
+	"ping",
+	"telemetry_stop",
+	"telemetry_kill",
+	"telemetry_reset",
+	"telemetry_start",
+	"telemetry_get_config",
+	"telemetry_action_raw",
+	"telemetry_set_sesh_config",
+	"telemetry_set_tel_config",
+	"telemetry_action_zip_logs",
+	"telemetry_action_zip_and_move"};
+
 class TelemetrySM : public StateMachine
 {
 public:
@@ -141,7 +155,8 @@ private:
 	condition_variable can_cv;
 	mutex can_mutex;
 
-	WSConnection *connection;
+	Connection *pub_connection;
+	Connection *sub_connection;
 	vector<GpsLogger *> gps_loggers;
 
 	primary_devices *primary_devs;
@@ -165,7 +180,8 @@ private:
 	thread *data_thread;
 	thread *status_thread;
 	thread *ws_conn_thread;
-	thread *connection_thread;
+	thread *pub_connection_thread;
+	thread *sub_connection_thread;
 	thread *actions_thread;
 
 	// JSON

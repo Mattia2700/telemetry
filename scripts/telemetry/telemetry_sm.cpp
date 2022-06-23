@@ -19,12 +19,14 @@ TelemetrySM::TelemetrySM()
   StatesStr[ST_ERROR] = "ST_ERROR";
 
   dump_file = NULL;
-  connection = nullptr;
   data_thread = nullptr;
   status_thread = nullptr;
+  pub_connection = nullptr;
+  sub_connection = nullptr;
   ws_conn_thread = nullptr;
-  connection_thread = nullptr;
   actions_thread = nullptr;
+  pub_connection_thread = nullptr;
+  sub_connection_thread = nullptr;
 
   lp = nullptr;
   lp_inclination = nullptr;
@@ -128,8 +130,16 @@ STATE_DEFINE(TelemetrySM, InitImpl, NoEventData)
   CONSOLE.Log("Done");
 
   CONSOLE.Log("Chimera and WS instances");
-  // chimera = new Chimera();
-  connection = new WSConnection();
+  if (tel_conf.connection.mode == "ZMQ")
+  {
+    pub_connection = new ZmqConnection();
+    sub_connection = new ZmqConnection();
+  }
+  else if (tel_conf.connection.mode == "WEBSOCKET")
+  {
+    pub_connection = new WSConnection();
+    sub_connection = pub_connection;
+  }
   ws_conn_thread = new thread(&TelemetrySM::ConnectToWS, this);
   actions_thread = new thread(&TelemetrySM::ActionThread, this);
   CONSOLE.Log("DONE");
@@ -352,7 +362,7 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
 
     // Parse the message only if is needed
     // Parsed messages are for sending via websocket or to be logged in csv
-    if (tel_conf.generate_csv || tel_conf.ws_enabled)
+    if (tel_conf.generate_csv || tel_conf.connection_enabled)
     {
       if (message_q.receiver_name == "primary" && primary_is_message_id(message.can_id))
       {
@@ -531,19 +541,33 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
   }
   CONSOLE.Log("Stopped reconnection thread");
 
-  if (connection != nullptr)
+  if (pub_connection != nullptr)
   {
-    connection->clearData();
-    connection->closeConnection();
-    if (connection_thread != nullptr)
+    pub_connection->clearData();
+    pub_connection->closeConnection();
+    if (pub_connection_thread != nullptr)
     {
-      if (connection_thread->joinable())
-        connection_thread->join();
-      delete connection_thread;
-      connection_thread = nullptr;
+      if (pub_connection_thread->joinable())
+        pub_connection_thread->join();
+      delete pub_connection_thread;
+      pub_connection_thread = nullptr;
     }
-    delete connection;
-    connection = nullptr;
+    delete pub_connection;
+    pub_connection = nullptr;
+  }
+  if (sub_connection != nullptr)
+  {
+    sub_connection->clearData();
+    sub_connection->closeConnection();
+    if (sub_connection_thread != nullptr)
+    {
+      if (sub_connection_thread->joinable())
+        sub_connection_thread->join();
+      delete sub_connection_thread;
+      sub_connection_thread = nullptr;
+    }
+    delete sub_connection;
+    sub_connection = nullptr;
   }
   CONSOLE.Log("Stopped connection");
 
@@ -653,12 +677,14 @@ void TelemetrySM::LoadAllConfig()
     CONSOLE.Log("Created: " + path);
     tel_conf.can_devices = {can_devices_o{"can0", "primary"}};
     tel_conf.generate_csv = false;
-    tel_conf.ws_enabled = true;
-    tel_conf.ws_send_sensor_data = true;
-    tel_conf.ws_send_rate = 500;
-    tel_conf.ws_downsample = true;
-    tel_conf.ws_downsample_mps = 50;
-    tel_conf.ws_server_url = "ws://eagle-telemetry-server.herokuapp.com";
+    tel_conf.connection.ip = true;
+    tel_conf.connection_send_sensor_data = true;
+    tel_conf.connection_send_rate = 500;
+    tel_conf.connection_downsample = true;
+    tel_conf.connection_downsample_mps = 50;
+    tel_conf.connection.ip = "ws://eagle-telemetry-server.herokuapp.com";
+    tel_conf.connection.port = "";
+    tel_conf.connection.mode = "WEBSOCKET";
     SaveStruct(tel_conf, path);
   }
 
@@ -924,9 +950,12 @@ void TelemetrySM::OnGpsLine(int id, string line)
 
 void TelemetrySM::ConnectToWS()
 {
-  connection->addOnOpen(bind(&TelemetrySM::OnOpen, this, std::placeholders::_1));
-  connection->addOnClose(bind(&TelemetrySM::OnClose, this, std::placeholders::_1, std::placeholders::_2));
-  connection->addOnError(bind(&TelemetrySM::OnError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  pub_connection->addOnOpen(bind(&TelemetrySM::OnOpen, this, std::placeholders::_1));
+  sub_connection->addOnOpen(bind(&TelemetrySM::OnOpen, this, std::placeholders::_1));
+  pub_connection->addOnClose(bind(&TelemetrySM::OnClose, this, std::placeholders::_1, std::placeholders::_2));
+  sub_connection->addOnClose(bind(&TelemetrySM::OnClose, this, std::placeholders::_1, std::placeholders::_2));
+  pub_connection->addOnError(bind(&TelemetrySM::OnError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
+  sub_connection->addOnError(bind(&TelemetrySM::OnError, this, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3));
 
   // sends sensors data only if connected
   data_thread = new thread(&TelemetrySM::SendWsData, this);
@@ -934,23 +963,38 @@ void TelemetrySM::ConnectToWS()
   while (kill_threads.load() == false)
   {
     usleep(1000000);
-    if (!tel_conf.ws_enabled)
+    if (!tel_conf.connection_enabled)
       continue;
     if (ws_conn_state == ConnectionState_::CONNECTED || ws_conn_state == ConnectionState_::CONNECTING)
       continue;
 
-    connection->init(tel_conf.ws_server_url, "", 0);
-    // connection->init("192.168.42.88", "3000", 0);
-    connection->addOnMessage(bind(&TelemetrySM::OnMessage, this, std::placeholders::_1, std::placeholders::_2));
-    connection_thread = connection->start();
-    if (connection_thread == nullptr)
+    sub_connection->addOnMessage(bind(&TelemetrySM::OnMessage, this, std::placeholders::_1, std::placeholders::_2));
+    if (tel_conf.connection.mode == "ZMQ")
     {
-      CONSOLE.ErrorMessage("Failed connecting to server: " + tel_conf.ws_server_url);
+      pub_connection->init(tel_conf.connection.ip, tel_conf.connection.port, ZmqConnection::PUB);
+      sub_connection->init(tel_conf.connection.ip, tel_conf.connection.port, ZmqConnection::SUB);
+    }
+    if (tel_conf.connection.mode == "WEBSOCKET")
+    {
+      pub_connection->init(tel_conf.connection.ip, tel_conf.connection.port, 0);
+      sub_connection->init(tel_conf.connection.ip, tel_conf.connection.port, 0);
+    }
+    pub_connection_thread = pub_connection->start();
+    if (pub_connection_thread == nullptr)
+      CONSOLE.ErrorMessage("PUB Failed connecting to server: " + tel_conf.connection.ip);
+    if (sub_connection != pub_connection)
+    {
+      sub_connection_thread = sub_connection->start();
+      if (sub_connection_thread == nullptr)
+        CONSOLE.ErrorMessage("SUB Failed connecting to server: " + tel_conf.connection.ip);
     }
     // Login as telemetry
-    connection->clearData();
-    if (connection->GetConnectionType() == "WEBSOCKET")
-      connection->setData(GenericMessage("{\"identifier\":\"telemetry\"}"));
+    pub_connection->clearData();
+    if (pub_connection->GetConnectionType() == "WEBSOCKET")
+      pub_connection->setData(GenericMessage(" ", "{\"identifier\":\"telemetry\"}"));
+
+    for (const auto &topic : topics)
+      sub_connection->subscribe(topic);
     ws_conn_state = ConnectionState_::CONNECTING;
   }
   CONSOLE.LogError("KILLED");
@@ -972,20 +1016,11 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
   static string data;
   static string topic;
   static ParseResult ok;
-  if (connection->GetConnectionType() == "WEBSOCKET")
-  {
-    data = msg.data;
-    ok = req.Parse(data.c_str(), data.size());
-    if (!ok || !req.HasMember("type"))
-      return;
-    else
-      topic = req["type"].GetString();
-  }
-  else if (connection->GetConnectionType() == "ZMQ")
-  {
-    data = msg.payload;
-    topic = msg.topic;
-  }
+  topic = msg.topic;
+  data = msg.payload;
+  ok = req.Parse(data.c_str(), data.size());
+  if (!ok)
+    return;
 
   // Parsing messages
   if (topic == "telemetry_set_sesh_config")
@@ -1025,10 +1060,7 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
     ret.AddMember("type", Value().SetString("server_answer_ping"), alloc2);
     ret.AddMember("time", (get_timestamp() - req["time"].GetDouble()), alloc2);
     ret.Accept(w2);
-    if (connection->GetConnectionType() == "WEBSOCKET")
-      connection->setData(GenericMessage(sb2.GetString()));
-    else if (connection->GetConnectionType() == "ZMQ")
-      connection->setData(GenericMessage("server_answer_ping", sb2.GetString()));
+    pub_connection->setData(GenericMessage("server_answer_ping", sb2.GetString()));
   }
   else if (topic == "telemetry_get_config")
   {
@@ -1038,18 +1070,14 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
     get_msg.type = "telemetry_config";
     get_msg.session_config = JsonToString(sesh_config);
     get_msg.telemetry_config = JsonToString(tel_conf);
-
-    if (connection->GetConnectionType() == "WEBSOCKET")
-      connection->setData(GenericMessage(JsonToString(get_msg)));
-    else if (connection->GetConnectionType() == "ZMQ")
-      connection->setData(GenericMessage("telemetry_config", JsonToString(get_msg)));
+    pub_connection->setData(GenericMessage("telemetry_config", JsonToString(get_msg)));
 
     CONSOLE.Log("Done config");
   }
   else if (topic == "telemetry_kill")
   {
     CONSOLE.Log("Requested Kill (from ws)");
-    exit(0);
+    exit(2);
   }
   else if (topic == "telemetry_reset")
   {
@@ -1087,31 +1115,6 @@ void TelemetrySM::OnMessage(const int &id, const GenericMessage &msg)
       action_string = req["data"].GetString();
     }
   }
-  else if (topic == "telemetry_send_can_message")
-  {
-    CONSOLE.Log("Requested to send a can message to car");
-    if ((req.HasMember("id") && req.HasMember("payload")) &&
-        (req["id"].IsInt() && req["payload"].IsArray()))
-    {
-      auto payload = req["payload"].GetArray();
-      if (payload.Size() > 0 && payload.Size() <= 8 && payload[0].IsInt())
-      {
-        char msg[8];
-        for (int i = 0; i < payload.Size(); i++)
-          msg[i] = (char)payload[i].GetInt();
-        if (sockets.find("primary") != sockets.end())
-          sockets["primary"].sock->send(req["id"].GetInt(), msg, 8);
-      }
-      else
-      {
-        CONSOLE.LogWarn("CAN message malformed (from ws)");
-      }
-    }
-    else
-    {
-      CONSOLE.LogWarn("CAN message malformed (from ws)");
-    }
-  }
 }
 
 void TelemetrySM::SendStatus()
@@ -1146,27 +1149,8 @@ void TelemetrySM::SendStatus()
     }
     CONSOLE.Log("Status", StatesStr[GetCurrentState()], "MSGS per second: " + str);
 
-    if (tel_conf.ws_enabled && ws_conn_state == ConnectionState_::CONNECTED)
+    if (tel_conf.connection_enabled && ws_conn_state == ConnectionState_::CONNECTED)
     {
-
-      //       telemetry_status status;
-      //       status.type = "telemetry_status";
-      //       status.timestamp = get_timestamp();
-      //       status.data = is_in_run;
-      //       for (auto el : msgs_per_second)
-      //         status.msgs_per_second.push_back({el.first, el.second});
-      // #ifdef WITH_CAMERA
-      //       status.camera_status = camera.StatesStr[camera.GetCurrentState()];
-      //       status.camera_error = CamErrorStr[camera.GetError()];
-      // #endif
-      //       status.cpu_total_load = cpu_total_load_value();
-      //       status.cpu_process_load = cpu_process_load_value();
-      //       status.mem_process_load = mem_process_load_value();
-      //       if (connection->GetConnectionType() == "WEBSOCKET")
-      //         connection->setData(GenericMessage(JsonToString(status)));
-      //       else if (connection->GetConnectionType() == "ZMQ")
-      //         connection->setData(GenericMessage("telemetry_status", JsonToString(status)));
-
       Document d;
       StringBuffer sb;
       Writer<StringBuffer> w(sb);
@@ -1194,10 +1178,7 @@ void TelemetrySM::SendStatus()
       d.AddMember("mem_process_load", mem_process_load_value(), alloc);
 
       d.Accept(w);
-      if (connection->GetConnectionType() == "WEBSOCKET")
-        connection->setData(GenericMessage(sb.GetString()));
-      else if (connection->GetConnectionType() == "ZMQ")
-        connection->setData(GenericMessage("telemetry_status", sb.GetString()));
+      pub_connection->setData(GenericMessage("telemetry_status", sb.GetString()));
     }
 
     usleep(1000000);
@@ -1223,9 +1204,9 @@ void TelemetrySM::SendWsData()
     {
       if (kill_threads.load() == true)
         break;
-      usleep(1000 * tel_conf.ws_send_rate);
+      usleep(1000 * tel_conf.connection_send_rate);
 
-      if (!tel_conf.ws_send_sensor_data)
+      if (!tel_conf.connection_send_sensor_data)
         continue;
 
       unique_lock<mutex> lck(mtx);
@@ -1247,10 +1228,7 @@ void TelemetrySM::SendWsData()
         d.AddMember("secondary", Value().SetString(secondary_serialized.c_str(), secondary_serialized.size(), alloc), alloc);
       d.Accept(w);
 
-      if (connection->GetConnectionType() == "WEBSOCKET")
-        connection->setData(GenericMessage(sb.GetString()));
-      else if (connection->GetConnectionType() == "ZMQ")
-        connection->setData(GenericMessage("update_data", sb.GetString()));
+      pub_connection->setData(GenericMessage("update_data", sb.GetString()));
       primary_pack.Clear();
       secondary_pack.Clear();
     }
@@ -1287,10 +1265,7 @@ void TelemetrySM::ActionThread()
         CONSOLE.LogError(status);
       }
 
-      if (connection->GetConnectionType() == "WEBSOCKET")
-        connection->setData(GenericMessage("{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
-      else if (connection->GetConnectionType() == "ZMQ")
-        connection->setData(GenericMessage("action_result", "{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
+      pub_connection->setData(GenericMessage("action_result", "{\"type\":\"action_result\",\"data\":\"" + status + "\"}"));
     }
     catch (exception e)
     {
@@ -1325,13 +1300,13 @@ void TelemetrySM::CanReceive(CAN_Socket *can)
 void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timestamp, const can_frame &msg, const int &dev_idx)
 {
   // Serialize with protobuf if websocket is enabled
-  if (tel_conf.ws_enabled == false || tel_conf.ws_send_sensor_data == false)
+  if (tel_conf.connection_enabled == false || tel_conf.connection_send_sensor_data == false)
     return;
-  if (tel_conf.ws_downsample == true)
+  if (tel_conf.connection_downsample == true)
   {
     if (can_network == 0)
     {
-      if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["primary_" + to_string(dev_idx)]))
+      if ((1.0e6 / tel_conf.connection_downsample_mps) < (timestamp - timers["primary_" + to_string(dev_idx)]))
       {
         timers["primary_" + to_string(dev_idx)] = timestamp;
         primary_proto_serialize_from_id(msg.can_id, &primary_pack, primary_devs);
@@ -1339,7 +1314,7 @@ void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timesta
     }
     else if (can_network == 1)
     {
-      if ((1.0e6 / tel_conf.ws_downsample_mps) < (timestamp - timers["secondary_" + to_string(dev_idx)]))
+      if ((1.0e6 / tel_conf.connection_downsample_mps) < (timestamp - timers["secondary_" + to_string(dev_idx)]))
       {
         timers["secondary_" + to_string(dev_idx)] = timestamp;
         secondary_proto_serialize_from_id(msg.can_id, &secondary_pack, secondary_devs);
@@ -1361,16 +1336,16 @@ void TelemetrySM::ProtoSerialize(const int &can_network, const uint64_t &timesta
 
 void TelemetrySM::OnOpen(const int &id)
 {
-  CONSOLE.Log("WS opened");
+  CONSOLE.Log("Connection opened");
   ws_conn_state = ConnectionState_::CONNECTED;
 }
 void TelemetrySM::OnClose(const int &id, const int &num)
 {
-  CONSOLE.LogError("WS Closed <", num, ">");
+  CONSOLE.LogError("Connection Closed <", num, ">");
   ws_conn_state = ConnectionState_::CLOSED;
 }
 void TelemetrySM::OnError(const int &id, const int &num, const string &err)
 {
-  CONSOLE.LogError("WS Error <", num, ">", "message: ", err);
+  CONSOLE.LogError("Connection Error <", num, ">", "message: ", err);
   ws_conn_state = ConnectionState_::FAIL;
 }

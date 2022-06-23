@@ -31,6 +31,19 @@ void onOpen(const int &id)
 
 int main()
 {
+
+    string message1 = string("topic\000payload", 14);
+
+    const char *topic = message1.c_str();
+    printf("%s\r\n", topic);
+    printf("%s\r\n", (topic + strlen(topic) + 1));
+    cout << message1 << endl;
+    string topic_str = message1.c_str();
+    string payload_str = message1.c_str() + topic_str.size() + 1;
+    cout << topic_str << " ||| " << payload_str << endl;
+
+    return 0;
+
     ZmqConnection pub;
     pub.init("127.0.0.1", "5555", ZmqConnection::PUB);
     ZmqConnection sub1;

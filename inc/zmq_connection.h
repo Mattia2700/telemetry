@@ -23,8 +23,8 @@ public:
     virtual void closeConnection();
     virtual thread *start();
 
-    int subscribe(const string &topic);
-    int unsubscribe(const string &topic);
+    virtual int subscribe(const string &topic);
+    virtual int unsubscribe(const string &topic);
 
 private:
     custom_zmq_socket *socket;

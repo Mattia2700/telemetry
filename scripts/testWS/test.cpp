@@ -8,7 +8,7 @@ using namespace std;
 
 void onMessage(const int &id, const GenericMessage &msg)
 {
-    cout << id << " RECV: " << msg.data << endl;
+    cout << id << " RECV: " << msg.topic << " | " << msg.payload << endl;
 }
 
 void onError(const int &id, const int &code, const string &message)
@@ -29,9 +29,9 @@ void onOpen(const int &id)
 int main()
 {
     WSConnection cli1;
-    cli1.init("192.168.43.207", "3000", 0);
+    cli1.init("127.0.0.1", "3000", 0);
     WSConnection cli2;
-    cli2.init("192.168.43.207", "3000", 0);
+    cli2.init("127.0.0.1", "3000", 0);
 
     // cli1.add_on_message(onMessage);
     cli1.addOnOpen(onOpen);
@@ -43,13 +43,15 @@ int main()
     cli2.addOnError(onError);
     cli2.addOnMessage(onMessage);
 
+    cli2.subscribe("telemetry_status");
+
     thread *cli1_thread = cli1.start();
     thread *cli2_thread = cli2.start();
 
     while (true)
     {
         sleep(1);
-        cli1.setData(GenericMessage("Test Message"));
+        cli1.setData(GenericMessage("topic1", "Test Message"));
     }
 
     cli1.closeConnection();

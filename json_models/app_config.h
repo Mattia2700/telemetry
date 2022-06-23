@@ -19,12 +19,18 @@
 #define JSON_LOG_FUNC(msg) std::cout << msg << std::endl;
 #endif
 
+typedef struct app_connection_t{
+    std::string ip;
+    std::string port;
+    std::string mode;
+}app_connection_t;
+
 typedef struct app_config{
-    std::string ws_ip;
     std::string csv_path;
     bool csv_auto_save;
     bool telemetry_auto_get_config;
     float last_login_time;
+    app_connection_t app_connection;
 }app_config;
 
 // T is a struct
@@ -79,13 +85,56 @@ static void SaveJSON(const rapidjson::Document& doc, const std::string& path)
 #ifdef __APP_CONFIG_IMPLEMENTATION__
 
 template <>
+bool CheckJson(const app_connection_t& obj, const rapidjson::Document& doc)
+{
+    bool check = true;
+    if(!doc.HasMember("ip")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: ip"); 
+        check = false;
+    }
+    if(!doc.HasMember("port")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: port"); 
+        check = false;
+    }
+    if(!doc.HasMember("mode")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: mode"); 
+        check = false;
+    }
+    return check;
+}
+
+template<>
+void Serialize(rapidjson::Value& out, const app_connection_t& obj, rapidjson::Document::AllocatorType& alloc)
+{
+    out.SetObject();
+    out.AddMember("ip", rapidjson::Value().SetString(obj.ip.c_str(), obj.ip.size(), alloc), alloc);
+    out.AddMember("port", rapidjson::Value().SetString(obj.port.c_str(), obj.port.size(), alloc), alloc);
+    out.AddMember("mode", rapidjson::Value().SetString(obj.mode.c_str(), obj.mode.size(), alloc), alloc);
+}
+template<>
+void Deserialize(app_connection_t& obj, rapidjson::Value& doc)
+{
+    if(!doc.HasMember("ip")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: ip"); 
+    }else{
+        obj.ip = doc["ip"].GetString();
+    }
+    if(!doc.HasMember("port")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: port"); 
+    }else{
+        obj.port = doc["port"].GetString();
+    }
+    if(!doc.HasMember("mode")){
+        JSON_LOG_FUNC("app_connection_t MISSING FIELD: mode"); 
+    }else{
+        obj.mode = doc["mode"].GetString();
+    }
+}
+
+template <>
 bool CheckJson(const app_config& obj, const rapidjson::Document& doc)
 {
     bool check = true;
-    if(!doc.HasMember("ws_ip")){
-        JSON_LOG_FUNC("app_config MISSING FIELD: ws_ip"); 
-        check = false;
-    }
     if(!doc.HasMember("csv_path")){
         JSON_LOG_FUNC("app_config MISSING FIELD: csv_path"); 
         check = false;
@@ -100,6 +149,10 @@ bool CheckJson(const app_config& obj, const rapidjson::Document& doc)
     }
     if(!doc.HasMember("last_login_time")){
         JSON_LOG_FUNC("app_config MISSING FIELD: last_login_time"); 
+        check = false;
+    }
+    if(!doc.HasMember("app_connection")){
+        JSON_LOG_FUNC("app_config MISSING FIELD: app_connection"); 
         check = false;
     }
     return check;
@@ -110,20 +163,19 @@ void Serialize(rapidjson::Document& out, const app_config& obj)
 {
     out.SetObject();
     rapidjson::Document::AllocatorType& alloc = out.GetAllocator();
-    out.AddMember("ws_ip", rapidjson::Value().SetString(obj.ws_ip.c_str(), obj.ws_ip.size(), alloc), alloc);
     out.AddMember("csv_path", rapidjson::Value().SetString(obj.csv_path.c_str(), obj.csv_path.size(), alloc), alloc);
     out.AddMember("csv_auto_save", rapidjson::Value().SetBool(obj.csv_auto_save), alloc);
     out.AddMember("telemetry_auto_get_config", rapidjson::Value().SetBool(obj.telemetry_auto_get_config), alloc);
     out.AddMember("last_login_time", rapidjson::Value().SetDouble(obj.last_login_time), alloc);
+    {
+        rapidjson::Value v;
+        Serialize(v, obj.app_connection, alloc);
+        out.AddMember("app_connection", v, alloc);
+    }
 }
 template<>
 void Deserialize(app_config& obj, rapidjson::Document& doc)
 {
-    if(!doc.HasMember("ws_ip")){
-        JSON_LOG_FUNC("app_config MISSING FIELD: ws_ip"); 
-    }else{
-        obj.ws_ip = doc["ws_ip"].GetString();
-    }
     if(!doc.HasMember("csv_path")){
         JSON_LOG_FUNC("app_config MISSING FIELD: csv_path"); 
     }else{
@@ -143,16 +195,16 @@ void Deserialize(app_config& obj, rapidjson::Document& doc)
         JSON_LOG_FUNC("app_config MISSING FIELD: last_login_time"); 
     }else{
         obj.last_login_time = doc["last_login_time"].GetDouble();
+    }
+    if(!doc.HasMember("app_connection")){
+        JSON_LOG_FUNC("app_config MISSING FIELD: app_connection"); 
+    }else{
+        Deserialize(obj.app_connection, doc["app_connection"]);
     }
 }
 template<>
 void Deserialize(app_config& obj, rapidjson::Value& doc)
 {
-    if(!doc.HasMember("ws_ip")){
-        JSON_LOG_FUNC("app_config MISSING FIELD: ws_ip"); 
-    }else{
-        obj.ws_ip = doc["ws_ip"].GetString();
-    }
     if(!doc.HasMember("csv_path")){
         JSON_LOG_FUNC("app_config MISSING FIELD: csv_path"); 
     }else{
@@ -172,6 +224,11 @@ void Deserialize(app_config& obj, rapidjson::Value& doc)
         JSON_LOG_FUNC("app_config MISSING FIELD: last_login_time"); 
     }else{
         obj.last_login_time = doc["last_login_time"].GetDouble();
+    }
+    if(!doc.HasMember("app_connection")){
+        JSON_LOG_FUNC("app_config MISSING FIELD: app_connection"); 
+    }else{
+        Deserialize(obj.app_connection, doc["app_connection"]);
     }
 }
 
