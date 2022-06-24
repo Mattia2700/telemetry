@@ -71,6 +71,7 @@ protected:
     Connection();
 
     int id;
+    int subscription_count;
 
     string port;
     string address;

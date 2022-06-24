@@ -140,10 +140,13 @@ void WSConnection::receiveMessage(GenericMessage &msg_)
 int WSConnection::subscribe(const string &topic)
 {
     topics.insert(topic);
+    subscription_count++;
     return 0;
 }
 int WSConnection::unsubscribe(const string &topic)
 {
     topics.erase(topic);
+    if (subscription_count > 0)
+        subscription_count--;
     return 0;
 }

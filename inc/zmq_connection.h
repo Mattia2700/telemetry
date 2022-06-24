@@ -29,9 +29,6 @@ public:
 private:
     custom_zmq_socket *socket;
 
-    thread *startPub();
-    thread *startSub();
-
     virtual void sendMessage(const GenericMessage &msg);
     virtual void receiveMessage(GenericMessage &msg);
 };
