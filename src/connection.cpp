@@ -39,9 +39,11 @@ void Connection::sendLoop()
         usleep(1000);
     while (!done)
     {
-        unique_lock<mutex> lck(mtx);
-        while (!new_data && !done)
-            cv.wait(lck);
+        {
+            unique_lock<mutex> lck(mtx);
+            while (!new_data && !done)
+                cv.wait(lck);
+        }
 
         // Adding this because code can be stuck waiting for cv
         // when actually the socket is being closed
@@ -50,7 +52,10 @@ void Connection::sendLoop()
 
         this->sendMessage(buff_send.front());
 
-        buff_send.pop();
+        {
+            unique_lock<mutex> lck(mtx);
+            buff_send.pop();
+        }
 
         if (buff_send.empty())
             new_data = false;
@@ -86,10 +91,8 @@ void Connection::clearData()
     lock_guard<mutex> guard(mtx);
 
     while (!buff_send.empty())
-    {
         buff_send.pop();
-        new_data = false;
-    }
+    new_data = false;
 }
 
 void Connection::setData(const GenericMessage &msg)
@@ -105,8 +108,7 @@ void Connection::setData(const GenericMessage &msg)
             onError(id, 0, "Queue is full");
     }
 
-    if (!new_data)
-        new_data = true;
+    new_data = true;
 
     cv.notify_all();
 }

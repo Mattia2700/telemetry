@@ -1211,10 +1211,11 @@ void TelemetrySM::SendWsData()
       if (!tel_conf.connection_send_sensor_data)
         continue;
 
-      unique_lock<mutex> lck(mtx);
-
-      primary_ok = primary_pack.SerializeToString(&primary_serialized);
-      secondary_ok = secondary_pack.SerializeToString(&secondary_serialized);
+      {
+        unique_lock<mutex> lck(mtx);
+        primary_ok = primary_pack.SerializeToString(&primary_serialized);
+        secondary_ok = secondary_pack.SerializeToString(&secondary_serialized);
+      }
 
       if (primary_ok == false && secondary_ok == false)
         continue;
