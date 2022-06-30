@@ -18,8 +18,8 @@
 #include "can.h"
 #include "utils.h"
 #include "serial.h"
-#include "vehicle.h"
 #include "gps_logger.h"
+#include "ubxparser.h"
 #include "loads.h"
 
 #ifdef WITH_CAMERA
@@ -157,6 +157,8 @@ private:
 
 	Connection *pub_connection;
 	Connection *sub_connection;
+
+	vector<Gps *> gps_class;
 	vector<GpsLogger *> gps_loggers;
 
 	primary_devices *primary_devs;

@@ -14,7 +14,8 @@
 #include <fstream>
 
 using namespace std;
-class serial{
+class serial
+{
 public:
   serial(string device);
   serial(){};
@@ -27,11 +28,11 @@ public:
   bool file_exists();
 
   char get_char();
-  string read_line(char separator='\n');
+  string read_line(char separator = '\n');
 
 private:
   int fd;
   string device;
 };
 
-#endif //SERIAL_H
+#endif // SERIAL_H

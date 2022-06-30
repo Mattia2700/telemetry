@@ -171,7 +171,7 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
 
   CONSOLE.Log("Starting gps loggers");
   for (size_t i = 0; i < gps_loggers.size(); i++)
-    if (tel_conf.gps_enabled[i])
+    if (tel_conf.gps_devices[i].enabled)
       gps_loggers[i]->Start();
   CONSOLE.Log("Done");
 
@@ -250,11 +250,11 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
 
   CONSOLE.Log("Creting new directory");
   // Adding incremental number at the end of foldername
-  int i = 1;
+  int folder_i = 1;
   do
   {
-    folder = FOLDER_PATH + "/" + subfolder + " " + to_string(i);
-    i++;
+    folder = FOLDER_PATH + "/" + subfolder + " " + to_string(folder_i);
+    folder_i++;
   } while (path_exists(folder));
   create_directory(folder);
 
@@ -263,14 +263,6 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
   CONSOLE.Log("Done");
 
   CONSOLE.Log("Initializing loggers, and csv files");
-  for (auto logger : gps_loggers)
-  {
-    if (!tel_conf.gps_enabled[i])
-      continue;
-    logger->SetOutputFolder(CURRENT_LOG_FOLDER);
-    logger->SetHeader(header);
-  }
-  CONSOLE.Log("Loggers DONE");
 
   dump_file = new fstream((CURRENT_LOG_FOLDER + "/" + "candump.log").c_str(), std::fstream::out);
   if (!dump_file->is_open())
@@ -311,6 +303,17 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
     }
   }
   CONSOLE.Log("CSV Done");
+
+  for (size_t i = 0; i < gps_loggers.size(); i++)
+  {
+    if (!tel_conf.gps_devices[i].enabled)
+      continue;
+    gps_loggers[i]->SetOutputFolder(CURRENT_LOG_FOLDER);
+    gps_loggers[i]->SetHeader(header);
+    gps_class[i]->filenames.push_back(folder + "/Parsed/GPS " + to_string(i) + ".csv");
+    gps_class[i]->files.push_back(new std::fstream(gps_class[i]->filenames.back(), std::fstream::out));
+  }
+  CONSOLE.Log("Loggers DONE");
 
   can_stat.Messages = 0;
   can_stat.Duration_seconds = get_timestamp();
@@ -455,11 +458,17 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
 
   CONSOLE.Log("Restarting gps loggers");
   // Stop logging but continue reading port
-  for (int i = 0; i < gps_loggers.size(); i++)
+  for (size_t i = 0; i < gps_loggers.size(); i++)
   {
     gps_loggers[i]->StopLogging();
-    if (tel_conf.gps_enabled[i])
+    if (tel_conf.gps_devices[i].enabled)
       gps_loggers[i]->Start();
+    for (size_t j = 0; j < gps_class[i]->filenames.size(); j++)
+    {
+      gps_class[i]->filenames[j] = "";
+      gps_class[i]->files[j]->flush();
+      gps_class[i]->files[j]->close();
+    }
   }
   CONSOLE.Log("Done");
 
@@ -597,9 +606,13 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
     cout << i << endl;
     gps_loggers[i]->Kill();
     gps_loggers[i]->WaitForEnd();
+    for (auto file : gps_class[i]->files)
+      file->close();
+    delete gps_class[i];
     delete gps_loggers[i];
   }
   gps_loggers.resize(0);
+  gps_class.resize(0);
   CONSOLE.Log("Closed gps loggers");
 
   // if(chimera != nullptr)
@@ -664,7 +677,7 @@ void TelemetrySM::EmitError(TelemetryError error)
 // If the file doesn't exist create it
 void TelemetrySM::LoadAllConfig()
 {
-  string path = HOME_PATH + "/telemetry_config.json";
+  string path = HOME_PATH + "/fenice_telemetry_config.json";
   if (path_exists(path))
   {
     if (LoadStruct(tel_conf, path))
@@ -675,20 +688,20 @@ void TelemetrySM::LoadAllConfig()
   else
   {
     CONSOLE.Log("Created: " + path);
-    tel_conf.can_devices = {can_devices_o{"can0", "primary"}};
-    tel_conf.generate_csv = false;
-    tel_conf.connection.ip = true;
+    tel_conf.can_devices = {can_devices_o{"can1", "primary"}};
+    tel_conf.generate_csv = true;
+    tel_conf.connection_enabled = true;
     tel_conf.connection_send_sensor_data = true;
     tel_conf.connection_send_rate = 500;
     tel_conf.connection_downsample = true;
     tel_conf.connection_downsample_mps = 50;
-    tel_conf.connection.ip = "ws://eagle-telemetry-server.herokuapp.com";
+    tel_conf.connection.ip = "telemetry-server.herokuapp.com";
     tel_conf.connection.port = "";
     tel_conf.connection.mode = "WEBSOCKET";
     SaveStruct(tel_conf, path);
   }
 
-  path = HOME_PATH + "/session_config.json";
+  path = HOME_PATH + "/fenice_session_config.json";
   if (path_exists(path))
   {
     if (LoadStruct(sesh_config, path))
@@ -705,12 +718,12 @@ void TelemetrySM::LoadAllConfig()
 void TelemetrySM::SaveAllConfig()
 {
   string path = " ";
-  path = HOME_PATH + "/telemetry_config.json";
+  path = HOME_PATH + "/fenice_telemetry_config.json";
   CONSOLE.Log("Saving new tel config");
   SaveStruct(tel_conf, path);
   CONSOLE.Log("Done");
   CONSOLE.Log("Saving new sesh config");
-  path = HOME_PATH + "/session_config.json";
+  path = HOME_PATH + "/fenice_session_config.json";
   SaveStruct(sesh_config, path);
   CONSOLE.Log("Done");
 }
@@ -843,20 +856,14 @@ void TelemetrySM::SetupGps()
   // Setup of all GPS devices
   for (size_t i = 0; i < tel_conf.gps_devices.size(); i++)
   {
-    string dev = tel_conf.gps_devices[i];
-    string mode = tel_conf.gps_mode[i];
-    bool enabled = tel_conf.gps_enabled[i];
+    string dev = tel_conf.gps_devices[i].addr;
+    string mode = tel_conf.gps_devices[i].mode;
+    bool enabled = tel_conf.gps_devices[i].enabled;
     if (dev == "")
       continue;
 
     CONSOLE.Log("Initializing ", dev, mode, enabled);
-
-    int id;
-    // if(i == 0)
-    //   id = chimera->gps1->get_id();
-    // else if(i == 1)
-    //   id = chimera->gps2->get_id();
-
+    gps_class.push_back(new Gps(dev));
     GpsLogger *gps = new GpsLogger(i, dev);
     gps->SetOutFName("gps_" + to_string(gps->GetId()));
     msgs_counters["gps_" + to_string(gps->GetId())] = 0;
@@ -883,21 +890,27 @@ void TelemetrySM::SetupGps()
 // Callback, fires every time a line from a GPS is received
 void TelemetrySM::OnGpsLine(int id, string line)
 {
-  Gps *gps;
+  static Gps *gps = nullptr;
+  for (auto el : gps_class)
+    if (el->get_id() == id)
+      gps = el;
+  if (gps == nullptr)
+    return;
 
-  // Selecting one of chimera GPS
-  // if(id == chimera->gps1->get_id())
-  //   gps = chimera->gps1;
-  // else if(id == chimera->gps2->get_id())
-  //   gps = chimera->gps2;
-  // else
-  //   return;
+  {
+    unique_lock<mutex> lck(mtx);
+    if (GetCurrentState() == ST_RUN && tel_conf.generate_csv)
+    {
+      (*gps->files[0]) << gps->get_string(",") + "\n"
+                       << flush;
+    }
+  }
 
   // Parsing GPS data
   int ret = 0;
   try
   {
-    // ret = chimera->parse_gps(gps, get_timestamp(), line);
+    ret = parse_gps(gps, get_timestamp(), line);
   }
   catch (std::exception e)
   {
@@ -906,7 +919,6 @@ void TelemetrySM::OnGpsLine(int id, string line)
   }
 
   // If parsing was successfull
-  // save parsed data into gps file
   if (ret == 1)
   {
     // lapCounter
@@ -931,16 +943,6 @@ void TelemetrySM::OnGpsLine(int id, string line)
     }
 
     msgs_counters["gps_" + to_string(id)]++;
-
-    unique_lock<mutex> lck(mtx);
-
-    if (GetCurrentState() == ST_RUN && tel_conf.generate_csv)
-    {
-      (*gps->files[0]) << gps->get_string(",") + "\n"
-                       << flush;
-    }
-    // if(tel_conf.ws_send_sensor_data)
-    //   chimera->serialize_device(gps);
   }
   else
   {

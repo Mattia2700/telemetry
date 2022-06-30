@@ -127,6 +127,7 @@ target_link_libraries(libBase
 add_library(
  libVehicle
  SHARED
+ src/devices.cpp
  src/ubxparser.cpp
  src/gps_logger.cpp
 )
@@ -188,7 +189,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ## TELEMETRY
 add_executable(telemetry scripts/telemetry/main.cpp)
-target_link_libraries(telemetry libSMImpl libCamera)
+target_link_libraries(telemetry libSMImpl libCamera libVehicle)
 
 add_executable(test_can scripts/testCan/main.cpp 
   thirdparty/can/proto/primary/cpp/primary.pb.cc

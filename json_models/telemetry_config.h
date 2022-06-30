@@ -25,6 +25,12 @@ typedef struct connection_t{
     std::string mode;
 }connection_t;
 
+typedef struct gps_devices_o{
+    std::string addr;
+    std::string mode;
+    bool enabled;
+}gps_devices_o;
+
 typedef struct can_devices_o{
     std::string sock;
     std::string name;
@@ -57,9 +63,7 @@ typedef struct telemetry_config{
     bool camera_enable;
     std::vector<can_devices_o> can_devices;
     bool generate_csv;
-    std::vector<std::string> gps_devices;
-    std::vector<bool> gps_enabled;
-    std::vector<std::string> gps_mode;
+    std::vector<gps_devices_o> gps_devices;
     bool connection_downsample;
     int connection_downsample_mps;
     bool connection_enabled;
@@ -163,6 +167,53 @@ void Deserialize(connection_t& obj, rapidjson::Value& doc)
         JSON_LOG_FUNC("connection_t MISSING FIELD: mode"); 
     }else{
         obj.mode = doc["mode"].GetString();
+    }
+}
+
+template <>
+bool CheckJson(const gps_devices_o& obj, const rapidjson::Document& doc)
+{
+    bool check = true;
+    if(!doc.HasMember("addr")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: addr"); 
+        check = false;
+    }
+    if(!doc.HasMember("mode")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: mode"); 
+        check = false;
+    }
+    if(!doc.HasMember("enabled")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: enabled"); 
+        check = false;
+    }
+    return check;
+}
+
+template<>
+void Serialize(rapidjson::Value& out, const gps_devices_o& obj, rapidjson::Document::AllocatorType& alloc)
+{
+    out.SetObject();
+    out.AddMember("addr", rapidjson::Value().SetString(obj.addr.c_str(), obj.addr.size(), alloc), alloc);
+    out.AddMember("mode", rapidjson::Value().SetString(obj.mode.c_str(), obj.mode.size(), alloc), alloc);
+    out.AddMember("enabled", rapidjson::Value().SetBool(obj.enabled), alloc);
+}
+template<>
+void Deserialize(gps_devices_o& obj, rapidjson::Value& doc)
+{
+    if(!doc.HasMember("addr")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: addr"); 
+    }else{
+        obj.addr = doc["addr"].GetString();
+    }
+    if(!doc.HasMember("mode")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: mode"); 
+    }else{
+        obj.mode = doc["mode"].GetString();
+    }
+    if(!doc.HasMember("enabled")){
+        JSON_LOG_FUNC("gps_devices_o MISSING FIELD: enabled"); 
+    }else{
+        obj.enabled = doc["enabled"].GetBool();
     }
 }
 
@@ -583,14 +634,6 @@ bool CheckJson(const telemetry_config& obj, const rapidjson::Document& doc)
         JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_devices"); 
         check = false;
     }
-    if(!doc.HasMember("gps_enabled")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_enabled"); 
-        check = false;
-    }
-    if(!doc.HasMember("gps_mode")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_mode"); 
-        check = false;
-    }
     if(!doc.HasMember("connection_downsample")){
         JSON_LOG_FUNC("telemetry_config MISSING FIELD: connection_downsample"); 
         check = false;
@@ -639,25 +682,11 @@ void Serialize(rapidjson::Document& out, const telemetry_config& obj)
         rapidjson::Value v0;
         v0.SetArray();
         for(size_t i = 0; i < obj.gps_devices.size(); i++){
-        	v0.PushBack(rapidjson::Value().SetString(obj.gps_devices[i].c_str(), obj.gps_devices[i].size(), alloc), alloc);
+        	rapidjson::Value new_obj;
+        	Serialize(new_obj, obj.gps_devices[i], alloc);
+        	v0.PushBack(new_obj, alloc);
     	}
     	out.AddMember("gps_devices", v0, alloc);
-    }
-    {
-        rapidjson::Value v0;
-        v0.SetArray();
-        for(size_t i = 0; i < obj.gps_enabled.size(); i++){
-        	v0.PushBack(rapidjson::Value().SetBool(obj.gps_enabled[i]), alloc);
-    	}
-    	out.AddMember("gps_enabled", v0, alloc);
-    }
-    {
-        rapidjson::Value v0;
-        v0.SetArray();
-        for(size_t i = 0; i < obj.gps_mode.size(); i++){
-        	v0.PushBack(rapidjson::Value().SetString(obj.gps_mode[i].c_str(), obj.gps_mode[i].size(), alloc), alloc);
-    	}
-    	out.AddMember("gps_mode", v0, alloc);
     }
     out.AddMember("connection_downsample", rapidjson::Value().SetBool(obj.connection_downsample), alloc);
     out.AddMember("connection_downsample_mps", rapidjson::Value().SetInt(obj.connection_downsample_mps), alloc);
@@ -696,23 +725,7 @@ void Deserialize(telemetry_config& obj, rapidjson::Document& doc)
     }else{
 	obj.gps_devices.resize(doc["gps_devices"].Size());
 	for(rapidjson::SizeType i = 0; i < doc["gps_devices"].Size(); i++){
-		obj.gps_devices[i] = doc["gps_devices"][i].GetString();
-	}
-    }
-    if(!doc.HasMember("gps_enabled")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_enabled"); 
-    }else{
-	obj.gps_enabled.resize(doc["gps_enabled"].Size());
-	for(rapidjson::SizeType i = 0; i < doc["gps_enabled"].Size(); i++){
-		obj.gps_enabled[i] = doc["gps_enabled"][i].GetBool();
-	}
-    }
-    if(!doc.HasMember("gps_mode")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_mode"); 
-    }else{
-	obj.gps_mode.resize(doc["gps_mode"].Size());
-	for(rapidjson::SizeType i = 0; i < doc["gps_mode"].Size(); i++){
-		obj.gps_mode[i] = doc["gps_mode"][i].GetString();
+		Deserialize(obj.gps_devices[i], doc["gps_devices"][i]);
 	}
     }
     if(!doc.HasMember("connection_downsample")){
@@ -772,23 +785,7 @@ void Deserialize(telemetry_config& obj, rapidjson::Value& doc)
     }else{
 	obj.gps_devices.resize(doc["gps_devices"].Size());
 	for(rapidjson::SizeType i = 0; i < doc["gps_devices"].Size(); i++){
-		obj.gps_devices[i] = doc["gps_devices"][i].GetString();
-	}
-    }
-    if(!doc.HasMember("gps_enabled")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_enabled"); 
-    }else{
-	obj.gps_enabled.resize(doc["gps_enabled"].Size());
-	for(rapidjson::SizeType i = 0; i < doc["gps_enabled"].Size(); i++){
-		obj.gps_enabled[i] = doc["gps_enabled"][i].GetBool();
-	}
-    }
-    if(!doc.HasMember("gps_mode")){
-        JSON_LOG_FUNC("telemetry_config MISSING FIELD: gps_mode"); 
-    }else{
-	obj.gps_mode.resize(doc["gps_mode"].Size());
-	for(rapidjson::SizeType i = 0; i < doc["gps_mode"].Size(); i++){
-		obj.gps_mode[i] = doc["gps_mode"][i].GetString();
+		Deserialize(obj.gps_devices[i], doc["gps_devices"][i]);
 	}
     }
     if(!doc.HasMember("connection_downsample")){

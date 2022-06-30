@@ -139,7 +139,7 @@ int GpsLogger::OpenDevice()
 
 void GpsLogger::Run()
 {
-  string line;
+  string line = "", buff = "";
   int line_fail_count = 0;
   int file_fail_count = 0;
 
@@ -171,7 +171,24 @@ void GpsLogger::Run()
     {
       try
       {
-        line = '$' + m_Serial->read_line('$');
+        while (true)
+        {
+          static char c;
+          c = m_Serial->get_char();
+          if (c == '$')
+          {
+            line = buff;
+            buff = "$";
+            break;
+          }
+          buff += c;
+          if (buff[buff.size() - 2] == '\01' || buff[buff.size() - 1] == '\07')
+          {
+            line = buff;
+            buff = "\01\07";
+            break;
+          }
+        }
       }
       catch (std::exception e)
       {
@@ -211,7 +228,8 @@ void GpsLogger::Run()
         unique_lock<mutex> lck(logger_mtx);
         try
         {
-          line = "(" + to_string(GetTimestamp()) + ")" + "\t" + line + "\n";
+          if (line.find("\n") == string::npos)
+            line += "\n";
           if (m_GPS->is_open())
             (*m_GPS) << line << flush;
         }

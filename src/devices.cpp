@@ -2,11 +2,10 @@
 
 int Device::instance_count = 0;
 
-
 Device::Device(std::string name)
 {
 	id = instance_count;
-	instance_count ++;
+	instance_count++;
 	this->name = name;
 	prev_timestamp = 0.0;
 }
@@ -17,28 +16,34 @@ std::string Device::json_string()
 	get_json().Accept(writer);
 	return sb.GetString();
 }
-std::vector<std::string> Device::get_field_names(const Descriptor* descriptor){
+std::vector<std::string> Device::get_field_names(const Descriptor *descriptor)
+{
 	std::vector<std::string> fields;
-	for(int i = 0; i < descriptor->field_count(); i++){
+	for (int i = 0; i < descriptor->field_count(); i++)
+	{
 		fields.push_back(descriptor->field(i)->json_name());
 	}
 	return fields;
 }
-std::string Device::get_header(const std::vector<std::string>& fields, std::string separator){
+std::string Device::get_header(const std::vector<std::string> &fields, std::string separator)
+{
 	std::string header = "";
-	for(int i = 0; i < fields.size()-1; i++){
+	for (int i = 0; i < fields.size() - 1; i++)
+	{
 		header += fields[i] + separator;
 	}
-	header += fields[fields.size()-1];
+	header += fields[fields.size() - 1];
 	return header;
 }
-std::string Device::get_header(const Descriptor* descriptor, std::string separator){
+std::string Device::get_header(const Descriptor *descriptor, std::string separator)
+{
 	std::string header = "";
 	int count = descriptor->field_count();
-	for(int i = 0; i < count-1; i++){
+	for (int i = 0; i < count - 1; i++)
+	{
 		header += descriptor->field(i)->json_name() + separator;
 	}
-	header += descriptor->field(count-1)->json_name();
+	header += descriptor->field(count - 1)->json_name();
 	return header;
 }
 
@@ -77,7 +82,7 @@ Document Imu::get_json()
 	d.AddMember("scale", scale, alloc);
 	return d;
 }
-void Imu::serialize(devices::Imu* imu)
+void Imu::serialize(devices::Imu *imu)
 {
 	imu->set_timestamp(timestamp);
 	imu->set_x(x);
@@ -130,7 +135,7 @@ Document Encoder::get_json()
 	d.AddMember("rotations", rotations, alloc);
 	return d;
 }
-void Encoder::serialize(devices::Encoder* encoder)
+void Encoder::serialize(devices::Encoder *encoder)
 {
 	encoder->set_timestamp(timestamp);
 	encoder->set_rads(rads);
@@ -175,7 +180,7 @@ Document Steer::get_json()
 	d.AddMember("angle", angle, alloc);
 	return d;
 }
-void Steer::serialize(devices::Steer* steer)
+void Steer::serialize(devices::Steer *steer)
 {
 	steer->set_timestamp(timestamp);
 	steer->set_angle(angle);
@@ -225,7 +230,7 @@ Document Pedals::get_json()
 	d.AddMember("brake_rear", brake_rear, alloc);
 	return d;
 }
-void Pedals::serialize(devices::Pedals* pedals)
+void Pedals::serialize(devices::Pedals *pedals)
 {
 	pedals->set_timestamp(timestamp);
 	pedals->set_throttle1(throttle1);
@@ -281,7 +286,7 @@ Document Inverter::get_json()
 	d.AddMember("speed", speed, alloc);
 	return d;
 }
-void Inverter::serialize(devices::Inverter* inverter)
+void Inverter::serialize(devices::Inverter *inverter)
 {
 	inverter->set_timestamp(timestamp);
 	inverter->set_temperature(temperature);
@@ -349,7 +354,7 @@ Document Bms::get_json()
 	d.AddMember("power", power, alloc);
 	return d;
 }
-void Bms::serialize(devices::Bms* bms)
+void Bms::serialize(devices::Bms *bms)
 {
 	bms->set_timestamp(timestamp);
 	bms->set_temperature(temperature);
@@ -407,7 +412,7 @@ Document Ecu::get_json()
 	d.AddMember("power_request_right", power_request_right, alloc);
 	return d;
 }
-void Ecu::serialize(devices::Ecu* ecu)
+void Ecu::serialize(devices::Ecu *ecu)
 {
 	ecu->set_timestamp(timestamp);
 	ecu->set_power_request_left(power_request_left);
@@ -450,7 +455,7 @@ Document State::get_json()
 	d.AddMember("value", Value().SetString(value.c_str(), value.size(), alloc), alloc);
 	return d;
 }
-void State::serialize(devices::State* state)
+void State::serialize(devices::State *state)
 {
 	state->set_timestamp(timestamp);
 	state->set_value(value);
@@ -472,7 +477,7 @@ std::string Temperature::get_header(std::string separator)
 {
 	std::string header = "";
 	header += "timestamp" + separator;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		header += "channel_" + std::to_string(i) + separator;
 	return header;
 }
@@ -480,7 +485,7 @@ std::string Temperature::get_string(std::string separator)
 {
 	std::string str = "";
 	str += std::to_string(timestamp) + separator;
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		str += std::to_string(temps[i]) + separator;
 	return str;
 }
@@ -492,17 +497,17 @@ Document Temperature::get_json()
 	d.AddMember("timestamp", timestamp, alloc);
 	Value v;
 	v.SetArray();
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		v.PushBack(temps[i], alloc);
 	d.AddMember("value", v, alloc);
 	return d;
 }
-void Temperature::serialize(devices::Temperature* temperature)
+void Temperature::serialize(devices::Temperature *temperature)
 {
 	temperature->set_timestamp(timestamp);
 
 	temperature->clear_temps();
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		temperature->add_temps(temps[i]);
 }
 std::string Temperature::get_readable()
@@ -511,7 +516,7 @@ std::string Temperature::get_readable()
 	ss.precision(3);
 	ss << get_name() << "\n";
 	ss << "\ttimestamp -> \t" << timestamp << "\n";
-	for(int i = 0; i < 16; i++)
+	for (int i = 0; i < 16; i++)
 		ss << "\tchannel_" << i << " -> \t" << temps[i] << "\n";
 	return ss.str();
 }
@@ -522,58 +527,57 @@ std::string Temperature::get_readable()
 std::string Gps::get_header(std::string separator)
 {
 	std::stringstream ss;
-	ss << "timestamp" + separator
-	<< "msg_type" + separator
-	<< "time" + separator
-	<< "latitude" + separator
-	<< "longitude" + separator
-	<< "altitude" + separator
-	<< "fix" + separator
-	<< "satellites" + separator
-	<< "fix_state" + separator
-	<< "age_of_correction" + separator
-	<< "course_over_ground_degrees" + separator
-	<< "course_over_ground_degrees_magnetic" + separator
-	<< "speed_kmh" + separator
-	<< "mode" + separator
-	<< "position_diluition_precision" + separator
-	<< "horizontal_diluition_precision" + separator
-	<< "vertical_diluition_precision" + separator
+	ss
+		<< "msg_type" + separator
+		<< "time" + separator
+		<< "latitude" + separator
+		<< "longitude" + separator
+		<< "altitude" + separator
+		<< "fix" + separator
+		<< "satellites" + separator
+		<< "fix_state" + separator
+		<< "age_of_correction" + separator
+		<< "course_over_ground_degrees" + separator
+		<< "course_over_ground_degrees_magnetic" + separator
+		<< "speed_kmh" + separator
+		<< "mode" + separator
+		<< "position_diluition_precision" + separator
+		<< "horizontal_diluition_precision" + separator
+		<< "vertical_diluition_precision" + separator
 
-	<< "heading_valid" + separator
-	<< "heading_vehicle" + separator
-	<< "heading_motion" + separator
-	<< "heading_accuracy_estimate" + separator
-	<< "speed_accuracy" + separator;
+		<< "heading_valid" + separator
+		<< "heading_vehicle" + separator
+		<< "heading_motion" + separator
+		<< "heading_accuracy_estimate" + separator
+		<< "speed_accuracy" + separator;
 	return ss.str();
 }
 std::string Gps::get_string(std::string separator)
 {
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(9)
-	<< timestamp << separator
-	<< msg_type + separator
-	<< time + separator
-	<< latitude << separator
-	<< longitude << separator
-	<< altitude << separator
-	<< fix << separator
-	<< satellites << separator
-	<< fix_state + separator
-	<< age_of_correction << separator
-	<< course_over_ground_degrees << separator
-	<< course_over_ground_degrees_magnetic << separator
-	<< speed_kmh << separator
-	<< mode + separator
-	<< position_diluition_precision << separator
-	<< horizontal_diluition_precision << separator
-	<< vertical_diluition_precision << separator
+	   << msg_type + separator
+	   << time + separator
+	   << latitude << separator
+	   << longitude << separator
+	   << altitude << separator
+	   << fix << separator
+	   << satellites << separator
+	   << fix_state + separator
+	   << age_of_correction << separator
+	   << course_over_ground_degrees << separator
+	   << course_over_ground_degrees_magnetic << separator
+	   << speed_kmh << separator
+	   << mode + separator
+	   << position_diluition_precision << separator
+	   << horizontal_diluition_precision << separator
+	   << vertical_diluition_precision << separator
 
-	<< heading_valid << separator
-	<< heading_vehicle << separator
-	<< heading_motion << separator
-	<< heading_accuracy_estimate << separator
-	<< speed_accuracy << separator;
+	   << heading_valid << separator
+	   << heading_vehicle << separator
+	   << heading_motion << separator
+	   << heading_accuracy_estimate << separator
+	   << speed_accuracy << separator;
 	return ss.str();
 }
 Document Gps::get_json()
@@ -607,7 +611,7 @@ Document Gps::get_json()
 
 	return d;
 }
-void Gps::serialize(devices::Gps* gps)
+void Gps::serialize(devices::Gps *gps)
 {
 	gps->set_timestamp(timestamp);
 	gps->set_msg_type(msg_type);
@@ -632,36 +636,34 @@ void Gps::serialize(devices::Gps* gps)
 	gps->set_heading_motion(heading_motion);
 	gps->set_heading_accuracy_estimate(heading_accuracy_estimate);
 	gps->set_speed_accuracy(speed_accuracy);
-
 }
 std::string Gps::get_readable()
 {
 	std::stringstream ss;
 	ss << std::fixed << std::setprecision(3)
-	<< get_name() << "\n"
-	<< "\ttimestamp -> \t" << timestamp << "\n"
-	<< "\tmsg_type -> \t" << msg_type << "\n"
-	<< "\ttime -> \t" << time << "\n"
-	<< "\tlatitude -> \t" << latitude << "\n"
-	<< "\tlongitude -> \t" << longitude << "\n"
-	<< "\taltitude -> \t" << altitude << "\n"
-	<< "\tfix -> \t" << fix << "\n"
-	<< "\tsatellites -> \t" << satellites << "\n"
-	<< "\tfix_state -> \t" << fix_state << "\n"
-	<< "\tage_of_correction -> \t" << age_of_correction << "\n"
-	<< "\tcourse_over_ground_degrees -> \t" << course_over_ground_degrees << "\n"
-	<< "\tcourse_over_ground_degrees_magnetic -> \t" << course_over_ground_degrees_magnetic << "\n"
-	<< "\tspeed_kmh -> \t" << speed_kmh << "\n"
-	<< "\tmode -> \t" << mode << "\n"
-	<< "\tposition_diluition_precision -> \t" << position_diluition_precision << "\n"
-	<< "\thorizontal_diluition_precision -> \t" << horizontal_diluition_precision << "\n"
-	<< "\tvertical_diluition_precision -> \t" << vertical_diluition_precision << "\n"
+	   << get_name() << "\n"
+	   << "\ttimestamp -> \t" << timestamp << "\n"
+	   << "\tmsg_type -> \t" << msg_type << "\n"
+	   << "\ttime -> \t" << time << "\n"
+	   << "\tlatitude -> \t" << latitude << "\n"
+	   << "\tlongitude -> \t" << longitude << "\n"
+	   << "\taltitude -> \t" << altitude << "\n"
+	   << "\tfix -> \t" << fix << "\n"
+	   << "\tsatellites -> \t" << satellites << "\n"
+	   << "\tfix_state -> \t" << fix_state << "\n"
+	   << "\tage_of_correction -> \t" << age_of_correction << "\n"
+	   << "\tcourse_over_ground_degrees -> \t" << course_over_ground_degrees << "\n"
+	   << "\tcourse_over_ground_degrees_magnetic -> \t" << course_over_ground_degrees_magnetic << "\n"
+	   << "\tspeed_kmh -> \t" << speed_kmh << "\n"
+	   << "\tmode -> \t" << mode << "\n"
+	   << "\tposition_diluition_precision -> \t" << position_diluition_precision << "\n"
+	   << "\thorizontal_diluition_precision -> \t" << horizontal_diluition_precision << "\n"
+	   << "\tvertical_diluition_precision -> \t" << vertical_diluition_precision << "\n"
 
-	<< "\theading_valid -> \t" << heading_valid << "\n"
-	<< "\theading_vehicle -> \t" << heading_vehicle << "\n"
-	<< "\theading_motion -> \t" << heading_motion << "\n"
-	<< "\theading_accuracy_estimate -> \t" << heading_accuracy_estimate << "\n"
-	<< "\tspeed_accuracy -> \t" << speed_accuracy << "\n";
+	   << "\theading_valid -> \t" << heading_valid << "\n"
+	   << "\theading_vehicle -> \t" << heading_vehicle << "\n"
+	   << "\theading_motion -> \t" << heading_motion << "\n"
+	   << "\theading_accuracy_estimate -> \t" << heading_accuracy_estimate << "\n"
+	   << "\tspeed_accuracy -> \t" << speed_accuracy << "\n";
 	return ss.str();
 }
-

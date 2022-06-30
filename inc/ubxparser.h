@@ -6,6 +6,7 @@
 #include <string>
 
 #include "utils.h"
+#include "devices.h"
 
 using namespace std;
 
@@ -67,3 +68,5 @@ uint32_t reverse32(const uint32_t &in);
 
 int16_t reversei16(const int16_t &in);
 int32_t reversei32(const int32_t &in);
+
+int parse_gps(Gps *gps_, const double &timestamp, string &line);
