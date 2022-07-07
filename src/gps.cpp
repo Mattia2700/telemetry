@@ -198,11 +198,11 @@ int parse_gps(Gps *gps_, const double &timestamp, string &line)
         gps_->clear();
         gps_->data.timestamp = timestamp;
         gps_->data.msg_type = "UBX";
-        // gps_->data.latitude = ((double)msg.lat) * 10e-8;
-        // gps_->data.longitude = ((double)msg.lon) * 10e-8;
+        gps_->data.latitude = ((double)msg.lat) * 10e-8;
+        gps_->data.longitude = ((double)msg.lon) * 10e-8;
         // From this message the coord are kinda different to check
-        gps_->data.latitude = 0.0;
-        gps_->data.longitude = 0.0;
+        // gps_->data.latitude = 0.0;
+        // gps_->data.longitude = 0.0;
 
         gps_->data.altitude = msg.hMSL * 10e-4;
         gps_->data.speed_kmh = msg.gSpeed * 3.6 * 10e-4;

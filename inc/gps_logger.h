@@ -38,6 +38,8 @@ struct GPS_Stat_t
   uint64_t msg_count;
 };
 
+bool read_gps_line(const serial &ser, string &line);
+
 class GpsLogger
 {
 public:

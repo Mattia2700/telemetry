@@ -41,7 +41,7 @@ static std::string ParseErrorString[] =
         "MessageUndefined",
         "FieldError"};
 
-typedef struct GpsData
+struct GpsData
 {
   double timestamp;
   std::string msg_type;

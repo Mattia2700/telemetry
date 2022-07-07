@@ -27,7 +27,7 @@ public:
 
   bool file_exists();
 
-  char get_char();
+  inline int get_char(char &c) const { return read(fd, &c, 1); };
   string read_line(char separator = '\n');
 
 private:

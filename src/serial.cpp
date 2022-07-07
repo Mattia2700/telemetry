@@ -16,7 +16,7 @@ string serial::read_line(char separator)
   char ch;
   while (true)
   {
-    if (read(fd, &ch, 1) <= 0)
+    if (get_char(ch) <= 0)
     {
       break;
     }
@@ -25,13 +25,6 @@ string serial::read_line(char separator)
     line += ch;
   };
   return line;
-}
-
-char serial::get_char()
-{
-  char c;
-  read(fd, &c, 1);
-  return c;
 }
 
 void serial::close_port()

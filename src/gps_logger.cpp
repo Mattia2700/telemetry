@@ -1,5 +1,32 @@
 #include "gps_logger.h"
 
+bool read_gps_line(const serial &ser, string &line)
+{
+  static string buff;
+  while (true)
+  {
+    static char c;
+    if (ser.get_char(c) <= 0)
+      return false;
+    if (c == '$')
+    {
+      line = buff;
+      line[line.size() - 1] = ' ';
+      buff = "$";
+      break;
+    }
+    buff += c;
+    if (buff[buff.size() - 2] == '\xb5' || buff[buff.size() - 1] == '\x62')
+    {
+      line = buff;
+      line.erase(line.size() - 2, 2);
+      buff = "\xb5\x62";
+      break;
+    }
+  }
+  return true;
+}
+
 GpsLogger::GpsLogger(int id_, string device)
 {
   m_Device = device;
@@ -171,24 +198,7 @@ void GpsLogger::Run()
     {
       try
       {
-        while (true)
-        {
-          static char c;
-          c = m_Serial->get_char();
-          if (c == '$')
-          {
-            line = buff;
-            buff = "$";
-            break;
-          }
-          buff += c;
-          if (buff[buff.size() - 2] == '\01' || buff[buff.size() - 1] == '\07')
-          {
-            line = buff;
-            buff = "\01\07";
-            break;
-          }
-        }
+        read_gps_line(*m_Serial, line);
       }
       catch (std::exception e)
       {
