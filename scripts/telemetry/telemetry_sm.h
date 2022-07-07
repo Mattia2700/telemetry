@@ -16,11 +16,11 @@
 #include <condition_variable>
 
 #include "can.h"
+#include "gps.h"
 #include "utils.h"
+#include "loads.h"
 #include "serial.h"
 #include "gps_logger.h"
-#include "ubxparser.h"
-#include "loads.h"
 
 #ifdef WITH_CAMERA
 #include "camera.h"
@@ -42,18 +42,20 @@ extern "C"
 #include "thirdparty/lapcounter/src/lapcounter.h"
 }
 
+// #define primary_IDS_IMPLEMENTATION
+// #define secondary_IDS_IMPLEMENTATION
+// #define primary_NETWORK_IMPLEMENTATION
+// #define secondary_NETWORK_IMPLEMENTATION
+#define primary_MAPPING_IMPLEMENTATION
+#define secondary_MAPPING_IMPLEMENTATION
+// #define __TELEMETRY_CONFIG_IMPLEMENTATION__
+// #define __MESSAGES_IMPLEMENTATION__
 #define CANLIB_TIMESTAMP
-#define primary_IDS_IMPLEMENTATION
-#define secondary_IDS_IMPLEMENTATION
-#define primary_NETWORK_IMPLEMENTATION
-#define secondary_NETWORK_IMPLEMENTATION
 #include "thirdparty/can/lib/primary/c/ids.h"
 #include "thirdparty/can/lib/secondary/c/ids.h"
 #include "thirdparty/can/lib/primary/c/network.h"
 #include "thirdparty/can/lib/secondary/c/network.h"
 
-#define primary_MAPPING_IMPLEMENTATION
-#define secondary_MAPPING_IMPLEMENTATION
 #include "thirdparty/can/proto/primary/cpp/mapping.h"
 #include "thirdparty/can/proto/secondary/cpp/mapping.h"
 

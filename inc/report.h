@@ -12,12 +12,9 @@
 
 #include <filesystem>
 
-#include "vehicle.h"
-#include "devices.h"
-
 #include "libharu/include/hpdf.h"
 
-#include "json_loader.h"
+#include "telemetry_config.h"
 
 #include "gnuplot-iostream.h"
 

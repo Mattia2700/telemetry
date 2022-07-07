@@ -178,7 +178,6 @@ STATE_DEFINE(TelemetrySM, IdleImpl, NoEventData)
   CAN_Message message_q;
   can_frame message;
   uint64_t timestamp;
-  vector<Device *> modifiedDevices;
 
   static FILE *fout;
   static int dev_idx;
@@ -310,8 +309,8 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
       continue;
     gps_loggers[i]->SetOutputFolder(CURRENT_LOG_FOLDER);
     gps_loggers[i]->SetHeader(header);
-    gps_class[i]->filenames.push_back(folder + "/Parsed/GPS " + to_string(i) + ".csv");
-    gps_class[i]->files.push_back(new std::fstream(gps_class[i]->filenames.back(), std::fstream::out));
+    gps_class[i]->filename = folder + "/Parsed/GPS " + to_string(i) + ".csv";
+    gps_class[i]->file = new fstream(gps_class[i]->filename, std::fstream::out);
   }
   CONSOLE.Log("Loggers DONE");
 
@@ -463,12 +462,9 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
     gps_loggers[i]->StopLogging();
     if (tel_conf.gps_devices[i].enabled)
       gps_loggers[i]->Start();
-    for (size_t j = 0; j < gps_class[i]->filenames.size(); j++)
-    {
-      gps_class[i]->filenames[j] = "";
-      gps_class[i]->files[j]->flush();
-      gps_class[i]->files[j]->close();
-    }
+    gps_class[i]->filename = "";
+    gps_class[i]->file->flush();
+    gps_class[i]->file->close();
   }
   CONSOLE.Log("Done");
 
@@ -606,8 +602,7 @@ ENTRY_DEFINE(TelemetrySM, Deinitialize, NoEventData)
     cout << i << endl;
     gps_loggers[i]->Kill();
     gps_loggers[i]->WaitForEnd();
-    for (auto file : gps_class[i]->files)
-      file->close();
+    gps_class[i]->file->close();
     delete gps_class[i];
     delete gps_loggers[i];
   }
@@ -901,8 +896,8 @@ void TelemetrySM::OnGpsLine(int id, string line)
     unique_lock<mutex> lck(mtx);
     if (GetCurrentState() == ST_RUN && tel_conf.generate_csv)
     {
-      (*gps->files[0]) << gps->get_string(",") + "\n"
-                       << flush;
+      (*gps->file) << gps->get_string(",") + "\n"
+                   << flush;
     }
   }
 
@@ -922,8 +917,8 @@ void TelemetrySM::OnGpsLine(int id, string line)
   if (ret == 1)
   {
     // lapCounter
-    point.x = gps->latitude;
-    point.y = gps->longitude;
+    point.x = gps->data.latitude;
+    point.y = gps->data.longitude;
 
     if (!(point.x == previousX && point.y == previousY))
     {
@@ -1281,20 +1276,23 @@ void TelemetrySM::ActionThread()
 
 void TelemetrySM::CanReceive(CAN_Socket *can)
 {
-  CAN_Message msg;
-  msg.receiver_name = can->name;
+  can_frame frame;
   while (!kill_threads)
   {
-    if (can->sock->receive(&msg.frame) == -1)
+    CAN_Message msg;
+    msg.receiver_name = can->name;
+    int ret = can->sock->receive(&frame);
+    if (ret == -1 || ret == 0)
     {
       CONSOLE.LogWarn("Can receive ", can->name);
       continue;
     }
     msg.timestamp = get_timestamp_u();
+    msg.frame = frame;
+    if (GetCurrentState() == ST_IDLE || GetCurrentState() == ST_RUN)
     {
       unique_lock<mutex> lck(can_mutex);
-      if (GetCurrentState() == ST_IDLE || GetCurrentState() == ST_RUN)
-        messages_queue.push(msg);
+      messages_queue.push(msg);
       can_cv.notify_all();
     }
   }

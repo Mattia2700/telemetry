@@ -92,104 +92,72 @@ add_subdirectory(${PROJECT_SOURCE_DIR}/thirdparty/libharu)
 
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
 
+FILE(GLOB srcs ${CMAKE_CURRENT_SOURCE_DIR}/src/*)
+
+add_library(
+  canlib
+  SHARED
+  src/implemetations.cpp
+)
+target_link_libraries(canlib ${Protobuf_LIBRARIES})
+
 add_library(
   libBase
   SHARED
 
-  src/can.cpp
-  src/utils.cpp
+  # ${srcs}
   src/browse.cpp
-  src/serial.cpp
-  src/console.cpp
+  src/camera.cpp
+  src/can.cpp
+  src/gps.cpp
+  src/connection.cpp
+  src/gps_logger.cpp
   src/loads.cpp
-
+  src/serial.cpp
+  src/utils.cpp
   src/ws_connection.cpp
   src/zmq_connection.cpp
-  src/connection.cpp
+  src/console.cpp
 
-  thirdparty/lapcounter/src/lapcounter.c
-  thirdparty/lapcounter/src/utils/vector/point/point.c
-  thirdparty/lapcounter/src/utils/vector/vector.c
-)
-target_link_libraries(libBase
-  stdc++fs
-  websocketpp::websocketpp
-  ${ZeroMQ_LIBRARY}
-)
-
-# add_library(
-#   libJson
-#   SHARED
-#   json_models/json_loader.cpp
-#   json_models/messages.cpp
-# )
-
-add_library(
- libVehicle
- SHARED
- src/devices.cpp
- src/ubxparser.cpp
- src/gps_logger.cpp
-)
-target_link_libraries(libVehicle
- hpdf
- stdc++fs
- ${Protobuf_LIBRARIES}
- Boost::iostreams
- Boost::system
-)
-
-if(WITH_CAMERA)
-  add_library(
-    libCamera
-    SHARED
-    src/camera.cpp
-  )
-  target_link_libraries(libCamera
-    libBase
-    libStateMachine
-    ${raspicam_LIBS}
-    ${OpenCV_LIBS}
-  )
-endif()
-
-
-add_library(
-  libStateMachine
-  SHARED
-  
   # StateMachine
   src/StateMachine/StateMachine.cpp
   src/StateMachine/Fault.cpp
-)
-add_library(
- libSMImpl
- SHARED
- scripts/telemetry/telemetry_sm.cpp
+
+  scripts/telemetry/telemetry_sm.cpp
  
- thirdparty/can/proto/primary/cpp/primary.pb.cc
- thirdparty/can/proto/secondary/cpp/secondary.pb.cc
+  thirdparty/can/proto/primary/cpp/primary.pb.cc
+  thirdparty/can/proto/secondary/cpp/secondary.pb.cc
+
+  thirdparty/lapcounter/src/lapcounter.c
+  thirdparty/lapcounter/src/utils/vector/vector.c
+  thirdparty/lapcounter/src/utils/vector/point/point.c
 )
-
-target_link_libraries(libSMImpl
- stdc++fs
- ${Protobuf_LIBRARIES}
- websocketpp::websocketpp
-
- libBase
- libVehicle
- libStateMachine
+target_link_libraries(libBase
+  hpdf
+  canlib
+  stdc++fs
+  websocketpp::websocketpp
+  ${ZeroMQ_LIBRARY}
+  ${Protobuf_LIBRARIES}
+  Boost::iostreams
+  Boost::system
 )
 
 if(WITH_CAMERA)
-  target_link_libraries(libSMImpl libCamera)
+  target_link_libraries(libBase
+    ${raspicam_LIBS}
+    ${OpenCV_LIBS}
+  )
 endif()
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
 
 ## TELEMETRY
 add_executable(telemetry scripts/telemetry/main.cpp)
-target_link_libraries(telemetry libSMImpl libCamera libVehicle)
+target_link_libraries(telemetry libBase)
+
+add_executable(gps scripts/testGPS/main.cpp)
+target_link_libraries(gps libBase)
 
 add_executable(test_can scripts/testCan/main.cpp 
   thirdparty/can/proto/primary/cpp/primary.pb.cc

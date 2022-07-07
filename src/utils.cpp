@@ -204,7 +204,7 @@ int empty_fields(const vector<string> &vec, const vector<int> &indeces)
 
 uint64_t get_timestamp_u()
 {
-  return duration_cast<duration<uint64_t, micro>>(system_clock::now().time_since_epoch()).count();
+  return duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 }
 double get_timestamp()
 {
