@@ -284,12 +284,22 @@ ENTRY_DEFINE(TelemetrySM, ToRun, NoEventData)
     char buff[125];
     for (int i = 0; i < primary_MESSAGE_COUNT; i++)
     {
-      primary_message_name_from_id((*primary_devs)[i].id, buff);
-      string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + string(buff) + ".csv");
-      primary_files[i] = fopen(folder.c_str(), "w");
-      primary_fields_file_from_id((*primary_devs)[i].id, primary_files[i]);
-      fprintf(primary_files[i], "\r\n");
-      fflush(primary_files[i]);
+      if(!INVERTER_MSG(i)){
+        primary_message_name_from_id((*primary_devs)[i].id, buff);
+        string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + string(buff) + ".csv");
+        primary_files[i] = fopen(folder.c_str(), "w");
+        primary_fields_file_from_id((*primary_devs)[i].id, primary_files[i]);
+        fprintf(primary_files[i], "\r\n");
+        fflush(primary_files[i]);
+      } else {
+        for(int j=0; j<6; j++){
+          string folder = (CURRENT_LOG_FOLDER + "/Parsed/primary/" + inverter_filename(j) + ".csv");
+          inverter_files[j] = fopen(folder.c_str(), "w");
+          inverter_fields(inverter_files[j], j);
+          fprintf(inverter_files[j], "\r\n");
+          fflush(inverter_files[j]);
+        }
+      }
     }
     for (int i = 0; i < secondary_MESSAGE_COUNT; i++)
     {
@@ -372,14 +382,18 @@ STATE_DEFINE(TelemetrySM, RunImpl, NoEventData)
         primary_deserialize_from_id(message.can_id, message.data, (*primary_devs)[dev_idx].message_raw, (*primary_devs)[dev_idx].message_conversion, timestamp);
         if (tel_conf.generate_csv)
         {
-          csv_out = primary_files[dev_idx];
-          if ((*primary_devs)[dev_idx].message_conversion == NULL)
-            primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_raw, csv_out);
-          else
-            primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_conversion, csv_out);
-
-          fprintf(csv_out, "\n");
-          fflush(csv_out);
+          if(!INVERTER_MSG(dev_idx)){
+            csv_out = primary_files[dev_idx];
+            if ((*primary_devs)[dev_idx].message_conversion == NULL)
+              primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_raw, csv_out);
+            else
+              primary_to_string_file_from_id(message.can_id, (*primary_devs)[dev_idx].message_conversion, csv_out);
+            
+            fprintf(csv_out, "\n");
+            fflush(csv_out);
+          } else {
+            inverter_to_string((*primary_devs)[dev_idx].message_raw, message.can_id, inverter_files);
+          }
         }
         ProtoSerialize(0, timestamp, message, dev_idx);
         if (message.can_id == primary_ID_SET_TLM_STATUS)
@@ -448,6 +462,14 @@ STATE_DEFINE(TelemetrySM, StopImpl, NoEventData)
       {
         fclose(secondary_files[i]);
         secondary_files[i] = NULL;
+      }
+    }
+    for (int i = 0; i < INVERTER_MSGS; i++)
+    {
+      if (inverter_files[i] != NULL)
+      {
+        fclose(inverter_files[i]);
+        inverter_files[i] = NULL;
       }
     }
   }

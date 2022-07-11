@@ -44,5 +44,5 @@ message GpsVec {
 }
 
 message InverterVec {
-	repeated Inverter inverter = 1
+	repeated Inverter inverter = 1;
 }

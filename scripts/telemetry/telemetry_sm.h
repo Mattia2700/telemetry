@@ -21,6 +21,7 @@
 #include "loads.h"
 #include "serial.h"
 #include "gps_logger.h"
+#include "inverter.h"
 
 #ifdef WITH_CAMERA
 #include "camera.h"
@@ -169,6 +170,7 @@ private:
 	primary::Pack primary_pack;
 	secondary::Pack secondary_pack;
 
+	FILE *inverter_files[INVERTER_MSGS]; // 6?
 	FILE *primary_files[primary_MESSAGE_COUNT];
 	FILE *secondary_files[secondary_MESSAGE_COUNT];
 #ifdef WITH_CAMERA

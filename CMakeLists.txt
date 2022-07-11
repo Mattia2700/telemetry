@@ -108,6 +108,7 @@ add_library(
   # ${srcs}
   src/browse.cpp
   src/camera.cpp
+  src/inverter.cpp
   src/can.cpp
   src/gps.cpp
   src/connection.cpp
